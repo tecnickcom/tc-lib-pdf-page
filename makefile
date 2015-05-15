@@ -27,7 +27,7 @@ RELEASE=`cat RELEASE`
 PKGNAME=php-tc-lib-pdf-page
 
 # Default installation path for code
-LIBPATH=usr/share/php/Com/Tecnick/Pdf/Font/Data/
+LIBPATH=usr/share/php/Com/Tecnick/Pdf/Page/
 
 # Default installation path for documentation
 DOCPATH=usr/share/doc/$(PKGNAME)/
