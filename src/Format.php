@@ -388,7 +388,7 @@ class Format
     );
 
     /**
-     * Get page dimensions in points
+     * Get page dimensions
      *
      * @param string $format The page format name
      * @param string $unit   Unit name (default points)
