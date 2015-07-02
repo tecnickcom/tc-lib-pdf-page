@@ -48,7 +48,7 @@ class Mode
 
     /**
      * Map display modes with their canonical names
-     * 
+     *
      * @var array
      */
     protected static $display = array(
