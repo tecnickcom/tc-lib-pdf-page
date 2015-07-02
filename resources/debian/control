@@ -1,4 +1,4 @@
-Source: php-tc-lib-pdf-page
+Source: php-tecnickcom-tc-lib-pdf-page
 Maintainer: Nicola Asuni <info@tecnick.com>
 Section: php
 Priority: optional
@@ -7,8 +7,9 @@ Standards-Version: 3.9.5
 Homepage: https://github.com/tecnickcom/tc-lib-pdf-page
 Vcs-Git: https://github.com/tecnickcom/tc-lib-pdf-page.git
 
-Package: php-tc-lib-pdf-page
+Package: php-tecnickcom-tc-lib-pdf-page
+Provides: php-tc-lib-pdf-page
 Architecture: all
-Recommends: php5
+Depends: php5 (>= 5.3.3)
 Description: PHP PDF Page Library
  PHP library containing PDF page formats and definitions.

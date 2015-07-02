@@ -48,6 +48,7 @@ class Mode
 
     /**
      * Map display modes with their canonical names
+     *
      * @var array
      */
     protected static $display = array(
@@ -63,7 +64,7 @@ class Mode
     /**
      * Get the canonical page layout name.
      *
-     * @param string $layout Page layout name
+     * @param string $name Page layout name
      *
      * @return string Canonical page layout name.
      */
