@@ -26,7 +26,7 @@ namespace Com\Tecnick\Pdf\Page;
  * @license     http://www.gnu.org/copyleft/lesser.html GNU-LGPL v3 (see LICENSE.TXT)
  * @link        https://github.com/tecnickcom/tc-lib-pdf-page
  */
-class Mode
+abstract class Mode extends \Com\Tecnick\Pdf\Page\Format
 {
     /**
      * Map layouts with their canonical names

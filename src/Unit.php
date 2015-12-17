@@ -28,7 +28,7 @@ use \Com\Tecnick\Pdf\Page\Exception as PageException;
  * @license     http://www.gnu.org/copyleft/lesser.html GNU-LGPL v3 (see LICENSE.TXT)
  * @link        https://github.com/tecnickcom/tc-lib-pdf-page
  */
-class Unit
+abstract class Unit
 {
     /**
      * Array of conversion ratios relative to points
@@ -36,7 +36,7 @@ class Unit
      * @var array
      */
     public static $ratio = array(
-        ''            => 1, // default to points
+        ''            => 1,                // default to points
         'px'          => 1,
         'pt'          => 1,
         'points'      => 1,
@@ -52,7 +52,7 @@ class Unit
      * Convert Points to another unit
      *
      * @param float  $points Value to convert
-     * @param string $unit   New unit name
+     * @param string $unit   Name of the unit to convert to
      * @param int    $dec    Number of decimals to return
      *
      * @return int Millimeters

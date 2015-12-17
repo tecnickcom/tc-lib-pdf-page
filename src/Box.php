@@ -28,10 +28,10 @@ use \Com\Tecnick\Pdf\Page\Exception as PageException;
  * @license     http://www.gnu.org/copyleft/lesser.html GNU-LGPL v3 (see LICENSE.TXT)
  * @link        https://github.com/tecnickcom/tc-lib-pdf-page
  */
-class Box
+abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
 {
     /**
-     * Array pf page box names
+     * Array of page box names
      *
      * @var array
      */
@@ -76,10 +76,11 @@ class Box
      * @param float  $lly     Lower-left y coordinate in user units.
      * @param float  $urx     Upper-right x coordinate in user units.
      * @param float  $ury     Upper-right y coordinate in user units.
+     * @param array  $bci     BoxColorInfo: guideline style (color, width, style, dash).
      *
      * @return array Page dimensions.
      */
-    public function setCoordinates($dims, $type, $llx, $lly, $urx, $ury)
+    public function setBox($dims, $type, $llx, $lly, $urx, $ury, array $bci = array())
     {
         if (empty($dims)) {
             // initialize array
@@ -92,6 +93,18 @@ class Box
         $dims[$type]['lly'] = $lly;
         $dims[$type]['urx'] = $urx;
         $dims[$type]['ury'] = $ury;
+
+        if (empty($bci)) {
+            // set default values
+            $bci = array(
+                'color' => '#000000',
+                'width' => (1.0 / $this->kunit),
+                'style' => 'S', // S = solid; D = dash
+                'dash'  => array(3)
+            );
+        }
+        $dims[$type]['bci'] = $bci;
+
         return $dims;
     }
 
@@ -107,8 +120,74 @@ class Box
     {
         $dims = array();
         foreach (self::$box as $type) {
-            $dims = $this->setCoordinates($dims, $type, 0, 0, $width, $height);
+            $dims = $this->setBox($dims, $type, 0, 0, $width, $height);
         }
         return $dims;
+    }
+
+    /**
+     * Returns the PDF command to output the specified page boxes.
+     *
+     * @param array $dims Array of page dimensions.
+     *
+     * @return string
+     */
+    protected function getBox(array $dims)
+    {
+        $out = '';
+        foreach (self::$box as $box) {
+            if (empty($dims[$box])) {
+                continue;
+            }
+            $out .= '/'.$box.' ['.sprintf(
+                '%F %F %F %F',
+                $dims[$box]['llx'],
+                $dims[$box]['lly'],
+                $dims[$box]['urx'],
+                $dims[$box]['ury']
+            ).']'."\n";
+        }
+        return $out;
+    }
+
+    /**
+     * Returns the PDF command to output the specified page BoxColorInfo
+     *
+     * @param array $dims Array of page dimensions.
+     *
+     * @return string
+     */
+    protected function getBoxColorInfo(array $dims)
+    {
+        $out = '/BoxColorInfo <<'."\n";
+        foreach (self::$box as $box) {
+            if (empty($dims[$box])) {
+                continue;
+            }
+            $out .= '/'.$box.' <<'."\n";
+            if (!empty($dims[$box]['bci']['color'])) {
+                $out .= '/C ['.$this->col->getPdfRgbComponents($dims[$box]['bci']['color']).']'."\n";
+            }
+            if (!empty($dims[$box]['bci']['width'])) {
+                $out .= '/W '.sprintf('%F', ($dims[$box]['bci']['width'] * $this->kunit))."\n";
+            }
+            if (!empty($dims[$box]['bci']['style'])) {
+                $mode = strtoupper($dims[$box]['bci']['style'][0]);
+                if ($mode !== 'D') {
+                    $mode = 'S';
+                }
+                $out .= '/S /'.$mode."\n";
+            }
+            if (!empty($dims[$box]['bci']['dash'])) {
+                $out .= '/D [';
+                foreach ($dims[$box]['bci']['dash'] as $dash) {
+                    $out .= sprintf(' %F', ((float) $dash * $this->kunit));
+                }
+                $out .= ' ]'."\n";
+            }
+            $out .= '>>'."\n";
+        }
+        $out = '>>'."\n";
+        return $out;
     }
 }

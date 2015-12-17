@@ -28,11 +28,11 @@ use \Com\Tecnick\Pdf\Page\Exception as PageException;
  * @license     http://www.gnu.org/copyleft/lesser.html GNU-LGPL v3 (see LICENSE.TXT)
  * @link        https://github.com/tecnickcom/tc-lib-pdf-page
  */
-class Format
+abstract class Format extends \Com\Tecnick\Pdf\Page\Unit
 {
     /**
-     * Array of page formats
-     * measures are calculated in this way: (inches * 72) or (millimeters * 72 / 25.4)
+     * Array of page formats (width, height).
+     * Measures are calculated in this way: (inches * 72) or (millimeters * 72 / 25.4)
      *
      * @var array
      */
@@ -390,21 +390,41 @@ class Format
     /**
      * Get page dimensions
      *
-     * @param string $format The page format name
-     * @param string $unit   Unit name (default points)
-     * @param int    $dec    Number of decimals to return
+     * @param string $format      The page format name.
+     * @param string $orientation Page orientation ('P' = portrait; 'L' = landscape, '' = default).
+     * @param string $unit        Unit name (default points).
+     * @param int    $dec         Number of decimals to return.
      *
-     * @return array Page width and height in points
+     * @return array Page width and height in specified unit
      */
-    public function getPageSize($format, $unit = '', $dec = 3)
+    public function getPageFormatSize($format, $orientation = '', $unit = '', $dec = 3)
     {
         if (!isset(self::$format[$format])) {
             throw new PageException('unknown page format: '.$format);
         }
-        $unobj = new \Com\Tecnick\Pdf\Page\Unit;
-        return array(
-            $unobj->convertPoints(self::$format[$format][0], $unit, $dec),
-            $unobj->convertPoints(self::$format[$format][1], $unit, $dec)
+        $dim = array(
+            $this->convertPoints(self::$format[$format][0], $unit, $dec),
+            $this->convertPoints(self::$format[$format][1], $unit, $dec)
         );
+        return $this->getPageOrientedSize($dim, $orientation);
+    }
+
+    /**
+     * Returns the page dimensions oriented as specified.
+     *
+     * @param array $dim Array of page dimensions (width, height).
+     * @param string $orientation Page orientation ('P' = portrait; 'L' = landscape, '' = default).
+     *
+     * @return array Page width and height in points
+     */
+    public function getPageOrientedSize($dim, $orientation = '')
+    {
+        if ($orientation == 'P') {
+            return array(min($dim), max($dim));
+        }
+        if ($orientation == 'L') {
+            return array(max($dim), min($dim));
+        }
+        return $dim;
     }
 }

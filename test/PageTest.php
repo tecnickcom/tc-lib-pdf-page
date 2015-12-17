@@ -1,6 +1,6 @@
 <?php
 /**
- * UnitTest.php
+ * PageTest.php
  *
  * @since       2011-05-23
  * @category    Library
@@ -16,7 +16,7 @@
 namespace Test;
 
 /**
- * Unit Test
+ * Page Test
  *
  * @since       2011-05-23
  * @category    Library
@@ -26,7 +26,7 @@ namespace Test;
  * @license     http://www.gnu.org/copyleft/lesser.html GNU-LGPL v3 (see LICENSE.TXT)
  * @link        https://github.com/tecnickcom/tc-lib-pdf-page
  */
-class UnitTest extends \PHPUnit_Framework_TestCase
+class PageTest extends \PHPUnit_Framework_TestCase
 {
     protected $obj = null;
 
@@ -39,15 +39,8 @@ class UnitTest extends \PHPUnit_Framework_TestCase
         $this->obj = new \Com\Tecnick\Pdf\Page\Page(0.75, $col, $enc, false, false);
     }
     
-    public function testGetPageSize()
+    public function testDummy()
     {
-        $val = $this->obj->convertPoints(72, 'in', 3);
-        $this->assertEquals(1, $val);
-
-        $val = $this->obj->convertPoints(72, 'mm', 3);
-        $this->assertEquals(25.4, $val);
-
-        $this->setExpectedException('\Com\Tecnick\Pdf\Page\Exception');
-        $this->obj->convertPoints(1, '*ERROR*', 2);
+        $this->assertTrue(true);
     }
 }

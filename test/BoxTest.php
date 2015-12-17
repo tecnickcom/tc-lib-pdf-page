@@ -33,16 +33,67 @@ class BoxTest extends \PHPUnit_Framework_TestCase
     public function setUp()
     {
         //$this->markTestSkipped(); // skip this test
-        $this->obj = new \Com\Tecnick\Pdf\Page\Box;
+
+        $col = new \Com\Tecnick\Color\Pdf;
+        $enc = new \Com\Tecnick\Pdf\Encrypt\Encrypt(false);
+        $this->obj = new \Com\Tecnick\Pdf\Page\Page(0.75, $col, $enc, false, false);
     }
     
-    public function testSetCoordinates()
+    public function testSetBox()
     {
-        $dims = $this->obj->setCoordinates(array(), 'CropBox', 2, 4, 6, 8);
-        $this->assertEquals(array('CropBox'=>array('llx'=>2, 'lly'=>4, 'urx'=>6, 'ury'=>8)), $dims);
+        $dims = $this->obj->setBox(array(), 'CropBox', 2, 4, 6, 8);
+        $this->assertEquals(
+            array(
+                'CropBox' => array(
+                    'llx' => 2,
+                    'lly' => 4,
+                    'urx' => 6,
+                    'ury' => 8,
+                    'bci' => array(
+                        'color' => '#000000',
+                        'width' => 1.3333333333333333,
+                        'style' => 'S',
+                        'dash' => array(3),
+                    )
+                )
+            ),
+            $dims
+        );
+
+        $dims = $this->obj->setBox(
+            array(),
+            'TrimBox',
+            3,
+            5,
+            7,
+            11,
+            array(
+                'color' => 'aquamarine',
+                'width' => 2,
+                'style' => 'D',
+                'dash' => array(2,3,5,7),
+            )
+        );
+        $this->assertEquals(
+            array(
+                'TrimBox' => array(
+                    'llx' => 3,
+                    'lly' => 5,
+                    'urx' => 7,
+                    'ury' => 11,
+                    'bci' => array(
+                        'color' => 'aquamarine',
+                        'width' => 2,
+                        'style' => 'D',
+                        'dash' => array(2,3,5,7),
+                    )
+                )
+            ),
+            $dims
+        );
 
         $this->setExpectedException('\Com\Tecnick\Pdf\Page\Exception');
-        $this->obj->setCoordinates(array(), 'ERROR', 1, 2, 3, 4);
+        $this->obj->setBox(array(), 'ERROR', 1, 2, 3, 4);
     }
 
     public function testSwapCoordinates()
@@ -55,13 +106,25 @@ class BoxTest extends \PHPUnit_Framework_TestCase
     public function testSetPageBoxes()
     {
         $dims = $this->obj->setPageBoxes(100, 200);
+        $exp = array(
+            'llx' => 0,
+            'lly' => 0,
+            'urx' => 100,
+            'ury' => 200,
+            'bci' => array(
+                'color' => '#000000',
+                'width' => 1.3333333333333333,
+                'style' => 'S',
+                'dash' =>array (3),
+            )
+        );
         $this->assertEquals(
             array(
-                'MediaBox' => array('llx' => 0, 'lly' => 0, 'urx' => 100, 'ury' => 200),
-                'CropBox'  => array('llx' => 0, 'lly' => 0, 'urx' => 100, 'ury' => 200),
-                'BleedBox' => array('llx' => 0, 'lly' => 0, 'urx' => 100, 'ury' => 200),
-                'TrimBox'  => array('llx' => 0, 'lly' => 0, 'urx' => 100, 'ury' => 200),
-                'ArtBox'   => array('llx' => 0, 'lly' => 0, 'urx' => 100, 'ury' => 200),
+                'MediaBox' => $exp,
+                'CropBox'  => $exp,
+                'BleedBox' => $exp,
+                'TrimBox'  => $exp,
+                'ArtBox'   => $exp,
             ),
             $dims
         );

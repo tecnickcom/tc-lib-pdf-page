@@ -33,21 +33,30 @@ class FormatTest extends \PHPUnit_Framework_TestCase
     public function setUp()
     {
         //$this->markTestSkipped(); // skip this test
-        $this->obj = new \Com\Tecnick\Pdf\Page\Format;
+
+        $col = new \Com\Tecnick\Color\Pdf;
+        $enc = new \Com\Tecnick\Pdf\Encrypt\Encrypt(false);
+        $this->obj = new \Com\Tecnick\Pdf\Page\Page(0.75, $col, $enc, false, false);
     }
     
     public function testGetPageSize()
     {
-        $dims = $this->obj->getPageSize('A0');
+        $dims = $this->obj->getPageFormatSize('A0');
         $this->assertEquals(array(2383.937, 3370.394), $dims);
 
-        $dims = $this->obj->getPageSize('A4', 'in', 2);
+        $dims = $this->obj->getPageFormatSize('A4', '', 'in', 2);
         $this->assertEquals(array(8.27, 11.69), $dims);
 
-        $dims = $this->obj->getPageSize('LEGAL', 'mm', 0);
+        $dims = $this->obj->getPageFormatSize('LEGAL', '', 'mm', 0);
         $this->assertEquals(array(216, 356), $dims);
 
+        $dims = $this->obj->getPageFormatSize('LEGAL', 'P', 'mm', 0);
+        $this->assertEquals(array(216, 356), $dims);
+
+        $dims = $this->obj->getPageFormatSize('LEGAL', 'L', 'mm', 0);
+        $this->assertEquals(array(356, 216), $dims);
+
         $this->setExpectedException('\Com\Tecnick\Pdf\Page\Exception');
-        $dims = $this->obj->getPageSize('*ERROR*');
+        $dims = $this->obj->getPageFormatSize('*ERROR*');
     }
 }

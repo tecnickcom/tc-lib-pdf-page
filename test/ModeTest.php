@@ -28,19 +28,28 @@ namespace Test;
  */
 class ModeTest extends \PHPUnit_Framework_TestCase
 {
+    protected $obj = null;
+
+    public function setUp()
+    {
+        //$this->markTestSkipped(); // skip this test
+
+        $col = new \Com\Tecnick\Color\Pdf;
+        $enc = new \Com\Tecnick\Pdf\Encrypt\Encrypt(false);
+        $this->obj = new \Com\Tecnick\Pdf\Page\Page(0.75, $col, $enc, false, false);
+    }
+
     public function testGetLayout()
     {
-        $obj = new \Com\Tecnick\Pdf\Page\Mode;
-        $this->assertEquals('TwoColumnLeft', $obj->getLayout('two'));
-        $this->assertEquals('SinglePage', $obj->getLayout(''));
-        $this->assertEquals('SinglePage', $obj->getLayout());
+        $this->assertEquals('TwoColumnLeft', $this->obj->getLayout('two'));
+        $this->assertEquals('SinglePage', $this->obj->getLayout(''));
+        $this->assertEquals('SinglePage', $this->obj->getLayout());
     }
 
     public function testGetDisplay()
     {
-        $obj = new \Com\Tecnick\Pdf\Page\Mode;
-        $this->assertEquals('UseThumbs', $obj->getDisplay('usethumbs'));
-        $this->assertEquals('UseAttachments', $obj->getDisplay(''));
-        $this->assertEquals('UseNone', $obj->getDisplay('something'));
+        $this->assertEquals('UseThumbs', $this->obj->getDisplay('usethumbs'));
+        $this->assertEquals('UseAttachments', $this->obj->getDisplay(''));
+        $this->assertEquals('UseNone', $this->obj->getDisplay('something'));
     }
 }
