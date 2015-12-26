@@ -126,15 +126,23 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
      */
     public function add(array $data = array())
     {
+        if (empty($data) && ($this->pageid >= 0)) {
+            // clone last page data
+            $data = $this->page[$this->pageid];
+            unset($data['time'], $data['content'], $data['annotrefs']);
+        } else {
+            $this->sanitizeGroup($data);
+            $this->sanitizeRotation($data);
+            $this->sanitizeZoom($data);
+            $this->sanitizePageFormat($data);
+            $this->sanitizeBoxData($data);
+            $this->sanitizeTransitions($data);
+        }
+
         $this->sanitizeTime($data);
-        $this->sanitizeGroup($data);
         $this->sanitizeContent($data);
         $this->sanitizeAnnotRefs($data);
-        $this->sanitizeRotation($data);
-        $this->sanitizeZoom($data);
-        $this->sanitizePageFormat($data);
-        $this->sanitizeBoxData($data);
-        $this->sanitizeTransitions($data);
+        $data['content_mark'] = array(0);
 
         $this->page[++$this->pageid] = $data;
     }
@@ -218,6 +226,23 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
     public function popContent()
     {
         return array_pop($this->page[$this->pageid]['content']);
+    }
+
+    /**
+     * Add page content mark
+     */
+    public function addContentMark()
+    {
+        $this->page[$this->pageid]['content_mark'][] = count($this->page[$this->pageid]['content']);
+    }
+
+    /**
+     * Remove the last marked page content
+     */
+    public function popContentToLastMark()
+    {
+        $mark = array_pop($this->page[$this->pageid]['content_mark']);
+        $this->page[$this->pageid]['content'] = array_slice($this->page[$this->pageid]['content'], 0, $mark, true);
     }
 
     /**
@@ -455,6 +480,12 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
                     $data['box']['CropBox']['ury']
                 );
             }
+        }
+        if ($data['orientation'] != $this->getPageOrientation(
+            abs($data['box']['MediaBox']['urx'] - $data['box']['MediaBox']['llx']),
+            abs($data['box']['MediaBox']['ury'] - $data['box']['MediaBox']['lly'])
+        )) {
+            $data['box'] = $this->swapCoordinates($data['box']);
         }
     }
 
