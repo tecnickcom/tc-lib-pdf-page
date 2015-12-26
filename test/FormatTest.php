@@ -42,19 +42,19 @@ class FormatTest extends \PHPUnit_Framework_TestCase
     public function testGetPageSize()
     {
         $dims = $this->obj->getPageFormatSize('A0');
-        $this->assertEquals(array(2383.937, 3370.394), $dims);
+        $this->assertEquals(array(2383.937, 3370.394, 'P'), $dims);
 
         $dims = $this->obj->getPageFormatSize('A4', '', 'in', 2);
-        $this->assertEquals(array(8.27, 11.69), $dims);
+        $this->assertEquals(array(8.27, 11.69, 'P'), $dims);
 
         $dims = $this->obj->getPageFormatSize('LEGAL', '', 'mm', 0);
-        $this->assertEquals(array(216, 356), $dims);
+        $this->assertEquals(array(216, 356, 'P'), $dims);
 
         $dims = $this->obj->getPageFormatSize('LEGAL', 'P', 'mm', 0);
-        $this->assertEquals(array(216, 356), $dims);
+        $this->assertEquals(array(216, 356, 'P'), $dims);
 
         $dims = $this->obj->getPageFormatSize('LEGAL', 'L', 'mm', 0);
-        $this->assertEquals(array(356, 216), $dims);
+        $this->assertEquals(array(356, 216, 'L'), $dims);
 
         $this->setExpectedException('\Com\Tecnick\Pdf\Page\Exception');
         $dims = $this->obj->getPageFormatSize('*ERROR*');

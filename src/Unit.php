@@ -57,7 +57,7 @@ abstract class Unit
      *
      * @return int Millimeters
      */
-    public function convertPoints($points, $unit, $dec = 3)
+    public function convertPoints($points, $unit, $dec = 6)
     {
         $unit = strtolower($unit);
         if (!isset(self::$ratio[$unit])) {

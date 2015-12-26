@@ -395,36 +395,54 @@ abstract class Format extends \Com\Tecnick\Pdf\Page\Unit
      * @param string $unit        Unit name (default points).
      * @param int    $dec         Number of decimals to return.
      *
-     * @return array Page width and height in specified unit
+     * @return array Page width, height and orientation in specified unit
      */
     public function getPageFormatSize($format, $orientation = '', $unit = '', $dec = 3)
     {
         if (!isset(self::$format[$format])) {
             throw new PageException('unknown page format: '.$format);
         }
-        $dim = array(
+        return $this->getPageOrientedSize(
             $this->convertPoints(self::$format[$format][0], $unit, $dec),
-            $this->convertPoints(self::$format[$format][1], $unit, $dec)
+            $this->convertPoints(self::$format[$format][1], $unit, $dec),
+            $orientation
         );
-        return $this->getPageOrientedSize($dim, $orientation);
     }
 
     /**
      * Returns the page dimensions oriented as specified.
      *
-     * @param array $dim Array of page dimensions (width, height).
+     * @param float  $width  Page width
+     * @param float  $height Page height
      * @param string $orientation Page orientation ('P' = portrait; 'L' = landscape, '' = default).
      *
      * @return array Page width and height in points
      */
-    public function getPageOrientedSize($dim, $orientation = '')
+    public function getPageOrientedSize($width, $height, $orientation = '')
     {
         if ($orientation == 'P') {
-            return array(min($dim), max($dim));
+            return array(min($width, $height), max($width, $height), 'P');
         }
         if ($orientation == 'L') {
-            return array(max($dim), min($dim));
+            return array(max($width, $height), min($width, $height), 'L');
         }
-        return $dim;
+        $orientation = $this->getPageOrientation($width, $height);
+        return array($width, $height, $orientation);
+    }
+
+    /**
+     * Returns the page orientation.
+     *
+     * @param float  $width  Page width
+     * @param float  $height Page height
+     *
+     * @return string page orientation 'P' or 'L'
+     */
+    public function getPageOrientation($width, $height)
+    {
+        if ($width <= $height) {
+            return 'P';
+        }
+        return 'L';
     }
 }

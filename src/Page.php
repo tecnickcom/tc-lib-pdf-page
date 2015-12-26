@@ -30,7 +30,7 @@ use \Com\Tecnick\Pdf\Page\Exception as PageException;
  * @license     http://www.gnu.org/copyleft/lesser.html GNU-LGPL v3 (see LICENSE.TXT)
  * @link        https://github.com/tecnickcom/tc-lib-pdf-page
  */
-class Page extends \Com\Tecnick\Pdf\Page\Box
+class Page extends \Com\Tecnick\Pdf\Page\Settings
 {
     /**
      * Array of pages (stack).
@@ -109,26 +109,32 @@ class Page extends \Com\Tecnick\Pdf\Page\Box
     /**
      * Add a new page
      *
-     * @return
+     * @param array $data Page data:
+     *     time        : UTC page modification time in seconds;
+     *     group       : page group number;
+     *     content     : string containing the raw page content;
+     *     annotrefs   : array containing the annotation object references;
+     *     format      : page format name, or alternatively you can set width and height as below;
+     *     width       : page width;
+     *     height      : page height;
+     *     orientation : page orientation ('P' or 'L');
+     *     rotation    : the number of degrees by which the page shall be rotated clockwise when displayed or printed;
+     *     box         : array containing page box boundaries and settings (@see setBox);
+     *     transition  : array containing page transition data (@see getPageTransition);
+     *     zoom        : preferred zoom (magnification) factor;
      */
     public function add(array $data = array())
     {
-        // 'n'
-        // 'time'
-        // 'content'
-        // 'annotrefs'
-        // 'width'
-        // 'height'
-        // 'box'
-        // 'transition'
-        // 'orientation'
-        // 'rotation'
-        // 'zoom'
+        $this->sanitizeTime($data);
+        $this->sanitizeGroup($data);
+        $this->sanitizeContent($data);
+        $this->sanitizeAnnotRefs($data);
+        $this->sanitizeRotation($data);
+        $this->sanitizeZoom($data);
+        $this->sanitizePageFormat($data);
+        $this->sanitizeBoxData($data);
+        $this->sanitizeTransitions($data);
 
-        // @TODO: default page
-        // @TODO: methods to add properties
-
-        
         $this->page[++$this->pageid] = $data;
     }
 
@@ -192,6 +198,28 @@ class Page extends \Com\Tecnick\Pdf\Page\Box
     }
 
     /**
+     * Add page content
+     *
+     * @param array $data Page data
+     */
+    public function addContent($content)
+    {
+        $this->page[$this->pageid]['content'][] = (string) $content;
+    }
+
+    /**
+     * Remove and return last page content
+     *
+     * @param array $data Page data
+     *
+     * @param string content
+     */
+    public function popContent()
+    {
+        return array_pop($this->page[$this->pageid]['content']);
+    }
+
+    /**
      * Returns the PDF command to output all page sections
      *
      * @param int $pon Current PDF object number
@@ -204,13 +232,10 @@ class Page extends \Com\Tecnick\Pdf\Page\Box
         $rootobjid = $pon;
 
         foreach ($this->page as $page) {
-
-            //@TODO: replace page numbers ....
-            
-            $out .= $this->getPageContentObj($pon, $page['content']);
+            $out .= $this->getPageContentObj($pon, implode('', $page['content']));
             $contentobjid = $pon;
 
-            $out .= (++$pon).' 0 obj'."\n"
+            $out .= $page['n'].' 0 obj'."\n"
                 .'<<'."\n"
                 .'/Type /Page'."\n"
                 .'/Parent '.$rootobjid.' 0 R'."\n";
@@ -225,7 +250,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Box
                 .$this->getBoxColorInfo($page['box'])
                 .'/Contents '.$contentobjid.' 0 R'."\n"
                 .'/Rotate '.$page['rotation']."\n"
-                .'/PZ '.$page['zoom']."\n"
+                .'/PZ '.sprintf('%F', $page['zoom'])."\n"
                 .$this->getPageTransition($page)
                 .$this->getAnnotationRef($page)
                 .'>>'."\n"
@@ -251,12 +276,15 @@ class Page extends \Com\Tecnick\Pdf\Page\Box
         $entries = array('S', 'D', 'Dm', 'M', 'Di', 'SS', 'B');
         $out = '';
         if (isset($page['transition']['Dur'])) {
-            $out .= '/Dur '.$page['transition']['Dur']."\n";
+            $out .= '/Dur '.sprintf('%F', $page['transition']['Dur'])."\n";
         }
         $out .= '/Trans <<'."\n"
             .'/Type /Trans'."\n";
         foreach ($page['transition'] as $key => $val) {
             if (in_array($key, $entries)) {
+                if (is_float($val)) {
+                    $val = sprintf('%F', $val);
+                }
                 $out .= '/'.$key.' /'.$val."\n";
             }
         }
@@ -278,7 +306,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Box
         }
         $out = '/Annots [ ';
         foreach ($page['annotrefs'] as $val) {
-            $out .= $val.' 0 R ';
+            $out .= intval($val).' 0 R ';
         }
         $out .= ']'."\n";
         return $out;
@@ -294,6 +322,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Box
      */
     protected function getPageContentObj(&$pon, $content = '')
     {
+        $content = $this->replacePageTemplates($content);
         $stream = $this->enc->encryptString(gzcompress($content), ++$pon);
         $out = $pon.' 0 obj'."\n"
             .'<</Filter /FlateDecode /Length '.strlen($stream).'>>'."\n"
@@ -313,14 +342,131 @@ class Page extends \Com\Tecnick\Pdf\Page\Box
      */
     protected function getPageRootObj(&$pon)
     {
-        $out = (++$pon).' 0 obj'."\n"
-            .'<< /Type /Pages /Kids [ ';
-        foreach ($this->page as $page) {
-            $out .= $page['n'].' 0 R ';
-        }
-        $out .= '] /Count '.count($this->page).' >>'."\n"
-            .'endobj'."\n";
+        $out = (++$pon).' 0 obj'."\n";
         $this->rdoid = ++$pon; // reserve object ID for the resource dictionary
+        $out .= '<< /Type /Pages /Kids [ ';
+        $numpages = count($this->page);
+        for ($idx = 0; $idx < $numpages; ++$idx) {
+            $this->page[$idx]['n'] = ++$pon;
+            $out .= $this->page['n'].' 0 R ';
+        }
+        $out .= '] /Count '.$numpages.' >>'."\n"
+            .'endobj'."\n";
         return $out;
+    }
+
+    /**
+     * Sanitize or set the page format
+     *
+     * @param array $data Page data
+     */
+    public function sanitizePageFormat(array &$data)
+    {
+        if (empty($data['orientation'])) {
+            $data['orientation'] = '';
+        }
+        if (!empty($data['format'])) {
+            list($data['width'], $data['height'], $data['orientation']) = $this->getPageFormatSize(
+                $data['format'],
+                $data['orientation'],
+                $this->kunit
+            );
+        } else {
+            $data['format'] = 'CUSTOM';
+            if (empty($data['width']) || empty($data['height'])) {
+                if (empty($data['box']['MediaBox'])) {
+                    // default page format
+                    $data['format'] = 'A4';
+                    $data['orientation'] = 'P';
+                    return $this->setPageFormat($data);
+                }
+                $data['format'] = 'MediaBox';
+                return;
+            } else {
+                list($data['width'], $data['height'], $data['orientation']) = $this->getPageOrientedSize(
+                    $data['width'],
+                    $data['height'],
+                    $data['orientation']
+                );
+            }
+        }
+        // convert values in points
+        $data['pwidth'] = ($data['width'] * $this->kunit);
+        $data['pheight'] = ($data['height'] * $this->kunit);
+    }
+
+    /**
+     * Sanitize or set the page boxes containing the page boundaries.
+     *
+     * @param array $data Page data
+     */
+    public function sanitizeBoxData(array &$data)
+    {
+        if (empty($data['box'])) {
+            $data['box'] = $this->setPageBoxes($data['width'], $data['height']);
+        } else {
+            if ($data['format'] == 'MediaBox') {
+                $data['format'] = '';
+                $data['width'] = abs($data['box']['MediaBox']['urx'] - $data['box']['MediaBox']['llx']);
+                $data['height'] = abs($data['box']['MediaBox']['ury'] - $data['box']['MediaBox']['lly']);
+                $this->setPageFormat($data);
+            }
+            if (empty($data['box']['MediaBox'])) {
+                $data['box'] = $this->setBox($data['box'], 'MediaBox', 0, 0, $data['width'], $data['height']);
+            }
+            if (empty($data['box']['CropBox'])) {
+                $data['box'] = $this->setBox(
+                    $data['box'],
+                    'CropBox',
+                    $data['box']['MediaBox']['llx'],
+                    $data['box']['MediaBox']['lly'],
+                    $data['box']['MediaBox']['urx'],
+                    $data['box']['MediaBox']['ury']
+                );
+            }
+            if (empty($data['box']['BleedBox'])) {
+                $data['box'] = $this->setBox(
+                    $data['box'],
+                    'BleedBox',
+                    $data['box']['CropBox']['llx'],
+                    $data['box']['CropBox']['lly'],
+                    $data['box']['CropBox']['urx'],
+                    $data['box']['CropBox']['ury']
+                );
+            }
+            if (empty($data['box']['TrimBox'])) {
+                $data['box'] = $this->setBox(
+                    $data['box'],
+                    'TrimBox',
+                    $data['box']['CropBox']['llx'],
+                    $data['box']['CropBox']['lly'],
+                    $data['box']['CropBox']['urx'],
+                    $data['box']['CropBox']['ury']
+                );
+            }
+            if (empty($data['box']['ArtBox'])) {
+                $data['box'] = $this->setBox(
+                    $data['box'],
+                    'ArtBox',
+                    $data['box']['CropBox']['llx'],
+                    $data['box']['CropBox']['lly'],
+                    $data['box']['CropBox']['urx'],
+                    $data['box']['CropBox']['ury']
+                );
+            }
+        }
+    }
+
+    /**
+     * Replace page templates and numbers
+     *
+     * @param string $content Page content.
+     *
+     * @return string page content
+     */
+    protected function replacePageTemplates($content)
+    {
+        // @TODO: implement number replacement
+        return $content;
     }
 }
