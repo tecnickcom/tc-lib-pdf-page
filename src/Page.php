@@ -92,6 +92,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
     /**
      * Initialize page data
      *
+     * @param float   $kunit  Unit of measure conversion ratio
      * @param Color   $col    Color object
      * @param Encrypt $enc    Encrypt object
      * @param bool    $pdfa   True if we are in PDF/A mode.
@@ -378,7 +379,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
                     // default page format
                     $data['format'] = 'A4';
                     $data['orientation'] = 'P';
-                    return $this->setPageFormat($data);
+                    return $this->sanitizePageFormat($data);
                 }
                 $data['format'] = 'MediaBox';
                 return;
@@ -403,16 +404,16 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
     public function sanitizeBoxData(array &$data)
     {
         if (empty($data['box'])) {
-            $data['box'] = $this->setPageBoxes($data['width'], $data['height']);
+            $data['box'] = $this->setPageBoxes($data['pwidth'], $data['pheight']);
         } else {
             if ($data['format'] == 'MediaBox') {
                 $data['format'] = '';
-                $data['width'] = abs($data['box']['MediaBox']['urx'] - $data['box']['MediaBox']['llx']);
-                $data['height'] = abs($data['box']['MediaBox']['ury'] - $data['box']['MediaBox']['lly']);
+                $data['width'] = abs($data['box']['MediaBox']['urx'] - $data['box']['MediaBox']['llx']) / $this->kunit;
+                $data['height'] = abs($data['box']['MediaBox']['ury'] - $data['box']['MediaBox']['lly']) / $this->kunit;
                 $this->setPageFormat($data);
             }
             if (empty($data['box']['MediaBox'])) {
-                $data['box'] = $this->setBox($data['box'], 'MediaBox', 0, 0, $data['width'], $data['height']);
+                $data['box'] = $this->setBox($data['box'], 'MediaBox', 0, 0, $data['pwidth'], $data['pheight']);
             }
             if (empty($data['box']['CropBox'])) {
                 $data['box'] = $this->setBox(
