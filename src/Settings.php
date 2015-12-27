@@ -28,9 +28,23 @@ use \Com\Tecnick\Pdf\Page\Exception as PageException;
  * @copyright   2011-2015 Nicola Asuni - Tecnick.com LTD
  * @license     http://www.gnu.org/copyleft/lesser.html GNU-LGPL v3 (see LICENSE.TXT)
  * @link        https://github.com/tecnickcom/tc-lib-pdf-page
+ *
+ * @SuppressWarnings(PHPMD)
  */
 abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
 {
+    /**
+     * Sanitize or set the page modification time.
+     *
+     * @param array $data Page data
+     */
+    public function sanitizePageNumber(array &$data)
+    {
+        if (!empty($data['num'])) {
+            $data['num'] = max(0, intval($data['num']));
+        }
+    }
+
     /**
      * Sanitize or set the page modification time.
      *
@@ -53,7 +67,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
     public function sanitizeGroup(array &$data)
     {
         if (empty($data['group'])) {
-            unset($data['group']);
+            $data['group'] = 0;
         } else {
             $data['group'] = intval($data['group']);
         }
@@ -119,8 +133,6 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
      * Sanitize or set the page transitions.
      *
      * @param array $data Page data
-     *
-     * @SuppressWarnings(PHPMD)
      */
     public function sanitizeTransitions(array &$data)
     {
@@ -231,5 +243,113 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
         $data['ContentHeight'] = ($data['height'] - $data['margin']['CT'] - $data['margin']['CB']);
         $data['HeaderHeight'] = ($data['margin']['HB'] - $data['margin']['PT']);
         $data['FooterHeight'] = ($data['margin']['FT'] - $data['margin']['PB']);
+    }
+
+    /**
+     * Sanitize or set the page boxes containing the page boundaries.
+     *
+     * @param array $data Page data
+     */
+    public function sanitizeBoxData(array &$data)
+    {
+        if (empty($data['box'])) {
+            $data['box'] = $this->setPageBoxes($data['pwidth'], $data['pheight']);
+        } else {
+            if ($data['format'] == 'MediaBox') {
+                $data['format'] = '';
+                $data['width'] = abs($data['box']['MediaBox']['urx'] - $data['box']['MediaBox']['llx']) / $this->kunit;
+                $data['height'] = abs($data['box']['MediaBox']['ury'] - $data['box']['MediaBox']['lly']) / $this->kunit;
+                $this->setPageFormat($data);
+            }
+            if (empty($data['box']['MediaBox'])) {
+                $data['box'] = $this->setBox($data['box'], 'MediaBox', 0, 0, $data['pwidth'], $data['pheight']);
+            }
+            if (empty($data['box']['CropBox'])) {
+                $data['box'] = $this->setBox(
+                    $data['box'],
+                    'CropBox',
+                    $data['box']['MediaBox']['llx'],
+                    $data['box']['MediaBox']['lly'],
+                    $data['box']['MediaBox']['urx'],
+                    $data['box']['MediaBox']['ury']
+                );
+            }
+            if (empty($data['box']['BleedBox'])) {
+                $data['box'] = $this->setBox(
+                    $data['box'],
+                    'BleedBox',
+                    $data['box']['CropBox']['llx'],
+                    $data['box']['CropBox']['lly'],
+                    $data['box']['CropBox']['urx'],
+                    $data['box']['CropBox']['ury']
+                );
+            }
+            if (empty($data['box']['TrimBox'])) {
+                $data['box'] = $this->setBox(
+                    $data['box'],
+                    'TrimBox',
+                    $data['box']['CropBox']['llx'],
+                    $data['box']['CropBox']['lly'],
+                    $data['box']['CropBox']['urx'],
+                    $data['box']['CropBox']['ury']
+                );
+            }
+            if (empty($data['box']['ArtBox'])) {
+                $data['box'] = $this->setBox(
+                    $data['box'],
+                    'ArtBox',
+                    $data['box']['CropBox']['llx'],
+                    $data['box']['CropBox']['lly'],
+                    $data['box']['CropBox']['urx'],
+                    $data['box']['CropBox']['ury']
+                );
+            }
+        }
+        if ($data['orientation'] != $this->getPageOrientation(
+            abs($data['box']['MediaBox']['urx'] - $data['box']['MediaBox']['llx']),
+            abs($data['box']['MediaBox']['ury'] - $data['box']['MediaBox']['lly'])
+        )) {
+            $data['box'] = $this->swapCoordinates($data['box']);
+        }
+    }
+
+    /**
+     * Sanitize or set the page format
+     *
+     * @param array $data Page data
+     */
+    public function sanitizePageFormat(array &$data)
+    {
+        if (empty($data['orientation'])) {
+            $data['orientation'] = '';
+        }
+        if (!empty($data['format'])) {
+            list($data['width'], $data['height'], $data['orientation']) = $this->getPageFormatSize(
+                $data['format'],
+                $data['orientation'],
+                $this->kunit
+            );
+        } else {
+            $data['format'] = 'CUSTOM';
+            if (empty($data['width']) || empty($data['height'])) {
+                if (empty($data['box']['MediaBox'])) {
+                    // default page format
+                    $data['format'] = 'A4';
+                    $data['orientation'] = 'P';
+                    return $this->sanitizePageFormat($data);
+                }
+                $data['format'] = 'MediaBox';
+                return;
+            } else {
+                list($data['width'], $data['height'], $data['orientation']) = $this->getPageOrientedSize(
+                    $data['width'],
+                    $data['height'],
+                    $data['orientation']
+                );
+            }
+        }
+        // convert values in points
+        $data['pwidth'] = ($data['width'] * $this->kunit);
+        $data['pheight'] = ($data['height'] * $this->kunit);
     }
 }

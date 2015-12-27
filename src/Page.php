@@ -48,6 +48,13 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
     protected $pageid = -1;
     
     /**
+     * Count pages in each group
+     *
+     * @var array
+     */
+    protected $group = array(0 => 0);
+    
+    /**
      * Unit of measure conversion ratio
      *
      * @var float
@@ -113,6 +120,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
      * @param array $data Page data:
      *     time        : UTC page modification time in seconds;
      *     group       : page group number;
+     *     num         : if set overwrites the page number;
      *     content     : string containing the raw page content;
      *     annotrefs   : array containing the annotation object references;
      *     format      : page format name, or alternatively you can set width and height as below;
@@ -138,7 +146,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
         if (empty($data) && ($this->pageid >= 0)) {
             // clone last page data
             $data = $this->page[$this->pageid];
-            unset($data['time'], $data['content'], $data['annotrefs']);
+            unset($data['time'], $data['content'], $data['annotrefs'], $data['pagenum']);
         } else {
             $this->sanitizeGroup($data);
             $this->sanitizeRotation($data);
@@ -152,9 +160,15 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
         $this->sanitizeTime($data);
         $this->sanitizeContent($data);
         $this->sanitizeAnnotRefs($data);
+        $this->sanitizePageNumber($data);
         $data['content_mark'] = array(0);
 
         $this->page[++$this->pageid] = $data;
+        if (isset($this->group[$data['group']])) {
+            $this->group[$data['group']] += 1;
+        } else {
+            $this->group[$data['group']] = 1;
+        }
     }
 
     /**
@@ -168,6 +182,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
             throw new GraphException('The page stack is empty');
         }
         --$this->pageid;
+        $this->group[$this->page['group']] -= 1;
         return array_pop($this->page);
     }
 
@@ -267,8 +282,22 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
         $out = $this->getPageRootObj($pon);
         $rootobjid = $pon;
 
-        foreach ($this->page as $page) {
-            $out .= $this->getPageContentObj($pon, implode('', $page['content']));
+        foreach ($this->page as $num => $page) {
+            if (!isset($page['num'])) {
+                if ($num > 0) {
+                    if ($page['group'] == $this->page[($num - 1)]['group']) {
+                        $page['num'] = (1 + $this->page[($num - 1)]['num']);
+                    } else {
+                        // new page group
+                        $page['num'] = 1;
+                    }
+                } else {
+                    $page['num'] = (1 + $num);
+                }
+            }
+            
+            $content = $this->replacePageTemplates($page);
+            $out .= $this->getPageContentObj($pon, $content);
             $contentobjid = $pon;
 
             $out .= $page['n'].' 0 obj'."\n"
@@ -358,7 +387,6 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
      */
     protected function getPageContentObj(&$pon, $content = '')
     {
-        $content = $this->replacePageTemplates($content);
         $stream = $this->enc->encryptString(gzcompress($content), ++$pon);
         $out = $pon.' 0 obj'."\n"
             .'<</Filter /FlateDecode /Length '.strlen($stream).'>>'."\n"
@@ -392,123 +420,16 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
     }
 
     /**
-     * Sanitize or set the page format
-     *
-     * @param array $data Page data
-     */
-    public function sanitizePageFormat(array &$data)
-    {
-        if (empty($data['orientation'])) {
-            $data['orientation'] = '';
-        }
-        if (!empty($data['format'])) {
-            list($data['width'], $data['height'], $data['orientation']) = $this->getPageFormatSize(
-                $data['format'],
-                $data['orientation'],
-                $this->kunit
-            );
-        } else {
-            $data['format'] = 'CUSTOM';
-            if (empty($data['width']) || empty($data['height'])) {
-                if (empty($data['box']['MediaBox'])) {
-                    // default page format
-                    $data['format'] = 'A4';
-                    $data['orientation'] = 'P';
-                    return $this->sanitizePageFormat($data);
-                }
-                $data['format'] = 'MediaBox';
-                return;
-            } else {
-                list($data['width'], $data['height'], $data['orientation']) = $this->getPageOrientedSize(
-                    $data['width'],
-                    $data['height'],
-                    $data['orientation']
-                );
-            }
-        }
-        // convert values in points
-        $data['pwidth'] = ($data['width'] * $this->kunit);
-        $data['pheight'] = ($data['height'] * $this->kunit);
-    }
-
-    /**
-     * Sanitize or set the page boxes containing the page boundaries.
-     *
-     * @param array $data Page data
-     */
-    public function sanitizeBoxData(array &$data)
-    {
-        if (empty($data['box'])) {
-            $data['box'] = $this->setPageBoxes($data['pwidth'], $data['pheight']);
-        } else {
-            if ($data['format'] == 'MediaBox') {
-                $data['format'] = '';
-                $data['width'] = abs($data['box']['MediaBox']['urx'] - $data['box']['MediaBox']['llx']) / $this->kunit;
-                $data['height'] = abs($data['box']['MediaBox']['ury'] - $data['box']['MediaBox']['lly']) / $this->kunit;
-                $this->setPageFormat($data);
-            }
-            if (empty($data['box']['MediaBox'])) {
-                $data['box'] = $this->setBox($data['box'], 'MediaBox', 0, 0, $data['pwidth'], $data['pheight']);
-            }
-            if (empty($data['box']['CropBox'])) {
-                $data['box'] = $this->setBox(
-                    $data['box'],
-                    'CropBox',
-                    $data['box']['MediaBox']['llx'],
-                    $data['box']['MediaBox']['lly'],
-                    $data['box']['MediaBox']['urx'],
-                    $data['box']['MediaBox']['ury']
-                );
-            }
-            if (empty($data['box']['BleedBox'])) {
-                $data['box'] = $this->setBox(
-                    $data['box'],
-                    'BleedBox',
-                    $data['box']['CropBox']['llx'],
-                    $data['box']['CropBox']['lly'],
-                    $data['box']['CropBox']['urx'],
-                    $data['box']['CropBox']['ury']
-                );
-            }
-            if (empty($data['box']['TrimBox'])) {
-                $data['box'] = $this->setBox(
-                    $data['box'],
-                    'TrimBox',
-                    $data['box']['CropBox']['llx'],
-                    $data['box']['CropBox']['lly'],
-                    $data['box']['CropBox']['urx'],
-                    $data['box']['CropBox']['ury']
-                );
-            }
-            if (empty($data['box']['ArtBox'])) {
-                $data['box'] = $this->setBox(
-                    $data['box'],
-                    'ArtBox',
-                    $data['box']['CropBox']['llx'],
-                    $data['box']['CropBox']['lly'],
-                    $data['box']['CropBox']['urx'],
-                    $data['box']['CropBox']['ury']
-                );
-            }
-        }
-        if ($data['orientation'] != $this->getPageOrientation(
-            abs($data['box']['MediaBox']['urx'] - $data['box']['MediaBox']['llx']),
-            abs($data['box']['MediaBox']['ury'] - $data['box']['MediaBox']['lly'])
-        )) {
-            $data['box'] = $this->swapCoordinates($data['box']);
-        }
-    }
-
-    /**
      * Replace page templates and numbers
      *
-     * @param string $content Page content.
-     *
-     * @return string page content
+     * @param array $data Page data
      */
-    protected function replacePageTemplates($content)
+    protected function replacePageTemplates(array $data)
     {
-        // @TODO: implement number replacement
+        $content = implode('', $data['content']);
+        
         return $content;
+        //$this->group[$data['group']]
+        // @TODO: implement number replacement
     }
 }
