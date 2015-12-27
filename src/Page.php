@@ -123,6 +123,15 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
      *     box         : array containing page box boundaries and settings (@see setBox);
      *     transition  : array containing page transition data (@see getPageTransition);
      *     zoom        : preferred zoom (magnification) factor;
+     *     margin      : page margins:
+     *                   PL : page left
+     *                   PR : page right
+     *                   PT : page top (header top)
+     *                   HB : header bottom
+     *                   CT : content top
+     *                   CB : content bottom (breaking point)
+     *                   FT : footer top
+     *                   PB : page bottom (footer bottom)
      */
     public function add(array $data = array())
     {
@@ -137,6 +146,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
             $this->sanitizePageFormat($data);
             $this->sanitizeBoxData($data);
             $this->sanitizeTransitions($data);
+            $this->sanitizeMargins($data);
         }
 
         $this->sanitizeTime($data);

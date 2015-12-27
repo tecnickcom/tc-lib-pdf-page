@@ -192,4 +192,44 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
             $data['transition']['B'] = true;
         }
     }
+
+    /**
+     * Sanitize or set the page margins
+     *
+     * @param array $data Page data
+     */
+    public function sanitizeMargins(array &$data)
+    {
+        if (empty($data['margin'])) {
+            $data['margin'] = array();
+        }
+        $margins = array(
+            'PL' => $data['width'],
+            'PR' => $data['width'],
+            'PT' => $data['height'],
+            'HB' => $data['height'],
+            'CT' => $data['height'],
+            'CB' => $data['height'],
+            'FT' => $data['height'],
+            'PB' => $data['height']
+        );
+        foreach ($margins as $type => $max) {
+            if (empty($data['margin'][$type])) {
+                $data['margin'][$type] = 0;
+            } else {
+                $data['margin'][$type] = min(max(0, floatval($data['margin'][$type])), $max);
+            }
+        }
+        $data['margin']['PR'] = min($data['margin']['PR'], ($data['width'] - $data['margin']['PL']));
+        $data['margin']['HB'] = max($data['margin']['HB'], $data['margin']['PT']);
+        $data['margin']['CT'] = max($data['margin']['CT'], $data['margin']['HB']);
+        $data['margin']['CB'] = min($data['margin']['CB'], ($data['height'] - $data['margin']['CT']));
+        $data['margin']['FT'] = min($data['margin']['FT'], $data['margin']['CB']);
+        $data['margin']['PB'] = min($data['margin']['PB'], $data['margin']['FT']);
+
+        $data['ContentWidth'] = ($data['width'] - $data['margin']['PL'] - $data['margin']['PR']);
+        $data['ContentHeight'] = ($data['height'] - $data['margin']['CT'] - $data['margin']['CB']);
+        $data['HeaderHeight'] = ($data['margin']['HB'] - $data['margin']['PT']);
+        $data['FooterHeight'] = ($data['margin']['FT'] - $data['margin']['PB']);
+    }
 }
