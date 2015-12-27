@@ -397,7 +397,7 @@ abstract class Format extends \Com\Tecnick\Pdf\Page\Unit
      *
      * @return array Page width, height and orientation in specified unit
      */
-    public function getPageFormatSize($format, $orientation = '', $unit = '', $dec = 3)
+    public function getPageFormatSize($format, $orientation = '', $unit = '', $dec = 6)
     {
         if (!isset(self::$format[$format])) {
             throw new PageException('unknown page format: '.$format);
