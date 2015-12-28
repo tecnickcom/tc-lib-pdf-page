@@ -33,6 +33,20 @@ use \Com\Tecnick\Pdf\Page\Exception as PageException;
 class Page extends \Com\Tecnick\Pdf\Page\Settings
 {
     /**
+     * Alias for total number of pages in a group
+     *
+     * @var string
+     */
+    const PAGE_TOT = '~#PT';
+    
+    /**
+     * Alias for page number
+     *
+     * @var string
+     */
+    const PAGE_NUM = '~#PN';
+
+    /**
      * Array of pages (stack).
      *
      * @var array
@@ -426,10 +440,13 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
      */
     protected function replacePageTemplates(array $data)
     {
-        $content = implode('', $data['content']);
-        
-        return $content;
-        //$this->group[$data['group']]
-        // @TODO: implement number replacement
+        return implode(
+            '',
+            str_replace(
+                array(PAGE_TOT, PAGE_NUM),
+                array($this->group[$data['group']], $data['num']),
+                $data['content']
+            )
+        );
     }
 }
