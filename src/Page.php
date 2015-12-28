@@ -186,18 +186,33 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
     }
 
     /**
+     * Remove rthe specified page
+     *
+     * @param int $idx page index
+     *
+     * @return array page content
+     */
+    public function delete($idx)
+    {
+        if (empty($this->page[$idx])) {
+            throw new GraphException('The specified page do not exist');
+        }
+        $page = $this->page[$idx];
+        $this->group[$this->page[$idx]['group']] -= 1;
+        unset($this->page[$idx]);
+        end($this->page);
+        $this->pageid = key($this->page);
+        return $page;
+    }
+
+    /**
      * Remove and return last page
      *
      * @return string PDF page string
      */
     public function pop()
     {
-        if ($this->pageid <= 0) {
-            throw new GraphException('The page stack is empty');
-        }
-        --$this->pageid;
-        $this->group[$this->page['group']] -= 1;
-        return array_pop($this->page);
+        return $this->delete($this->pageid);
     }
 
     /**
