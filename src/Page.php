@@ -154,6 +154,8 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
      *                   CB : content bottom (breaking point)
      *                   FT : footer top
      *                   PB : page bottom (footer bottom)
+     *
+     * @return array Page data
      */
     public function add(array $data = array())
     {
@@ -183,6 +185,8 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
         } else {
             $this->group[$data['group']] = 1;
         }
+
+        return $this->page[$this->pageid];
     }
 
     /**
@@ -190,7 +194,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
      *
      * @param int $idx page index
      *
-     * @return array page content
+     * @return array Removed page
      */
     public function delete($idx)
     {
@@ -200,19 +204,38 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
         $page = $this->page[$idx];
         $this->group[$this->page[$idx]['group']] -= 1;
         unset($this->page[$idx]);
-        end($this->page);
-        $this->pageid = key($this->page);
+        $this->page = array_values($this->page); // reindex array
+        --$this->pageid;
         return $page;
     }
 
     /**
      * Remove and return last page
      *
-     * @return string PDF page string
+     * @return array Removed page
      */
     public function pop()
     {
         return $this->delete($this->pageid);
+    }
+
+    /**
+     * Move a page to a previous position
+     *
+     * @param int $from Index of the page to move
+     * @param int $new  Destination index
+     */
+    public function move($from, $new)
+    {
+        if ($from <= $new) {
+            throw new GraphException('The new position must be lower than the starting position');
+        }
+        $this->page = array_merge(
+            array_slice($this->page, 0, $new),
+            $this->page[$from],
+            array_slice($this->page, $new, ($from - $new)),
+            array_slice($this->page, ($from + 1))
+        );
     }
 
     /**
