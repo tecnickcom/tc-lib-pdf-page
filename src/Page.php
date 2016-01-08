@@ -155,6 +155,8 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
      *                   FT : footer top
      *                   PB : page bottom (footer bottom)
      *
+     * NOTE: if $data is empty, then the last page format will be cloned.
+     *
      * @return array Page data
      */
     public function add(array $data = array())
@@ -190,7 +192,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
     }
 
     /**
-     * Remove rthe specified page
+     * Remove the specified page
      *
      * @param int $idx page index
      *

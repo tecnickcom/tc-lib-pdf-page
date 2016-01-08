@@ -69,7 +69,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
         if (empty($data['group'])) {
             $data['group'] = 0;
         } else {
-            $data['group'] = intval($data['group']);
+            $data['group'] = max(0, intval($data['group']));
         }
     }
 
@@ -143,7 +143,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
         if (empty($data['transition']['Dur'])) {
             unset($data['transition']['Dur']);
         } else {
-            $data['transition']['Dur'] = floatval($data['transition']['Dur']);
+            $data['transition']['Dur'] = max(0, floatval($data['transition']['Dur']));
         }
         // transition style
         $styles = array(
@@ -214,6 +214,11 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
     {
         if (empty($data['margin'])) {
             $data['margin'] = array();
+            if (empty($data['width']) || empty($data['height'])) {
+                list($data['width'], $data['height'], $data['orientation']) = $this->getPageFormatSize('A4', 'P');
+                $data['width'] /= $this->kunit;
+                $data['height'] /= $this->kunit;
+            }
         }
         $margins = array(
             'PL' => $data['width'],
@@ -253,13 +258,16 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
     public function sanitizeBoxData(array &$data)
     {
         if (empty($data['box'])) {
+            if (empty($data['pwidth']) || empty($data['pheight'])) {
+                list($data['pwidth'], $data['pheight'], $data['orientation']) = $this->getPageFormatSize('A4', 'P');
+            }
             $data['box'] = $this->setPageBoxes($data['pwidth'], $data['pheight']);
         } else {
-            if ($data['format'] == 'MediaBox') {
+            if (!empty($data['format']) && ($data['format'] == 'MediaBox')) {
                 $data['format'] = '';
                 $data['width'] = abs($data['box']['MediaBox']['urx'] - $data['box']['MediaBox']['llx']) / $this->kunit;
                 $data['height'] = abs($data['box']['MediaBox']['ury'] - $data['box']['MediaBox']['lly']) / $this->kunit;
-                $this->setPageFormat($data);
+                $this->sanitizePageFormat($data);
             }
             if (empty($data['box']['MediaBox'])) {
                 $data['box'] = $this->setBox($data['box'], 'MediaBox', 0, 0, $data['pwidth'], $data['pheight']);
@@ -305,10 +313,13 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
                 );
             }
         }
-        if ($data['orientation'] != $this->getPageOrientation(
+        $orientation = $this->getPageOrientation(
             abs($data['box']['MediaBox']['urx'] - $data['box']['MediaBox']['llx']),
             abs($data['box']['MediaBox']['ury'] - $data['box']['MediaBox']['lly'])
-        )) {
+        );
+        if (empty($data['orientation'])) {
+            $data['orientation'] = $orientation;
+        } elseif ($data['orientation'] != $orientation) {
             $data['box'] = $this->swapCoordinates($data['box']);
         }
     }
@@ -324,11 +335,12 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
             $data['orientation'] = '';
         }
         if (!empty($data['format'])) {
-            list($data['width'], $data['height'], $data['orientation']) = $this->getPageFormatSize(
+            list($data['pwidth'], $data['pheight'], $data['orientation']) = $this->getPageFormatSize(
                 $data['format'],
-                $data['orientation'],
-                $this->kunit
+                $data['orientation']
             );
+            $data['width'] = ($data['pwidth'] / $this->kunit);
+            $data['height'] = ($data['pheight'] / $this->kunit);
         } else {
             $data['format'] = 'CUSTOM';
             if (empty($data['width']) || empty($data['height'])) {

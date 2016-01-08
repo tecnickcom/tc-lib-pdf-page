@@ -59,4 +59,34 @@ class FormatTest extends \PHPUnit_Framework_TestCase
         $this->setExpectedException('\Com\Tecnick\Pdf\Page\Exception');
         $dims = $this->obj->getPageFormatSize('*ERROR*');
     }
+    
+    public function testGetPageOrientedSize()
+    {
+        $dims = $this->obj->getPageOrientedSize(10, 20);
+        $this->assertEquals(array(10, 20, 'P'), $dims);
+        
+        $dims = $this->obj->getPageOrientedSize(10, 20, 'P');
+        $this->assertEquals(array(10, 20, 'P'), $dims);
+        
+        $dims = $this->obj->getPageOrientedSize(10, 20, 'L');
+        $this->assertEquals(array(20, 10, 'L'), $dims);
+        
+        $dims = $this->obj->getPageOrientedSize(20, 10, 'P');
+        $this->assertEquals(array(10, 20, 'P'), $dims);
+        
+        $dims = $this->obj->getPageOrientedSize(20, 10, 'L');
+        $this->assertEquals(array(20, 10, 'L'), $dims);
+
+        $dims = $this->obj->getPageOrientedSize(20, 10);
+        $this->assertEquals(array(20, 10, 'L'), $dims);
+    }
+    
+    public function testGetPageOrientation()
+    {
+        $orient = $this->obj->getPageOrientation(10, 20);
+        $this->assertEquals('P', $orient);
+
+        $orient = $this->obj->getPageOrientation(20, 10);
+        $this->assertEquals('L', $orient);
+    }
 }
