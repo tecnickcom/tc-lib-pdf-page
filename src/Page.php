@@ -55,7 +55,6 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
 
     /**
      * Current page ID.
-     * NOTE: page 0 is the default page (to not be printed).
      *
      * @var int
      */
@@ -201,7 +200,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
     public function delete($idx)
     {
         if (empty($this->page[$idx])) {
-            throw new GraphException('The specified page do not exist');
+            throw new PageException('The specified page do not exist');
         }
         $page = $this->page[$idx];
         $this->group[$this->page[$idx]['group']] -= 1;
@@ -229,14 +228,16 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
      */
     public function move($from, $new)
     {
-        if ($from <= $new) {
-            throw new GraphException('The new position must be lower than the starting position');
+        if (($from <= $new) || ($from > $this->pageid)) {
+            throw new PageException('The new position must be lower than the starting position');
         }
-        $this->page = array_merge(
-            array_slice($this->page, 0, $new),
-            $this->page[$from],
-            array_slice($this->page, $new, ($from - $new)),
-            array_slice($this->page, ($from + 1))
+        $this->page = array_values(
+            array_merge(
+                array_slice($this->page, 0, $new),
+                array($this->page[$from]),
+                array_slice($this->page, $new, ($from - $new)),
+                array_slice($this->page, ($from + 1))
+            )
         );
     }
 
@@ -251,19 +252,9 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
     }
 
     /**
-     * Returns the reserved Object ID for the Resource dictionary.
-     *
-     * return int
-     */
-    public function getResourceDictObjID()
-    {
-        return $this->rdoid;
-    }
-
-    /**
      * Returns the specified page data.
      *
-     * @param int $idx Page ID (page_number - 1).
+     * @param int $idx Page ID
      *
      * return array
      */
@@ -349,6 +340,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
                     $page['num'] = (1 + $num);
                 }
             }
+            $this->page[$num]['num'] = $page['num'];
             
             $content = $this->replacePageTemplates($page);
             $out .= $this->getPageContentObj($pon, $content);
@@ -377,6 +369,16 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
         }
 
         return $out;
+    }
+
+    /**
+     * Returns the reserved Object ID for the Resource dictionary.
+     *
+     * return int
+     */
+    public function getResourceDictObjID()
+    {
+        return $this->rdoid;
     }
 
     /**
@@ -466,7 +468,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
         $numpages = count($this->page);
         for ($idx = 0; $idx < $numpages; ++$idx) {
             $this->page[$idx]['n'] = ++$pon;
-            $out .= $this->page['n'].' 0 R ';
+            $out .= $this->page[$idx]['n'].' 0 R ';
         }
         $out .= '] /Count '.$numpages.' >>'."\n"
             .'endobj'."\n";
@@ -483,7 +485,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
         return implode(
             '',
             str_replace(
-                array(PAGE_TOT, PAGE_NUM),
+                array(self::PAGE_TOT, self::PAGE_NUM),
                 array($this->group[$data['group']], $data['num']),
                 $data['content']
             )

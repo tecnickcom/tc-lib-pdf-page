@@ -137,7 +137,9 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
         $out = '';
         foreach (self::$box as $box) {
             if (empty($dims[$box])) {
+                // @codeCoverageIgnoreStart
                 continue;
+                // @codeCoverageIgnoreEnd
             }
             $out .= '/'.$box.' ['.sprintf(
                 '%F %F %F %F',
@@ -162,7 +164,9 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
         $out = '/BoxColorInfo <<'."\n";
         foreach (self::$box as $box) {
             if (empty($dims[$box])) {
+                // @codeCoverageIgnoreStart
                 continue;
+                // @codeCoverageIgnoreEnd
             }
             $out .= '/'.$box.' <<'."\n";
             if (!empty($dims[$box]['bci']['color'])) {
