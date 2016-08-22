@@ -261,7 +261,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
     public function getPage($idx)
     {
         if (!isset($this->page[$idx])) {
-            throw new \Com\Tecnick\Pdf\Page\Exception('The page '.$idx.' do not exist.');
+            throw new PageException('The page '.$idx.' do not exist.');
         }
         return $this->page[$idx];
     }
