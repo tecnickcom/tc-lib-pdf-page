@@ -385,6 +385,74 @@ abstract class Format extends \Com\Tecnick\Pdf\Page\Unit
         'FR_COURONNE'            => array( 1020.472,  1303.937), // = (  360 x 460  ) mm  = ( 14.17 x 18.11 ) in
         'FR_TELLIERE'            => array(  963.780,  1247.244), // = (  340 x 440  ) mm  = ( 13.39 x 17.32 ) in
         'FR_POT'                 => array(  878.740,  1133.858), // = (  310 x 400  ) mm  = ( 12.20 x 15.75 ) in
+        // Colombian Sizes
+        'CO_CARTA'               => array(  612.283,   790.866), // = (  216 x 279  ) mm  = (  8.50 x 10.98 ) in
+        'CO_EXTRA_TABLOIDE'      => array(  864.000,  1296.000), // = (  304 x 457  ) mm  = ( 12.00 x 18.00 ) in
+        'CO_OFICIO'              => array(  612.283,   935.433), // = (  216 x 330  ) mm  = (  8.50 x 12.99 ) in
+        'CO_PLIEGO'              => array( 1984.252,  2834.646), // = (  700 x 1000 ) mm  = ( 27.56 x 39.37 ) in
+        'CO_PLIEGO2'             => array( 1417.323,  1984.252), // = (  500 x 700  ) mm  = ( 19.69 x 27.56 ) in
+        'CO_PLIEGO4'             => array(  992.126,  1417.323), // = (  350 x 500  ) mm  = ( 13.78 x 19.69 ) in
+        'CO_PLIEGO8'             => array(  708.661,   992.126), // = (  250 x 350  ) mm  = (  9.84 x 13.78 ) in
+        // Japanese Sizes
+        'JP_AB_BAN'              => array( 2494.488,  3075.591), // = (  880 x 1085 ) mm  = ( 34.65 x 42.72 ) in
+        'JP_AIBAN'               => array(  637.795,   977.953), // = (  225 x 345  ) mm  = (  8.86 x 13.58 ) in
+        'JP_A_KO_BAN'            => array( 1723.465,  2454.803), // = (  608 x 866  ) mm  = ( 23.94 x 34.09 ) in
+        'JP_B_KO_BAN'            => array( 2137.323,  2967.874), // = (  754 x 1047 ) mm  = ( 29.69 x 41.22 ) in
+        'JP_CHOUBO_BAN'          => array( 2318.740,  3092.598), // = (  818 x 1091 ) mm  = ( 32.20 x 42.95 ) in
+        'JP_CHUBAN'              => array(  538.583,   722.835), // = (  190 x 255  ) mm  = (  7.48 x 10.04 ) in
+        'JP_CHU_TANZAKU'         => array(  368.504,  1077.165), // = (  130 x 380  ) mm  = (  5.12 x 14.96 ) in
+        'JP_DAI OBAN'            => array(  977.953,  1289.764), // = (  345 x 455  ) mm  = ( 13.58 x 17.91 ) in
+        'JP_EBANKIRI'            => array(  538.583,  1459.843), // = (  190 x 515  ) mm  = (  7.48 x 20.28 ) in
+        'JP_FUURUSU_KO_BAN'      => array(  943.937,  1201.890), // = (  333 x 424  ) mm  = ( 13.11 x 16.69 ) in
+        'JP_GAYOUSHI'            => array( 1649.764,  2148.661), // = (  582 x 758  ) mm  = ( 22.91 x 29.84 ) in
+        'JP_HASHIRE_E'           => array(  368.504,  2069.291), // = (  130 x 730  ) mm  = (  5.12 x 28.74 ) in
+        'JP_HATORON_BAN'         => array( 2551.181,  3401.575), // = (  900 x 1200 ) mm  = ( 35.43 x 47.24 ) in
+        'JP_HOM_BAN'             => array( 1842.520,  2211.024), // = (  650 x 780  ) mm  = ( 25.59 x 30.71 ) in
+        'JP_HOSOBAN'             => array(  411.024,   935.433), // = (  145 x 330  ) mm  = (  5.71 x 12.99 ) in
+        'JP_JIS_A_BAN'           => array( 1771.654,  2494.488), // = (  625 x 880  ) mm  = ( 24.61 x 34.65 ) in
+        'JP_JIS_B_BAN'           => array( 2168.504,  3075.591), // = (  765 x 1085 ) mm  = ( 30.12 x 42.72 ) in
+        'JP_KAKEMONO_E'          => array(  651.969,  2154.331), // = (  230 x 760  ) mm  = (  9.06 x 29.92 ) in
+        'JP_KAKUBAN'             => array(  504.567,   575.433), // = (  178 x 203  ) mm  = (  7.01 x 7.99  ) in
+        'JP_KAKU_SURIMONO'       => array(  510.236,   609.449), // = (  180 x 215  ) mm  = (  7.09 x 8.46  ) in
+        'JP_KENTO_BAN'           => array( 1374.803,  1768.819), // = (  485 x 624  ) mm  = ( 19.09 x 24.57 ) in
+        'JP_KIKU_BAN'            => array( 1802.835,  2661.732), // = (  636 x 939  ) mm  = ( 25.04 x 36.97 ) in
+        'JP_KIKU_BAN4'           => array(  643.465,   867.402), // = (  227 x 306  ) mm  = (  8.94 x 12.05 ) in
+        'JP_KIKU_BAN5'           => array(  428.031,   643.465), // = (  151 x 227  ) mm  = (  5.94 x 8.94  ) in
+        'JP_KIKU_BAN5_OLD'       => array(  430.866,   617.953), // = (  152 x 218  ) mm  = (  5.98 x 8.58  ) in
+        'JP_KIKU_BAN_A20_DORI'   => array(  419.528,   473.386), // = (  148 x 167  ) mm  = (  5.83 x 6.57  ) in
+        'JP_KOBAN'               => array(  481.890,   651.969), // = (  170 x 230  ) mm  = (  6.69 x 9.06  ) in
+        'JP_KO_BAN_B6'           => array(  317.480,   493.228), // = (  112 x 174  ) mm  = (  4.41 x 6.85  ) in
+        'JP_KO_TANZAKU'          => array(  215.433,   977.953), // = (   76 x 345  ) mm  = (  2.99 x 13.58 ) in
+        'JP_MOKUTANSHI'          => array( 1332.283,  1760.315), // = (  470 x 621  ) mm  = ( 18.50 x 24.45 ) in
+        'JP_NAGA_BAN'            => array(  651.969,  1459.843), // = (  230 x 515  ) mm  = (  9.06 x 20.28 ) in
+        'JP_OBAN'                => array(  720.000,  1077.165), // = (  254 x 380  ) mm  = ( 10.00 x 14.96 ) in
+        'JP_OGATA_CHUBAN'        => array(  615.118,   830.551), // = (  217 x 293  ) mm  = (  8.54 x 11.54 ) in
+        'JP_O_HOSOBAN'           => array(  481.890,  1077.165), // = (  170 x 380  ) mm  = (  6.69 x 14.96 ) in
+        'JP_POSTCARD'            => array(  283.465,   419.528), // = (  100 x 148  ) mm  = (  3.94 x 5.83  ) in
+        'JP_SANGO_BAN'           => array(  238.110,   419.528), // = (   84 x 148  ) mm  = (  3.31 x 5.83  ) in
+        'JP_SANGO_BAN_A48_DORI'  => array(  209.764,   396.850), // = (   74 x 140  ) mm  = (  2.91 x 5.51  ) in
+        'JP_SANGO_BAN_B20_DORI'  => array(  515.906,   583.937), // = (  182 x 206  ) mm  = (  7.17 x 8.11  ) in
+        'JP_SANGO_BAN_B36_DORI'  => array(  342.992,   484.724), // = (  121 x 171  ) mm  = (  4.76 x 6.73  ) in
+        'JP_SANGO_BAN_B40_DORI'  => array(  238.110,   419.528), // = (   84 x 148  ) mm  = (  3.31 x 5.83  ) in
+        'JP_SANROKU_BAN_B48_DORI'=> array(  257.953,   484.724), // = (   91 x 171  ) mm  = (  3.58 x 6.73  ) in
+        'JP_SANSAN_BAN'          => array( 1975.748,  2834.646), // = (  697 x 1000 ) mm  = ( 27.44 x 39.37 ) in
+        'JP_SANSHI_BAN'          => array( 2060.787,  2834.646), // = (  727 x 1000 ) mm  = ( 28.62 x 39.37 ) in
+        'JP_SHIKISHIBAN'         => array(  581.102,   651.969), // = (  205 x 230  ) mm  = (  8.07 x 9.06  ) in
+        'JP_SHIMBUNYOUSHI'       => array( 2304.567,  1547.717), // = (  813 x 546  ) mm  = ( 32.01 x 21.50 ) in
+        'JP_SHINSHO_BAN_B40_A'   => array(  300.472,   490.394), // = (  106 x 173  ) mm  = (  4.17 x 6.81  ) in
+        'JP_SHINSHO_BAN_B40_B'   => array(  291.969,   515.906), // = (  103 x 182  ) mm  = (  4.06 x 7.17  ) in
+        'JP_SHIROKU_BAN'         => array( 2233.701,  3092.598), // = (  788 x 1091 ) mm  = ( 31.02 x 42.95 ) in
+        'JP_SHIROKU_BAN4'        => array(  748.346,  1074.331), // = (  264 x 379  ) mm  = ( 10.39 x 14.92 ) in
+        'JP_SHIROKU_BAN5'        => array(  535.748,   742.677), // = (  189 x 262  ) mm  = (  7.44 x 10.31 ) in
+        'JP_SHIROKU_BAN5_OLD'    => array(  541.417,   734.173), // = (  191 x 259  ) mm  = (  7.52 x 10.20 ) in
+        'JP_SHIROKU_BAN6'        => array(  360.000,   532.913), // = (  127 x 188  ) mm  = (  5.00 x 7.40  ) in
+        'JP_SHO_TANZAKU'         => array(  269.291,   722.835), // = (   95 x 255  ) mm  = (  3.74 x 10.04 ) in
+        'JP_SUITORISHI'          => array( 1252.913,  1615.748), // = (  442 x 570  ) mm  = ( 17.40 x 22.44 ) in
+        'JP_TANZAKU'             => array(  360.000,  1218.898), // = (  127 x 430  ) mm  = (  5.00 x 16.93 ) in
+        'JP_TSUYA_GAMI'          => array( 1440.000,  2160.000), // = (  508 x 762  ) mm  = ( 20.00 x 30.00 ) in
+        'JP_UCHIWA'              => array(  649.134,   720.000), // = (  229 x 254  ) mm  = (  9.02 x 10.00 ) in
+        'JP_WAIDO_BAN'           => array(  595.276,   728.504), // = (  210 x 257  ) mm  = (  8.27 x 10.12 ) in
+        'JP_YATSUGIRI_BAN'       => array(  269.291,   360.000), // = (   95 x 127  ) mm  = (  3.74 x 5.00  ) in
     );
 
     /**
