@@ -36,7 +36,7 @@ class SettingsTest extends \PHPUnit_Framework_TestCase
 
         $col = new \Com\Tecnick\Color\Pdf;
         $enc = new \Com\Tecnick\Pdf\Encrypt\Encrypt(false);
-        $this->obj = new \Com\Tecnick\Pdf\Page\Page(0.75, $col, $enc, false, false);
+        $this->obj = new \Com\Tecnick\Pdf\Page\Page('mm', $col, $enc, false, false);
     }
 
     public function testSanitizePageNumber()
@@ -219,14 +219,14 @@ class SettingsTest extends \PHPUnit_Framework_TestCase
                 'PB' => 0,
             ),
             'orientation' => 'P',
-            'height' => 1122.52,
-            'width' => 793.70133333333331,
-            'ContentWidth' => 793.70133333333331,
-            'ContentHeight' => 1122.52,
+            'height' => 297,
+            'width' => 210,
+            'ContentWidth' => 210,
+            'ContentHeight' => 297,
             'HeaderHeight' => 0,
             'FooterHeight' => 0,
         );
-        $this->assertEquals($exp, $data);
+        $this->assertEquals($exp, $data, '', 0.01);
 
         $data = array(
             'margin' => array(
@@ -240,8 +240,8 @@ class SettingsTest extends \PHPUnit_Framework_TestCase
                 'PB' => 11,
             ),
             'orientation' => 'P',
-            'height' => 1122.52,
-            'width' => 793.70133333333331,
+            'height' => 297,
+            'width' => 210,
         );
         $this->obj->sanitizeMargins($data);
         $exp = array(
@@ -256,14 +256,14 @@ class SettingsTest extends \PHPUnit_Framework_TestCase
                 'PB' => 11,
             ),
             'orientation' => 'P',
-            'height' => 1122.52,
-            'width' => 793.70133333333331,
-            'ContentWidth' => 770.70133333333331,
-            'ContentHeight' => 1092.52,
+            'height' => 297,
+            'width' => 210,
+            'ContentWidth' => 187,
+            'ContentHeight' => 267,
             'HeaderHeight' => 1,
             'FooterHeight' => 2,
         );
-        $this->assertEquals($exp, $data);
+        $this->assertEquals($exp, $data, '', 0.01);
     }
 
     public function testSanitizeBoxData()
@@ -272,17 +272,17 @@ class SettingsTest extends \PHPUnit_Framework_TestCase
         $this->obj->sanitizeBoxData($data);
         $exp = array(
             'orientation' => 'P',
-            'pheight' => 841.88999999999999,
-            'pwidth' => 595.27599999999995,
+            'pheight' => 841.890,
+            'pwidth' => 595.276,
             'box' => array(
                 'MediaBox' => array(
                     'llx' => 0,
                     'lly' => 0,
-                    'urx' => 595.27599999999995,
-                    'ury' => 841.88999999999999,
+                    'urx' => 595.276,
+                    'ury' => 841.890,
                     'bci' => array(
                         'color' => '#000000',
-                        'width' => 1.3333333333333333,
+                        'width' => 0.353,
                         'style' => 'S',
                         'dash' => array(
                             0 => 3,
@@ -292,11 +292,11 @@ class SettingsTest extends \PHPUnit_Framework_TestCase
                 'CropBox' => array(
                     'llx' => 0,
                     'lly' => 0,
-                    'urx' => 595.27599999999995,
-                    'ury' => 841.88999999999999,
+                    'urx' => 595.276,
+                    'ury' => 841.890,
                     'bci' => array(
                         'color' => '#000000',
-                        'width' => 1.3333333333333333,
+                        'width' => 0.353,
                         'style' => 'S',
                         'dash' => array(
                             0 => 3,
@@ -306,11 +306,11 @@ class SettingsTest extends \PHPUnit_Framework_TestCase
                 'BleedBox' => array(
                     'llx' => 0,
                     'lly' => 0,
-                    'urx' => 595.27599999999995,
-                    'ury' => 841.88999999999999,
+                    'urx' => 595.276,
+                    'ury' => 841.890,
                     'bci' => array(
                         'color' => '#000000',
-                        'width' => 1.3333333333333333,
+                        'width' => 0.353,
                         'style' => 'S',
                         'dash' => array(
                             0 => 3,
@@ -320,11 +320,11 @@ class SettingsTest extends \PHPUnit_Framework_TestCase
                 'TrimBox' => array(
                     'llx' => 0,
                     'lly' => 0,
-                    'urx' => 595.27599999999995,
-                    'ury' => 841.88999999999999,
+                    'urx' => 595.276,
+                    'ury' => 841.890,
                     'bci' => array(
                         'color' => '#000000',
-                        'width' => 1.3333333333333333,
+                        'width' => 0.353,
                         'style' => 'S',
                         'dash' => array(
                             0 => 3,
@@ -334,11 +334,11 @@ class SettingsTest extends \PHPUnit_Framework_TestCase
                 'ArtBox' => array(
                     'llx' => 0,
                     'lly' => 0,
-                    'urx' => 595.27599999999995,
-                    'ury' => 841.88999999999999,
+                    'urx' => 595.276,
+                    'ury' => 841.890,
                     'bci' => array(
                         'color' => '#000000',
-                        'width' => 1.3333333333333333,
+                        'width' => 0.353,
                         'style' => 'S',
                         'dash' => array(
                             0 => 3,
@@ -356,11 +356,11 @@ class SettingsTest extends \PHPUnit_Framework_TestCase
                 'MediaBox' => array(
                     'llx' => 0,
                     'lly' => 0,
-                    'urx' => 595.27599999999995,
-                    'ury' => 841.88999999999999,
+                    'urx' => 595.276,
+                    'ury' => 841.890,
                     'bci' => array(
                         'color' => '#000000',
-                        'width' => 1.3333333333333333,
+                        'width' => 0.353,
                         'style' => 'S',
                         'dash' => array(
                             0 => 3,
@@ -377,11 +377,11 @@ class SettingsTest extends \PHPUnit_Framework_TestCase
                 'MediaBox' => array(
                     'llx' => 0,
                     'lly' => 0,
-                    'urx' => 841.88999999999999,
-                    'ury' => 595.27599999999995,
+                    'urx' => 841.890,
+                    'ury' => 595.276,
                     'bci' => array(
                         'color' => '#000000',
-                        'width' => 1.3333333333333333,
+                        'width' => 0.353,
                         'style' => 'S',
                         'dash' => array(0 => 3)
                     )
@@ -389,11 +389,11 @@ class SettingsTest extends \PHPUnit_Framework_TestCase
                 'CropBox' => array(
                     'llx' => 0,
                     'lly' => 0,
-                    'urx' => 841.88999999999999,
-                    'ury' => 595.27599999999995,
+                    'urx' => 841.890,
+                    'ury' => 595.276,
                     'bci' => array(
                         'color' => '#000000',
-                        'width' => 1.3333333333333333,
+                        'width' => 0.353,
                         'style' => 'S',
                         'dash' => array(0 => 3)
                     )
@@ -401,11 +401,11 @@ class SettingsTest extends \PHPUnit_Framework_TestCase
                 'BleedBox' => array(
                     'llx' => 0,
                     'lly' => 0,
-                    'urx' => 841.88999999999999,
-                    'ury' => 595.27599999999995,
+                    'urx' => 841.890,
+                    'ury' => 595.276,
                     'bci' => array(
                         'color' => '#000000',
-                        'width' => 1.3333333333333333,
+                        'width' => 0.353,
                         'style' => 'S',
                         'dash' => array(0 => 3)
                     )
@@ -413,11 +413,11 @@ class SettingsTest extends \PHPUnit_Framework_TestCase
                 'TrimBox' => array(
                     'llx' => 0,
                     'lly' => 0,
-                    'urx' => 841.88999999999999,
-                    'ury' => 595.27599999999995,
+                    'urx' => 841.890,
+                    'ury' => 595.276,
                     'bci' => array(
                         'color' => '#000000',
-                        'width' => 1.3333333333333333,
+                        'width' => 0.353,
                         'style' => 'S',
                         'dash' => array(0 => 3)
                     )
@@ -425,37 +425,37 @@ class SettingsTest extends \PHPUnit_Framework_TestCase
                 'ArtBox' => array(
                     'llx' => 0,
                     'lly' => 0,
-                    'urx' => 841.88999999999999,
-                    'ury' => 595.27599999999995,
+                    'urx' => 841.890,
+                    'ury' => 595.276,
                     'bci' => array(
                         'color' => '#000000',
-                        'width' => 1.3333333333333333,
+                        'width' => 0.353,
                         'style' => 'S',
                         'dash' => array(0 => 3)
                     )
                 ),
             ),
-            'width' => 1122.52,
-            'height' => 793.70133333333331,
-            'pwidth' => 841.88999999999999,
-            'pheight' => 595.27599999999995,
+            'width' => 297,
+            'height' => 210,
+            'pwidth' => 841.890,
+            'pheight' => 595.276,
         );
         $this->assertEquals($exp, $data, '', 0.01);
 
         $data = array(
-            'width' => 793.70133333333331,
-            'height' => 1122.52,
-            'pwidth' => 595.27599999999995,
-            'pheight' => 841.88999999999999,
+            'width' => 210,
+            'height' => 297,
+            'pwidth' => 595.276,
+            'pheight' => 841.890,
             'box' => array(
                 'CropBox' => array(
                     'llx' => 0,
                     'lly' => 0,
-                    'urx' => 595.27599999999995,
-                    'ury' => 841.88999999999999,
+                    'urx' => 595.276,
+                    'ury' => 841.890,
                     'bci' => array(
                         'color' => '#000000',
-                        'width' => 1.3333333333333333,
+                        'width' => 0.353,
                         'style' => 'S',
                         'dash' => array(
                             0 => 3,
@@ -466,19 +466,19 @@ class SettingsTest extends \PHPUnit_Framework_TestCase
         );
         $this->obj->sanitizeBoxData($data);
         $exp = array(
-            'width' => 793.70133333333331,
-            'height' => 1122.52,
-            'pwidth' => 595.27599999999995,
-            'pheight' => 841.88999999999999,
+            'width' => 210,
+            'height' => 297,
+            'pwidth' => 595.276,
+            'pheight' => 841.890,
             'box' => array(
                 'CropBox' => array(
                     'llx' => 0,
                     'lly' => 0,
-                    'urx' => 595.27599999999995,
-                    'ury' => 841.88999999999999,
+                    'urx' => 595.276,
+                    'ury' => 841.890,
                     'bci' => array(
                         'color' => '#000000',
-                        'width' => 1.3333333333333333,
+                        'width' => 0.353,
                         'style' => 'S',
                         'dash' => array(0 => 3)
                     )
@@ -486,11 +486,11 @@ class SettingsTest extends \PHPUnit_Framework_TestCase
                 'MediaBox' => array(
                     'llx' => 0,
                     'lly' => 0,
-                    'urx' => 595.27599999999995,
-                    'ury' => 841.88999999999999,
+                    'urx' => 595.276,
+                    'ury' => 841.890,
                     'bci' => array(
                         'color' => '#000000',
-                        'width' => 1.3333333333333333,
+                        'width' => 0.353,
                         'style' => 'S',
                         'dash' => array(0 => 3)
                     )
@@ -498,11 +498,11 @@ class SettingsTest extends \PHPUnit_Framework_TestCase
                 'BleedBox' => array(
                     'llx' => 0,
                     'lly' => 0,
-                    'urx' => 595.27599999999995,
-                    'ury' => 841.88999999999999,
+                    'urx' => 595.276,
+                    'ury' => 841.890,
                     'bci' => array(
                         'color' => '#000000',
-                        'width' => 1.3333333333333333,
+                        'width' => 0.353,
                         'style' => 'S',
                         'dash' => array(0 => 3)
                     )
@@ -510,11 +510,11 @@ class SettingsTest extends \PHPUnit_Framework_TestCase
                 'TrimBox' => array(
                     'llx' => 0,
                     'lly' => 0,
-                    'urx' => 595.27599999999995,
-                    'ury' => 841.88999999999999,
+                    'urx' => 595.276,
+                    'ury' => 841.890,
                     'bci' => array(
                         'color' => '#000000',
-                        'width' => 1.3333333333333333,
+                        'width' => 0.353,
                         'style' => 'S',
                         'dash' => array(0 => 3)
                     )
@@ -522,11 +522,11 @@ class SettingsTest extends \PHPUnit_Framework_TestCase
                 'ArtBox' => array(
                     'llx' => 0,
                     'lly' => 0,
-                    'urx' => 595.27599999999995,
-                    'ury' => 841.88999999999999,
+                    'urx' => 595.276,
+                    'ury' => 841.890,
                     'bci' => array(
                         'color' => '#000000',
-                        'width' => 1.3333333333333333,
+                        'width' => 0.353,
                         'style' => 'S',
                         'dash' => array(0 => 3)
                     )
@@ -544,24 +544,23 @@ class SettingsTest extends \PHPUnit_Framework_TestCase
         $exp = array(
             'orientation' => 'P',
             'format' => 'A4',
-            'pheight' => 841.88999999999999,
-            'pwidth' => 595.27599999999995,
-            'width' => 793.70133333333331,
-            'height' => 1122.52,
+            'pheight' => 841.890,
+            'pwidth' => 595.276,
+            'width' => 210,
+            'height' => 297,
         );
-        $this->assertEquals($exp, $data);
+        $this->assertEquals($exp, $data, '', 0.01);
 
-        
         $data = array(
             'box' => array(
                 'MediaBox' => array(
                     'llx' => 0,
                     'lly' => 0,
-                    'urx' => 595.27599999999995,
-                    'ury' => 841.88999999999999,
+                    'urx' => 595.276,
+                    'ury' => 841.890,
                     'bci' => array(
                         'color' => '#000000',
-                        'width' => 1.3333333333333333,
+                        'width' => 0.353,
                         'style' => 'S',
                         'dash' => array(
                             0 => 3,
@@ -576,11 +575,11 @@ class SettingsTest extends \PHPUnit_Framework_TestCase
                 'MediaBox' => array(
                     'llx' => 0,
                     'lly' => 0,
-                    'urx' => 595.27599999999995,
-                    'ury' => 841.88999999999999,
+                    'urx' => 595.276,
+                    'ury' => 841.890,
                     'bci' => array(
                         'color' => '#000000',
-                        'width' => 1.3333333333333333,
+                        'width' => 0.353,
                         'style' => 'S',
                         'dash' => array(0 => 3),
                     ),
@@ -589,6 +588,6 @@ class SettingsTest extends \PHPUnit_Framework_TestCase
             'orientation' => '',
             'format' => 'MediaBox',
         );
-        $this->assertEquals($exp, $data);
+        $this->assertEquals($exp, $data, '', 0.01);
     }
 }

@@ -36,9 +36,19 @@ class PageTest extends \PHPUnit_Framework_TestCase
 
         $col = new \Com\Tecnick\Color\Pdf;
         $enc = new \Com\Tecnick\Pdf\Encrypt\Encrypt(false);
-        $this->obj = new \Com\Tecnick\Pdf\Page\Page(0.75, $col, $enc, false, false);
+        $this->obj = new \Com\Tecnick\Pdf\Page\Page('mm', $col, $enc, false, false);
     }
-    
+
+    public function testGetKUnit()
+    {
+        $this->assertEquals(2.83464566929134, $this->obj->getKUnit(), '', 0.001);
+    }
+
+    public function testEnableSignatureApproval()
+    {
+        $this->obj->enableSignatureApproval(true);
+    }
+
     public function testAdd()
     {
         // 1
@@ -47,11 +57,11 @@ class PageTest extends \PHPUnit_Framework_TestCase
         $box = array(
             'llx' => 0,
             'lly' => 0,
-            'urx' => 595.27599999999995,
-            'ury' => 841.88999999999999,
+            'urx' => 595.2765,
+            'ury' => 841.890,
             'bci' => array(
                 'color' => '#000000',
-                'width' => 1.3333333333333333,
+                'width' => 0.353,
                 'style' => 'S',
                 'dash' => array(0 => 3)
             )
@@ -63,10 +73,10 @@ class PageTest extends \PHPUnit_Framework_TestCase
             'zoom' => 1,
             'orientation' => 'P',
             'format' => 'A4',
-            'pheight' => 841.88999999999999,
-            'pwidth' => 595.27599999999995,
-            'width' => 793.70133333333331,
-            'height' => 1122.52,
+            'pheight' => 841.890,
+            'pwidth' => 595.2765,
+            'width' => 210,
+            'height' => 297,
             'box' => array(
                 'MediaBox' => $box,
                 'CropBox'  => $box,
@@ -84,8 +94,8 @@ class PageTest extends \PHPUnit_Framework_TestCase
                 'FT' => 0,
                 'PB' => 0,
             ),
-            'ContentWidth' => 793.70133333333331,
-            'ContentHeight' => 1122.52,
+            'ContentWidth' => 210,
+            'ContentHeight' => 297,
             'HeaderHeight' => 0,
             'FooterHeight' => 0,
             'content' => array(0 => ''),
@@ -94,18 +104,18 @@ class PageTest extends \PHPUnit_Framework_TestCase
         );
         
         unset($res['time']);
-        $this->assertEquals($exp, $res);
+        $this->assertEquals($exp, $res, '', 0.01);
 
         // 2
         $res = $this->obj->add();
         unset($res['time']);
-        $this->assertEquals($exp, $res);
+        $this->assertEquals($exp, $res, '', 0.01);
 
         // 3
         $res = $this->obj->add(array('group' => 1));
         unset($res['time']);
         $exp['group'] = 1;
-        $this->assertEquals($exp, $res);
+        $this->assertEquals($exp, $res, '', 0.01);
     }
 
     public function testDelete()

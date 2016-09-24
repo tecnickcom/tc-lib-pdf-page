@@ -32,10 +32,11 @@ abstract class Unit
 {
     /**
      * Array of conversion ratios relative to points
+     * 72 is the default DPI (Dot Per Inch) document resolution
      *
      * @var array
      */
-    public static $ratio = array(
+    public static $unitratio = array(
         ''            => 1,                // default to points
         'px'          => 1,
         'pt'          => 1,
@@ -49,20 +50,32 @@ abstract class Unit
     );
 
     /**
+     * Get the unit ratio for the specified unit of measure
+     *
+     * @param string $unit   Name of the unit of measure
+     *
+     * @return float
+     */
+    public function getUnitRatio($unit)
+    {
+        $unit = strtolower($unit);
+        if (!isset(self::$unitratio[$unit])) {
+            throw new PageException('unknown unit: '.$unit);
+        }
+        return self::$unitratio[$unit];
+    }
+
+    /**
      * Convert Points to another unit
      *
      * @param float  $points Value to convert
      * @param string $unit   Name of the unit to convert to
      * @param int    $dec    Number of decimals to return
      *
-     * @return int Millimeters
+     * @return float
      */
     public function convertPoints($points, $unit, $dec = 6)
     {
-        $unit = strtolower($unit);
-        if (!isset(self::$ratio[$unit])) {
-            throw new PageException('unknown unit: '.$unit);
-        }
-        return round(($points / self::$ratio[$unit]), $dec);
+        return round(($points / $this->getUnitRatio($unit)), $dec);
     }
 }

@@ -36,7 +36,7 @@ class BoxTest extends \PHPUnit_Framework_TestCase
 
         $col = new \Com\Tecnick\Color\Pdf;
         $enc = new \Com\Tecnick\Pdf\Encrypt\Encrypt(false);
-        $this->obj = new \Com\Tecnick\Pdf\Page\Page(0.75, $col, $enc, false, false);
+        $this->obj = new \Com\Tecnick\Pdf\Page\Page('mm', $col, $enc, false, false);
     }
     
     public function testSetBox()
@@ -51,13 +51,15 @@ class BoxTest extends \PHPUnit_Framework_TestCase
                     'ury' => 8,
                     'bci' => array(
                         'color' => '#000000',
-                        'width' => 1.3333333333333333,
+                        'width' => 0.353,
                         'style' => 'S',
                         'dash' => array(3),
                     )
                 )
             ),
-            $dims
+            $dims,
+            '',
+            0.01
         );
 
         $dims = $this->obj->setBox(
@@ -89,7 +91,9 @@ class BoxTest extends \PHPUnit_Framework_TestCase
                     )
                 )
             ),
-            $dims
+            $dims,
+            '',
+            0.01
         );
 
         $this->setExpectedException('\Com\Tecnick\Pdf\Page\Exception');
@@ -113,7 +117,7 @@ class BoxTest extends \PHPUnit_Framework_TestCase
             'ury' => 200,
             'bci' => array(
                 'color' => '#000000',
-                'width' => 1.3333333333333333,
+                'width' => 0.353,
                 'style' => 'S',
                 'dash' =>array (3),
             )
@@ -126,7 +130,9 @@ class BoxTest extends \PHPUnit_Framework_TestCase
                 'TrimBox'  => $exp,
                 'ArtBox'   => $exp,
             ),
-            $dims
+            $dims,
+            '',
+            0.01
         );
     }
 }

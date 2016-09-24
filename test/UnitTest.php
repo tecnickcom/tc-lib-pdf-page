@@ -36,7 +36,7 @@ class UnitTest extends \PHPUnit_Framework_TestCase
 
         $col = new \Com\Tecnick\Color\Pdf;
         $enc = new \Com\Tecnick\Pdf\Encrypt\Encrypt(false);
-        $this->obj = new \Com\Tecnick\Pdf\Page\Page(0.75, $col, $enc, false, false);
+        $this->obj = new \Com\Tecnick\Pdf\Page\Page('mm', $col, $enc, false, false);
     }
     
     public function testGetPageSize()

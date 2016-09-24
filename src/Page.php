@@ -112,19 +112,40 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
     /**
      * Initialize page data
      *
-     * @param float   $kunit  Unit of measure conversion ratio
+     * @param string  $unit   Unit of measure ('pt', 'mm', 'cm', 'in')
      * @param Color   $col    Color object
      * @param Encrypt $enc    Encrypt object
      * @param bool    $pdfa   True if we are in PDF/A mode.
      * @param bool    $sigapp True if the signature approval is enabled (for incremental updates).
      */
-    public function __construct($kunit, Color $col, Encrypt $enc, $pdfa = false, $sigapp = false)
+    public function __construct($unit, Color $col, Encrypt $enc, $pdfa = false, $sigapp = false)
     {
-        $this->kunit = (float) $kunit;
+        $this->kunit = $this->getUnitRatio($unit);
         $this->col = $col;
         $this->enc = $enc;
         $this->pdfa = (bool) $pdfa;
         $this->sigapp = (bool) $sigapp;
+    }
+
+    /**
+     * Get the unit ratio
+     *
+     * @return float
+     */
+    public function getKUnit()
+    {
+        return $this->kunit;
+    }
+
+    /**
+     * Enable Signature Approval
+     *
+     * @param bool $sigapp True if the signature approval is enabled (for incremental updates).
+     */
+    public function enableSignatureApproval($sigapp)
+    {
+        $this->sigapp = (bool) $sigapp;
+        return $this;
     }
 
     /**
