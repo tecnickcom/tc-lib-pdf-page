@@ -251,6 +251,57 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
     }
 
     /**
+     * Sanitize or set the page regions (columns)
+     *
+     * @param array $data Page data
+     */
+    public function sanitizeRegions(array &$data)
+    {
+        if (!empty($data['columns'])) {
+            // set eaual columns
+            $data['region'] = array();
+            $width = ($data['ContentWidth'] / $data['columns']);
+            for ($idx = 0; $idx < $data['columns']; ++$idx) {
+                $data['region'][] = array(
+                    'X'  => ($data['margin']['PL'] + ($idx * $width)),
+                    'Y'  => $data['margin']['CT'],
+                    'W'  => $width,
+                    'H'  => $data['ContentHeight'],
+                );
+            }
+        }
+        if (empty($data['region'])) {
+            // default single region
+            $data['region'] = array(
+                array(
+                    'X'  => $data['margin']['PL'],
+                    'Y'  => $data['margin']['CT'],
+                    'W'  => $data['ContentWidth'],
+                    'H'  => $data['ContentHeight'],
+                )
+            );
+        }
+        $data['columns'] = 0; // count the number of regions
+        foreach ($data['region'] as $key => $val) {
+            // horizontal
+            $data['region'][$key]['W'] = min(max(0, floatval($val['W'])), $data['ContentWidth']);
+            $data['region'][$key]['X'] = min(
+                max(0, floatval($val['X'])),
+                ($data['width'] - $data['margin']['PR'] - $val['W'])
+            );
+            $data['region'][$key]['R'] = ($data['width'] - $val['X'] - $val['W']);
+            // vertical
+            $data['region'][$key]['H'] = min(max(0, floatval($val['H'])), $data['ContentHeight']);
+            $data['region'][$key]['Y'] = min(
+                max(0, floatval($val['Y'])),
+                ($data['height'] - $data['margin']['CB'] - $val['H'])
+            );
+            $data['region'][$key]['B'] = ($data['height'] - $val['Y'] - $val['H']);
+            ++$data['columns'];
+        }
+    }
+
+    /**
      * Sanitize or set the page boxes containing the page boundaries.
      *
      * @param array $data Page data

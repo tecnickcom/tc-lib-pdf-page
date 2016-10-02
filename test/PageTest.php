@@ -98,6 +98,17 @@ class PageTest extends \PHPUnit_Framework_TestCase
             'ContentHeight' => 297,
             'HeaderHeight' => 0,
             'FooterHeight' => 0,
+            'region' => array (
+                array (
+                    'X' => 0,
+                    'Y' => 0,
+                    'W' => 210,
+                    'H' => 297,
+                    'R' => 0.0,
+                    'B' => 0.0,
+                ),
+            ),
+            'columns' => 1,
             'content' => array(0 => ''),
             'annotrefs' => array(),
             'content_mark' => array(0 => 0),
@@ -115,6 +126,31 @@ class PageTest extends \PHPUnit_Framework_TestCase
         $res = $this->obj->add(array('group' => 1));
         unset($res['time']);
         $exp['group'] = 1;
+        $this->assertEquals($exp, $res, '', 0.01);
+
+        // 3
+        $res = $this->obj->add(array('columns' => 2));
+        unset($res['time']);
+        $exp['group'] = 0;
+        $exp['columns'] = 2;
+        $exp['region'] = array (
+            0 => array (
+            'X' => 0,
+            'Y' => 0,
+            'W' => 105,
+            'H' => 297,
+            'R' => 105,
+            'B' => 0.0,
+            ),
+            1 => array (
+            'X' => 105,
+            'Y' => 0,
+            'W' => 105,
+            'H' => 297,
+            'R' => 0.0,
+            'B' => 0.0,
+            ),
+        );
         $this->assertEquals($exp, $res, '', 0.01);
     }
 

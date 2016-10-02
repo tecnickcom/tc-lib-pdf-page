@@ -174,6 +174,13 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
      *                   CB : content bottom (breaking point)
      *                   FT : footer top
      *                   PB : page bottom (footer bottom)
+     *     columns     : number of equal vertical columns, if set it will automatically populate the region array
+     *     region      : array containing the ordered list of rectangular areas where it is allowed to write,
+     *                   each region is defined by:
+     *                   X : horizontal coordinate of top-left corner
+     *                   Y : vertical coordinate of top-left corner
+     *                   W : width
+     *                   H : height
      *
      * NOTE: if $data is empty, then the last page format will be cloned.
      *
@@ -193,6 +200,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
             $this->sanitizeBoxData($data);
             $this->sanitizeTransitions($data);
             $this->sanitizeMargins($data);
+            $this->sanitizeRegions($data);
         }
 
         $this->sanitizeTime($data);
