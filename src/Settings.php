@@ -289,6 +289,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
                 max(0, floatval($val['X'])),
                 ($data['width'] - $data['margin']['PR'] - $val['W'])
             );
+            $data['region'][$key]['L'] = ($val['X'] + $val['W']);
             $data['region'][$key]['R'] = ($data['width'] - $val['X'] - $val['W']);
             // vertical
             $data['region'][$key]['H'] = min(max(0, floatval($val['H'])), $data['ContentHeight']);
@@ -296,6 +297,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
                 max(0, floatval($val['Y'])),
                 ($data['height'] - $data['margin']['CB'] - $val['H'])
             );
+            $data['region'][$key]['T'] = ($val['Y'] + $val['H']);
             $data['region'][$key]['B'] = ($data['height'] - $val['Y'] - $val['H']);
             ++$data['columns'];
         }

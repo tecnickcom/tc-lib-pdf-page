@@ -30,7 +30,7 @@ use \Com\Tecnick\Pdf\Page\Exception as PageException;
  * @license     http://www.gnu.org/copyleft/lesser.html GNU-LGPL v3 (see LICENSE.TXT)
  * @link        https://github.com/tecnickcom/tc-lib-pdf-page
  */
-class Page extends \Com\Tecnick\Pdf\Page\Settings
+class Page extends \Com\Tecnick\Pdf\Page\Region
 {
     /**
      * Alias for total number of pages in a group
@@ -208,6 +208,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Settings
         $this->sanitizeAnnotRefs($data);
         $this->sanitizePageNumber($data);
         $data['content_mark'] = array(0);
+        $data['currentRegion'] = 0;
 
         $this->page[++$this->pageid] = $data;
         if (isset($this->group[$data['group']])) {
