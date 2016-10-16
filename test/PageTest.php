@@ -100,14 +100,16 @@ class PageTest extends \PHPUnit_Framework_TestCase
             'FooterHeight' => 0,
             'region' => array (
                 array (
-                    'X' => 0,
-                    'Y' => 0,
-                    'W' => 210,
-                    'H' => 297,
-                    'L' => 210,
-                    'R' => 0.0,
-                    'T' => 297,
-                    'B' => 0.0,
+                    'RX' => 0,
+                    'RY' => 0,
+                    'RW' => 210,
+                    'RH' => 297,
+                    'RL' => 210,
+                    'RR' => 0.0,
+                    'RT' => 297,
+                    'RB' => 0.0,
+                    'x'  => 0.0,
+                    'y'  => 0.0,
                 ),
             ),
             'currentRegion' => 0,
@@ -115,6 +117,7 @@ class PageTest extends \PHPUnit_Framework_TestCase
             'content' => array(0 => ''),
             'annotrefs' => array(),
             'content_mark' => array(0 => 0),
+            'autobreak' => true,
         );
         
         unset($res['time']);
@@ -138,27 +141,49 @@ class PageTest extends \PHPUnit_Framework_TestCase
         $exp['columns'] = 2;
         $exp['region'] = array (
             0 => array (
-            'X' => 0,
-            'Y' => 0,
-            'W' => 105,
-            'H' => 297,
-            'L' => 105,
-            'R' => 105,
-            'T' => 297,
-            'B' => 0.0,
+                'RX' => 0,
+                'RY' => 0,
+                'RW' => 105,
+                'RH' => 297,
+                'RL' => 105,
+                'RR' => 105,
+                'RT' => 297,
+                'RB' => 0,
+                'x'  => 0,
+                'y'  => 0,
             ),
             1 => array (
-            'X' => 105,
-            'Y' => 0,
-            'W' => 105,
-            'H' => 297,
-            'L' => 210,
-            'R' => 0.0,
-            'T' => 297,
-            'B' => 0.0,
+                'RX' => 105,
+                'RY' => 0,
+                'RW' => 105,
+                'RH' => 297,
+                'RL' => 210,
+                'RR' => 0.0,
+                'RT' => 297,
+                'RB' => 0,
+                'x'  => 105,
+                'y'  => 0,
             ),
         );
         $this->assertEquals($exp, $res, '', 0.01);
+    }
+
+    public function testGetNextPage()
+    {
+        $this->obj->add();
+        $this->obj->add();
+        $this->obj->add();
+        $this->obj->add();
+
+        $this->obj->setCurrentPage(2);
+        $this->obj->getNextPage();
+        $this->obj->enableAutoPageBreak(false);
+        $this->obj->getNextPage();
+        $this->obj->enableAutoPageBreak(true);
+        $this->obj->getNextPage();
+        $this->obj->getNextPage();
+
+        $this->assertCount(6, $this->obj->getPages());
     }
 
     public function testDelete()

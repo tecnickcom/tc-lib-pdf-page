@@ -44,14 +44,16 @@ class RegionTest extends \PHPUnit_Framework_TestCase
         $this->obj->add(array('columns' => 3));
         $res = $this->obj->selectRegion(1);
         $exp = array(
-            'X' => 70,
-            'Y' => 0,
-            'W' => 70,
-            'H' => 297,
-            'L' => 140,
-            'R' => 70,
-            'T' => 297,
-            'B' => 0,
+            'RX' => 70,
+            'RY' => 0,
+            'RW' => 70,
+            'RH' => 297,
+            'RL' => 140,
+            'RR' => 70,
+            'RT' => 297,
+            'RB' => 0,
+            'x'  => 70,
+            'y'  => 0,
         );
         $this->assertEquals($exp, $res, '', 0.01);
 
@@ -63,6 +65,20 @@ class RegionTest extends \PHPUnit_Framework_TestCase
 
         $res = $this->obj->getNextRegion();
         $this->assertEquals(0, $res['currentRegion'], '', 0.01);
+
+        $this->obj->setCurrentPage(0);
+        $res = $this->obj->getNextRegion();
+        $this->assertEquals(0, $res['currentRegion'], '', 0.01);
+
+        $res = $this->obj->checkRegionBreak(1000);
+        $this->assertEquals(1, $res['currentRegion'], '', 0.01);
+
+        $res = $this->obj->checkRegionBreak();
+        $this->assertEquals(1, $res['currentRegion'], '', 0.01);
+
+        $this->obj->setX(13)->setY(17);
+        $this->assertEquals(13, $this->obj->getX(), '', 0.01);
+        $this->assertEquals(17, $this->obj->getY(), '', 0.01);
     }
 
     public function testRegionBoundaries()
@@ -70,9 +86,11 @@ class RegionTest extends \PHPUnit_Framework_TestCase
         $this->obj->add(array('columns' => 3));
         $region = $this->obj->getCurrentRegion();
 
+        $res = $this->obj->isYOutRegion(null, 1);
+        $this->assertFalse($res);
         $res = $this->obj->isYOutRegion(-1);
         $this->assertTrue($res);
-        $res = $this->obj->isYOutRegion($region['Y']);
+        $res = $this->obj->isYOutRegion($region['RY']);
         $this->assertFalse($res);
         $res = $this->obj->isYOutRegion(0);
         $this->assertFalse($res);
@@ -80,7 +98,7 @@ class RegionTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($res);
         $res = $this->obj->isYOutRegion(297);
         $this->assertFalse($res);
-        $res = $this->obj->isYOutRegion($region['T']);
+        $res = $this->obj->isYOutRegion($region['RT']);
         $this->assertFalse($res);
         $res = $this->obj->isYOutRegion(298);
         $this->assertTrue($res);
@@ -88,9 +106,11 @@ class RegionTest extends \PHPUnit_Framework_TestCase
         $this->obj->getNextRegion();
         $region = $this->obj->getCurrentRegion();
 
+        $res = $this->obj->isXOutRegion(null, 1);
+        $this->assertFalse($res);
         $res = $this->obj->isXOutRegion(69);
         $this->assertTrue($res);
-        $res = $this->obj->isXOutRegion($region['X']);
+        $res = $this->obj->isXOutRegion($region['RX']);
         $this->assertFalse($res);
         $res = $this->obj->isXOutRegion(70);
         $this->assertFalse($res);
@@ -98,7 +118,7 @@ class RegionTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($res);
         $res = $this->obj->isXOutRegion(140);
         $this->assertFalse($res);
-        $res = $this->obj->isXOutRegion($region['L']);
+        $res = $this->obj->isXOutRegion($region['RL']);
         $this->assertFalse($res);
         $res = $this->obj->isXOutRegion(141);
         $this->assertTrue($res);

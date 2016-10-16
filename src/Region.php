@@ -28,6 +28,8 @@ use \Com\Tecnick\Pdf\Page\Exception as PageException;
  * @copyright   2011-2015 Nicola Asuni - Tecnick.com LTD
  * @license     http://www.gnu.org/copyleft/lesser.html GNU-LGPL v3 (see LICENSE.TXT)
  * @link        https://github.com/tecnickcom/tc-lib-pdf-page
+ *
+ * A page region defines the writable area of the page.
  */
 abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
 {
@@ -54,7 +56,9 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
 
     /**
      * Returns the page data with the next selected region.
-     * If there are no more regions available in the current page, then a new page is added.
+     * If there are no more regions available,
+     * then the first region on the next page is selected.
+     * A new page is added if required.
      *
      * @return array Current page data
      */
@@ -65,7 +69,60 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
             $this->page[$this->pageid]['currentRegion'] = $nextid;
             return $this->page[$this->pageid];
         }
+        return $this->getNextPage();
+    }
+
+    /**
+     * Returns the next page data.
+     * Creates a new page if required and page break is enabled.
+     *
+     * @return array Page data
+     */
+    public function getNextPage()
+    {
+        if ($this->pageid < $this->pmaxid) {
+            return $this->page[++$this->pageid];
+        }
+        if (!$this->isAutoPageBreakEnabled()) {
+            return $this->getCurrentPage();
+        }
         return $this->add();
+    }
+
+    /**
+     * Move to the next page region if required.
+     *
+     * @param float $height Height of the block to add.
+     * @param float $ypos   Starting Y position or NULL for current position.
+     *
+     * @return array Page data
+     */
+    public function checkRegionBreak($height = 0, $ypos = null)
+    {
+        if ($this->isYOutRegion($ypos, $height)) {
+            return $this->getNextRegion();
+        }
+        return $this->getCurrentPage();
+    }
+
+    /**
+     * Return the auto-page-break status
+     *
+     * @return bool True if the auto page break is enabled, false otherwise.
+     */
+    public function isAutoPageBreakEnabled()
+    {
+        return $this->page[$this->pageid]['autobreak'];
+    }
+
+    /**
+     * Enable or disable automatic page break.
+     *
+     * @param bool $isenabled Set this to true to enable automatic page break.
+     */
+    public function enableAutoPageBreak($isenabled = true)
+    {
+        $this->page[$this->pageid]['autobreak'] = (bool) $isenabled;
     }
 
     /**
@@ -79,9 +136,8 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
      */
     private function isOutRegion($pos, $min, $max)
     {
-        $eps = 0.0001;
         $region = $this->getCurrentRegion();
-        if (($pos < ($region[$min] - $eps)) || ($pos > ($region[$max] + $eps))) {
+        if (($pos < ($region[$min] - self::EPS)) || ($pos > ($region[$max] + self::EPS))) {
             return true;
         }
         return false;
@@ -90,24 +146,74 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
     /**
      * Check if the specified vertical position is outside the region.
      *
-     * @param float $posy Y position
+     * @param float $posy   Y position or NULL for current position.
+     * @param float $height Additional height to add.
      *
      * @return boolean
      */
-    public function isYOutRegion($posy)
+    public function isYOutRegion($posy = null, $height = 0)
     {
-        return $this->isOutRegion($posy, 'Y', 'T');
+        if ($posy === null) {
+            $posy = $this->getY();
+        }
+        return $this->isOutRegion(floatval($posy + $height), 'RY', 'RT');
     }
 
     /**
-     * Check if the specified horizontal position is outside the region
+     * Check if the specified horizontal position is outside the region.
      *
-     * @param float $posx X position
+     * @param float $posx  X position or NULL for current position.
+     * @param float $width Additional width to add.
      *
      * @return boolean
      */
-    public function isXOutRegion($posx)
+    public function isXOutRegion($posx = null, $width = 0)
     {
-        return $this->isOutRegion($posx, 'X', 'L');
+        if ($posx === null) {
+            $posx = $this->getX();
+        }
+        return $this->isOutRegion(floatval($posx + $width), 'RX', 'RL');
+    }
+
+    /**
+     * Return the absolute horizontal cursor position for the current region.
+     *
+     * @return float
+     */
+    public function getX()
+    {
+        return $this->page[$this->pageid]['region'][$this->page[$this->pageid]['currentRegion']]['x'];
+    }
+
+    /**
+     * Return the absolute vertical cursor position for the current region.
+     *
+     * @return float
+     */
+    public function getY()
+    {
+        return $this->page[$this->pageid]['region'][$this->page[$this->pageid]['currentRegion']]['y'];
+    }
+
+    /**
+     * Set the absolute horizontal cursor position for the current region.
+     *
+     * @param foat $xpos X position relative to the page coordinates.
+     */
+    public function setX($xpos)
+    {
+        $this->page[$this->pageid]['region'][$this->page[$this->pageid]['currentRegion']]['x'] = floatval($xpos);
+        return $this;
+    }
+
+    /**
+     * Set the absolute vertical cursor position for the current region.
+     *
+     * @param foat $ypos Y position relative to the page coordinates.
+     */
+    public function setY($ypos)
+    {
+        $this->page[$this->pageid]['region'][$this->page[$this->pageid]['currentRegion']]['y'] = floatval($ypos);
+        return $this;
     }
 }

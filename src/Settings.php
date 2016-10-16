@@ -34,6 +34,11 @@ use \Com\Tecnick\Pdf\Page\Exception as PageException;
 abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
 {
     /**
+     * Epsilon precision used to compare floating point values
+     */
+    const EPS = 0.0001;
+
+    /**
      * Sanitize or set the page modification time.
      *
      * @param array $data Page data
@@ -263,10 +268,10 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
             $width = ($data['ContentWidth'] / $data['columns']);
             for ($idx = 0; $idx < $data['columns']; ++$idx) {
                 $data['region'][] = array(
-                    'X'  => ($data['margin']['PL'] + ($idx * $width)),
-                    'Y'  => $data['margin']['CT'],
-                    'W'  => $width,
-                    'H'  => $data['ContentHeight'],
+                    'RX'  => ($data['margin']['PL'] + ($idx * $width)),
+                    'RY'  => $data['margin']['CT'],
+                    'RW'  => $width,
+                    'RH'  => $data['ContentHeight'],
                 );
             }
         }
@@ -274,32 +279,47 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
             // default single region
             $data['region'] = array(
                 array(
-                    'X'  => $data['margin']['PL'],
-                    'Y'  => $data['margin']['CT'],
-                    'W'  => $data['ContentWidth'],
-                    'H'  => $data['ContentHeight'],
+                    'RX'  => $data['margin']['PL'],
+                    'RY'  => $data['margin']['CT'],
+                    'RW'  => $data['ContentWidth'],
+                    'RH'  => $data['ContentHeight'],
                 )
             );
         }
         $data['columns'] = 0; // count the number of regions
         foreach ($data['region'] as $key => $val) {
-            // horizontal
-            $data['region'][$key]['W'] = min(max(0, floatval($val['W'])), $data['ContentWidth']);
-            $data['region'][$key]['X'] = min(
-                max(0, floatval($val['X'])),
-                ($data['width'] - $data['margin']['PR'] - $val['W'])
+            // region width
+            $data['region'][$key]['RW'] = min(max(0, floatval($val['RW'])), $data['ContentWidth']);
+            // horizontal coordinate of the top-left corner
+            $data['region'][$key]['RX'] = min(
+                max(0, floatval($val['RX'])),
+                ($data['width'] - $data['margin']['PR'] - $val['RW'])
             );
-            $data['region'][$key]['L'] = ($val['X'] + $val['W']);
-            $data['region'][$key]['R'] = ($data['width'] - $val['X'] - $val['W']);
-            // vertical
-            $data['region'][$key]['H'] = min(max(0, floatval($val['H'])), $data['ContentHeight']);
-            $data['region'][$key]['Y'] = min(
-                max(0, floatval($val['Y'])),
-                ($data['height'] - $data['margin']['CB'] - $val['H'])
+            // distance of the region right side from the left page edge
+            $data['region'][$key]['RL'] = ($val['RX'] + $val['RW']);
+            // distance of the region right side from the right page edge
+            $data['region'][$key]['RR'] = ($data['width'] - $val['RX'] - $val['RW']);
+            // region height
+            $data['region'][$key]['RH'] = min(max(0, floatval($val['RH'])), $data['ContentHeight']);
+            // vertical coordinate of the top-left corner
+            $data['region'][$key]['RY'] = min(
+                max(0, floatval($val['RY'])),
+                ($data['height'] - $data['margin']['CB'] - $val['RH'])
             );
-            $data['region'][$key]['T'] = ($val['Y'] + $val['H']);
-            $data['region'][$key]['B'] = ($data['height'] - $val['Y'] - $val['H']);
+            // distance of the region bottom side from the top page edge
+            $data['region'][$key]['RT'] = ($val['RY'] + $val['RH']);
+            // distance of the region bottom side from the bottom page edge
+            $data['region'][$key]['RB'] = ($data['height'] - $val['RY'] - $val['RH']);
+
+            // initialize cursor position inside the region
+            $data['region'][$key]['x'] = $data['region'][$key]['RX'];
+            $data['region'][$key]['y'] = $data['region'][$key]['RY'];
+
             ++$data['columns'];
+        }
+
+        if (!isset($data['autobreak'])) {
+            $data['autobreak'] = true;
         }
     }
 

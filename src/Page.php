@@ -59,6 +59,13 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      * @var int
      */
     protected $pageid = -1;
+
+    /**
+     * Maximum page ID.
+     *
+     * @var int
+     */
+    protected $pmaxid = -1;
     
     /**
      * Count pages in each group
@@ -166,21 +173,22 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      *     transition  : array containing page transition data (@see getPageTransition);
      *     zoom        : preferred zoom (magnification) factor;
      *     margin      : page margins:
-     *                   PL : page left
-     *                   PR : page right
-     *                   PT : page top (header top)
-     *                   HB : header bottom
-     *                   CT : content top
-     *                   CB : content bottom (breaking point)
-     *                   FT : footer top
-     *                   PB : page bottom (footer bottom)
+     *                   PL : page left margin measured from the left page edge
+     *                   PR : page right margin measured from the right page edge
+     *                   PT : page top or header top measured distance from the top page edge
+     *                   HB : header bottom measured from the top page edge
+     *                   CT : content top measured from the top page edge
+     *                   CB : content bottom (page breaking point) measured from the top page edge
+     *                   FT : footer top measured from the bottom page edge
+     *                   PB : page bottom (footer bottom) measured from the bottom page edge
      *     columns     : number of equal vertical columns, if set it will automatically populate the region array
      *     region      : array containing the ordered list of rectangular areas where it is allowed to write,
      *                   each region is defined by:
-     *                   X : horizontal coordinate of top-left corner
-     *                   Y : vertical coordinate of top-left corner
-     *                   W : width
-     *                   H : height
+     *                   RX : horizontal coordinate of top-left corner
+     *                   RY : vertical coordinate of top-left corner
+     *                   RW : region width
+     *                   RH : region height
+     *     autobreak   : true to automatically add a page when the content reaches the breaking point.
      *
      * NOTE: if $data is empty, then the last page format will be cloned.
      *
@@ -188,9 +196,9 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      */
     public function add(array $data = array())
     {
-        if (empty($data) && ($this->pageid >= 0)) {
+        if (empty($data) && ($this->pmaxid >= 0)) {
             // clone last page data
-            $data = $this->page[$this->pageid];
+            $data = $this->page[$this->pmaxid];
             unset($data['time'], $data['content'], $data['annotrefs'], $data['pagenum']);
         } else {
             $this->sanitizeGroup($data);
@@ -210,7 +218,8 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
         $data['content_mark'] = array(0);
         $data['currentRegion'] = 0;
 
-        $this->page[++$this->pageid] = $data;
+        $this->pageid = ++$this->pmaxid;
+        $this->page[$this->pageid] = $data;
         if (isset($this->group[$data['group']])) {
             $this->group[$data['group']] += 1;
         } else {
@@ -236,7 +245,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
         $this->group[$this->page[$idx]['group']] -= 1;
         unset($this->page[$idx]);
         $this->page = array_values($this->page); // reindex array
-        --$this->pageid;
+        --$this->pmaxid;
         return $page;
     }
 
@@ -247,7 +256,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      */
     public function pop()
     {
-        return $this->delete($this->pageid);
+        return $this->delete($this->pmaxid);
     }
 
     /**
@@ -258,7 +267,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      */
     public function move($from, $new)
     {
-        if (($from <= $new) || ($from > $this->pageid)) {
+        if (($from <= $new) || ($from > $this->pmaxid)) {
             throw new PageException('The new position must be lower than the starting position');
         }
         $this->page = array_values(
@@ -294,6 +303,17 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
             throw new PageException('The page '.$idx.' do not exist.');
         }
         return $this->page[$idx];
+    }
+
+    /**
+     * Set the current page number (move to the specified page)
+     *
+     * @param int $pid Page ID number
+     */
+    public function setCurrentPage($pid)
+    {
+        $this->pageid = min(max(0, intval($pid)), $this->pmaxid);
+        return $this->page[$this->pageid];
     }
 
     /**
