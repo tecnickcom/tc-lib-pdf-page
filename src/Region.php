@@ -128,9 +128,9 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
     /**
      * Check if the specified position is outside the region.
      *
-     * @param float  $posy Position
-     * @param string $min  ID of the min region value to check
-     * @param string $max  ID of the max region value to check
+     * @param float  $pos Position
+     * @param string $min ID of the min region value to check
+     * @param string $max ID of the max region value to check
      *
      * @return boolean
      */
