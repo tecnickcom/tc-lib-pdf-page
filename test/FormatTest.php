@@ -64,7 +64,7 @@ class FormatTest extends TestCase
      */
     public function testGetPageSizeEx()
     {
-        $dims = $this->obj->getPageFormatSize('*ERROR*');
+        $this->obj->getPageFormatSize('*ERROR*');
     }
     
     public function testGetPageOrientedSize()
