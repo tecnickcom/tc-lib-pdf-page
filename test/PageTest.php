@@ -15,6 +15,8 @@
 
 namespace Test;
 
+use PHPUnit\Framework\TestCase;
+
 /**
  * Page Test
  *
@@ -26,7 +28,7 @@ namespace Test;
  * @license     http://www.gnu.org/copyleft/lesser.html GNU-LGPL v3 (see LICENSE.TXT)
  * @link        https://github.com/tecnickcom/tc-lib-pdf-page
  */
-class PageTest extends \PHPUnit_Framework_TestCase
+class PageTest extends TestCase
 {
     protected $obj = null;
 
@@ -46,7 +48,8 @@ class PageTest extends \PHPUnit_Framework_TestCase
 
     public function testEnableSignatureApproval()
     {
-        $this->obj->enableSignatureApproval(true);
+        $res = $this->obj->enableSignatureApproval(true);
+        $this->assertNotNull($res);
     }
 
     public function testAdd()
@@ -195,8 +198,13 @@ class PageTest extends \PHPUnit_Framework_TestCase
         $res = $this->obj->delete(1);
         $this->assertCount(2, $this->obj->getPages());
         $this->assertArrayHasKey('time', $res);
+    }
 
-        $this->setExpectedException('\Com\Tecnick\Pdf\Page\Exception');
+    /**
+     * @expectedException \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testDeleteEx()
+    {
         $this->obj->delete(2);
     }
 
@@ -225,14 +233,21 @@ class PageTest extends \PHPUnit_Framework_TestCase
 
         $res = $this->obj->getPage(0);
         $this->assertEquals(3, $res['group']);
+    }
 
-        $this->setExpectedException('\Com\Tecnick\Pdf\Page\Exception');
+    /**
+     * @expectedException \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testMoveEx()
+    {
         $this->obj->move(1, 2);
     }
 
+    /**
+     * @expectedException \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testGetPageEx()
     {
-        $this->setExpectedException('\Com\Tecnick\Pdf\Page\Exception');
         $this->obj->getPage(2);
     }
 

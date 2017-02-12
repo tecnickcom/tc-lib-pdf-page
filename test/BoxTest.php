@@ -15,6 +15,8 @@
 
 namespace Test;
 
+use PHPUnit\Framework\TestCase;
+
 /**
  * Box Test
  *
@@ -26,7 +28,7 @@ namespace Test;
  * @license     http://www.gnu.org/copyleft/lesser.html GNU-LGPL v3 (see LICENSE.TXT)
  * @link        https://github.com/tecnickcom/tc-lib-pdf-page
  */
-class BoxTest extends \PHPUnit_Framework_TestCase
+class BoxTest extends TestCase
 {
     protected $obj = null;
 
@@ -95,8 +97,13 @@ class BoxTest extends \PHPUnit_Framework_TestCase
             '',
             0.01
         );
+    }
 
-        $this->setExpectedException('\Com\Tecnick\Pdf\Page\Exception');
+    /**
+     * @expectedException \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testSetBoxEx()
+    {
         $this->obj->setBox(array(), 'ERROR', 1, 2, 3, 4);
     }
 

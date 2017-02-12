@@ -6,7 +6,7 @@
  * @category    Library
  * @package     PdfPage
  * @author      Nicola Asuni <info@tecnick.com>
- * @copyright   2011-2015 Nicola Asuni - Tecnick.com LTD
+ * @copyright   2011-2017 Nicola Asuni - Tecnick.com LTD
  * @license     http://www.gnu.org/copyleft/lesser.html GNU-LGPL v3 (see LICENSE.TXT)
  * @link        https://github.com/tecnickcom/tc-lib-pdf-page
  *
@@ -15,6 +15,8 @@
 
 namespace Test;
 
+use PHPUnit\Framework\TestCase;
+
 /**
  * Unit Test
  *
@@ -22,11 +24,11 @@ namespace Test;
  * @category    Library
  * @package     PdfPage
  * @author      Nicola Asuni <info@tecnick.com>
- * @copyright   2011-2015 Nicola Asuni - Tecnick.com LTD
+ * @copyright   2011-2017 Nicola Asuni - Tecnick.com LTD
  * @license     http://www.gnu.org/copyleft/lesser.html GNU-LGPL v3 (see LICENSE.TXT)
  * @link        https://github.com/tecnickcom/tc-lib-pdf-page
  */
-class UnitTest extends \PHPUnit_Framework_TestCase
+class UnitTest extends TestCase
 {
     protected $obj = null;
 
@@ -46,8 +48,13 @@ class UnitTest extends \PHPUnit_Framework_TestCase
 
         $val = $this->obj->convertPoints(72, 'mm', 3);
         $this->assertEquals(25.4, $val);
+    }
 
-        $this->setExpectedException('\Com\Tecnick\Pdf\Page\Exception');
+    /**
+     * @expectedException \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testGetPageSizeEx()
+    {
         $this->obj->convertPoints(1, '*ERROR*', 2);
     }
 }

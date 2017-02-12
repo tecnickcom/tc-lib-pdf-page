@@ -15,6 +15,8 @@
 
 namespace Test;
 
+use PHPUnit\Framework\TestCase;
+
 /**
  * Format Test
  *
@@ -26,7 +28,7 @@ namespace Test;
  * @license     http://www.gnu.org/copyleft/lesser.html GNU-LGPL v3 (see LICENSE.TXT)
  * @link        https://github.com/tecnickcom/tc-lib-pdf-page
  */
-class FormatTest extends \PHPUnit_Framework_TestCase
+class FormatTest extends TestCase
 {
     protected $obj = null;
 
@@ -55,8 +57,13 @@ class FormatTest extends \PHPUnit_Framework_TestCase
 
         $dims = $this->obj->getPageFormatSize('LEGAL', 'L', 'mm', 0);
         $this->assertEquals(array(356, 216, 'L'), $dims);
+    }
 
-        $this->setExpectedException('\Com\Tecnick\Pdf\Page\Exception');
+    /**
+     * @expectedException \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testGetPageSizeEx()
+    {
         $dims = $this->obj->getPageFormatSize('*ERROR*');
     }
     
