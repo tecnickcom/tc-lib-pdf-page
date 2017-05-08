@@ -375,7 +375,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     public function getPdfPages(&$pon)
     {
         $out = $this->getPageRootObj($pon);
-        $rootobjid = $pon;
+        $rootobjid = ($this->rdoid - 1);
 
         foreach ($this->page as $num => $page) {
             if (!isset($page['num'])) {
