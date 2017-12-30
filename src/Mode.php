@@ -60,7 +60,7 @@ abstract class Mode extends \Com\Tecnick\Pdf\Page\Format
         'useattachments' => 'UseAttachments', // (PDF 1.6) Attachments panel visible
         ''               => 'UseAttachments'  // (PDF 1.6) Attachments panel visible
     );
-    
+
     /**
      * Get the canonical page layout name.
      *
