@@ -22,7 +22,7 @@
     "ext-date": "*",
     "ext-zlib": "*",
     "tecnickcom/tc-lib-color": "^1.12.10",
-    "tecnickcom/tc-lib-pdf-encrypt": "^1.5.5"
+    "tecnickcom/tc-lib-pdf-encrypt": "^1.5.6"
   },
   "require-dev": {
     "apigen/apigen": "^4.1.2",
