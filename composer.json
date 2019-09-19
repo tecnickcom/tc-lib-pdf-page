@@ -21,8 +21,8 @@
     "php": ">=5.4",
     "ext-date": "*",
     "ext-zlib": "*",
-    "tecnickcom/tc-lib-color": "^1.12.12",
-    "tecnickcom/tc-lib-pdf-encrypt": "^1.5.7"
+    "tecnickcom/tc-lib-color": "^1.12.13",
+    "tecnickcom/tc-lib-pdf-encrypt": "^1.5.8"
   },
   "require-dev": {
     "apigen/apigen": "^4.1.2",
