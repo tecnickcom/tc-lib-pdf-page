@@ -28,23 +28,20 @@ use PHPUnit\Framework\TestCase;
  * @license     http://www.gnu.org/copyleft/lesser.html GNU-LGPL v3 (see LICENSE.TXT)
  * @link        https://github.com/tecnickcom/tc-lib-pdf-page
  */
-class BoxTest extends TestCase
+class BoxTest extends TestUtil
 {
-    protected $obj = null;
-
-    public function setUp()
+    protected function getTestObject()
     {
-        //$this->markTestSkipped(); // skip this test
-
         $col = new \Com\Tecnick\Color\Pdf;
         $enc = new \Com\Tecnick\Pdf\Encrypt\Encrypt(false);
-        $this->obj = new \Com\Tecnick\Pdf\Page\Page('mm', $col, $enc, false, false);
+        return new \Com\Tecnick\Pdf\Page\Page('mm', $col, $enc, false, false);
     }
     
     public function testSetBox()
     {
-        $dims = $this->obj->setBox(array(), 'CropBox', 2, 4, 6, 8);
-        $this->assertEquals(
+        $testObj = $this->getTestObject();
+        $dims = $testObj->setBox(array(), 'CropBox', 2, 4, 6, 8);
+        $this->bcAssertEqualsWithDelta(
             array(
                 'CropBox' => array(
                     'llx' => 2,
@@ -59,12 +56,10 @@ class BoxTest extends TestCase
                     )
                 )
             ),
-            $dims,
-            '',
-            0.01
+            $dims
         );
 
-        $dims = $this->obj->setBox(
+        $dims = $testObj->setBox(
             array(),
             'TrimBox',
             3,
@@ -78,7 +73,7 @@ class BoxTest extends TestCase
                 'dash' => array(2,3,5,7),
             )
         );
-        $this->assertEquals(
+        $this->bcAssertEqualsWithDelta(
             array(
                 'TrimBox' => array(
                     'llx' => 3,
@@ -93,30 +88,29 @@ class BoxTest extends TestCase
                     )
                 )
             ),
-            $dims,
-            '',
-            0.01
+            $dims
         );
     }
 
-    /**
-     * @expectedException \Com\Tecnick\Pdf\Page\Exception
-     */
     public function testSetBoxEx()
     {
-        $this->obj->setBox(array(), 'ERROR', 1, 2, 3, 4);
+        $this->bcExpectException('\Com\Tecnick\Pdf\Page\Exception');
+        $testObj = $this->getTestObject();
+        $testObj->setBox(array(), 'ERROR', 1, 2, 3, 4);
     }
 
     public function testSwapCoordinates()
     {
+        $testObj = $this->getTestObject();
         $dims = array('CropBox'=>array('llx'=>2, 'lly'=>4, 'urx'=>6, 'ury'=>8));
-        $newpagedim = $this->obj->swapCoordinates($dims);
+        $newpagedim = $testObj->swapCoordinates($dims);
         $this->assertEquals(array('CropBox'=>array('llx'=>4, 'lly'=>2, 'urx'=>8, 'ury'=>6)), $newpagedim);
     }
 
     public function testSetPageBoxes()
     {
-        $dims = $this->obj->setPageBoxes(100, 200);
+        $testObj = $this->getTestObject();
+        $dims = $testObj->setPageBoxes(100, 200);
         $exp = array(
             'llx' => 0,
             'lly' => 0,
@@ -129,7 +123,7 @@ class BoxTest extends TestCase
                 'dash' =>array (3),
             )
         );
-        $this->assertEquals(
+        $this->bcAssertEqualsWithDelta(
             array(
                 'MediaBox' => $exp,
                 'CropBox'  => $exp,
@@ -137,9 +131,7 @@ class BoxTest extends TestCase
                 'TrimBox'  => $exp,
                 'ArtBox'   => $exp,
             ),
-            $dims,
-            '',
-            0.01
+            $dims
         );
     }
 }

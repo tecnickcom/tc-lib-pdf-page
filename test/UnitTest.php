@@ -28,33 +28,29 @@ use PHPUnit\Framework\TestCase;
  * @license     http://www.gnu.org/copyleft/lesser.html GNU-LGPL v3 (see LICENSE.TXT)
  * @link        https://github.com/tecnickcom/tc-lib-pdf-page
  */
-class UnitTest extends TestCase
+class UnitTest extends TestUtil
 {
-    protected $obj = null;
-
-    public function setUp()
+    protected function getTestObject()
     {
-        //$this->markTestSkipped(); // skip this test
-
         $col = new \Com\Tecnick\Color\Pdf;
         $enc = new \Com\Tecnick\Pdf\Encrypt\Encrypt(false);
-        $this->obj = new \Com\Tecnick\Pdf\Page\Page('mm', $col, $enc, false, false);
+        return new \Com\Tecnick\Pdf\Page\Page('mm', $col, $enc, false, false);
     }
     
     public function testGetPageSize()
     {
-        $val = $this->obj->convertPoints(72, 'in', 3);
+        $testObj = $this->getTestObject();
+        $val = $testObj->convertPoints(72, 'in', 3);
         $this->assertEquals(1, $val);
 
-        $val = $this->obj->convertPoints(72, 'mm', 3);
+        $val = $testObj->convertPoints(72, 'mm', 3);
         $this->assertEquals(25.4, $val);
     }
 
-    /**
-     * @expectedException \Com\Tecnick\Pdf\Page\Exception
-     */
     public function testGetPageSizeEx()
     {
-        $this->obj->convertPoints(1, '*ERROR*', 2);
+        $this->bcExpectException('\Com\Tecnick\Pdf\Page\Exception');
+        $testObj = $this->getTestObject();
+        $testObj->convertPoints(1, '*ERROR*', 2);
     }
 }

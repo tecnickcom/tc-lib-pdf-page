@@ -28,30 +28,28 @@ use PHPUnit\Framework\TestCase;
  * @license     http://www.gnu.org/copyleft/lesser.html GNU-LGPL v3 (see LICENSE.TXT)
  * @link        https://github.com/tecnickcom/tc-lib-pdf-page
  */
-class ModeTest extends TestCase
+class ModeTest extends TestUtil
 {
-    protected $obj = null;
-
-    public function setUp()
+    protected function getTestObject()
     {
-        //$this->markTestSkipped(); // skip this test
-
         $col = new \Com\Tecnick\Color\Pdf;
         $enc = new \Com\Tecnick\Pdf\Encrypt\Encrypt(false);
-        $this->obj = new \Com\Tecnick\Pdf\Page\Page('mm', $col, $enc, false, false);
+        return new \Com\Tecnick\Pdf\Page\Page('mm', $col, $enc, false, false);
     }
 
     public function testGetLayout()
     {
-        $this->assertEquals('TwoColumnLeft', $this->obj->getLayout('two'));
-        $this->assertEquals('SinglePage', $this->obj->getLayout(''));
-        $this->assertEquals('SinglePage', $this->obj->getLayout());
+        $testObj = $this->getTestObject();
+        $this->assertEquals('TwoColumnLeft', $testObj->getLayout('two'));
+        $this->assertEquals('SinglePage', $testObj->getLayout(''));
+        $this->assertEquals('SinglePage', $testObj->getLayout());
     }
 
     public function testGetDisplay()
     {
-        $this->assertEquals('UseThumbs', $this->obj->getDisplay('usethumbs'));
-        $this->assertEquals('UseAttachments', $this->obj->getDisplay(''));
-        $this->assertEquals('UseNone', $this->obj->getDisplay('something'));
+        $testObj = $this->getTestObject();
+        $this->assertEquals('UseThumbs', $testObj->getDisplay('usethumbs'));
+        $this->assertEquals('UseAttachments', $testObj->getDisplay(''));
+        $this->assertEquals('UseNone', $testObj->getDisplay('something'));
     }
 }

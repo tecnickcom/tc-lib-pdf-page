@@ -28,23 +28,20 @@ use PHPUnit\Framework\TestCase;
  * @license     http://www.gnu.org/copyleft/lesser.html GNU-LGPL v3 (see LICENSE.TXT)
  * @link        https://github.com/tecnickcom/tc-lib-pdf-page
  */
-class RegionTest extends TestCase
+class RegionTest extends TestUtil
 {
-    protected $obj = null;
-
-    public function setUp()
+    protected function getTestObject()
     {
-        //$this->markTestSkipped(); // skip this test
-
         $col = new \Com\Tecnick\Color\Pdf;
         $enc = new \Com\Tecnick\Pdf\Encrypt\Encrypt(false);
-        $this->obj = new \Com\Tecnick\Pdf\Page\Page('mm', $col, $enc, false, false);
+        return new \Com\Tecnick\Pdf\Page\Page('mm', $col, $enc, false, false);
     }
 
     public function testRegion()
     {
-        $this->obj->add(array('columns' => 3));
-        $res = $this->obj->selectRegion(1);
+        $testObj = $this->getTestObject();
+        $testObj->add(array('columns' => 3));
+        $res = $testObj->selectRegion(1);
         $exp = array(
             'RX' => 70,
             'RY' => 0,
@@ -57,72 +54,73 @@ class RegionTest extends TestCase
             'x'  => 70,
             'y'  => 0,
         );
-        $this->assertEquals($exp, $res, '', 0.01);
+        $this->bcAssertEqualsWithDelta($exp, $res);
 
-        $res = $this->obj->getCurrentRegion();
-        $this->assertEquals($exp, $res, '', 0.01);
+        $res = $testObj->getCurrentRegion();
+        $this->bcAssertEqualsWithDelta($exp, $res);
 
-        $res = $this->obj->getNextRegion();
-        $this->assertEquals(2, $res['currentRegion'], '', 0.01);
+        $res = $testObj->getNextRegion();
+        $this->bcAssertEqualsWithDelta(2, $res['currentRegion']);
 
-        $res = $this->obj->getNextRegion();
-        $this->assertEquals(0, $res['currentRegion'], '', 0.01);
+        $res = $testObj->getNextRegion();
+        $this->bcAssertEqualsWithDelta(0, $res['currentRegion']);
 
-        $this->obj->setCurrentPage(0);
-        $res = $this->obj->getNextRegion();
-        $this->assertEquals(0, $res['currentRegion'], '', 0.01);
+        $testObj->setCurrentPage(0);
+        $res = $testObj->getNextRegion();
+        $this->bcAssertEqualsWithDelta(0, $res['currentRegion']);
 
-        $res = $this->obj->checkRegionBreak(1000);
-        $this->assertEquals(1, $res['currentRegion'], '', 0.01);
+        $res = $testObj->checkRegionBreak(1000);
+        $this->bcAssertEqualsWithDelta(1, $res['currentRegion']);
 
-        $res = $this->obj->checkRegionBreak();
-        $this->assertEquals(1, $res['currentRegion'], '', 0.01);
+        $res = $testObj->checkRegionBreak();
+        $this->bcAssertEqualsWithDelta(1, $res['currentRegion']);
 
-        $this->obj->setX(13)->setY(17);
-        $this->assertEquals(13, $this->obj->getX(), '', 0.01);
-        $this->assertEquals(17, $this->obj->getY(), '', 0.01);
+        $testObj->setX(13)->setY(17);
+        $this->bcAssertEqualsWithDelta(13, $testObj->getX());
+        $this->bcAssertEqualsWithDelta(17, $testObj->getY());
     }
 
     public function testRegionBoundaries()
     {
-        $this->obj->add(array('columns' => 3));
-        $region = $this->obj->getCurrentRegion();
+        $testObj = $this->getTestObject();
+        $testObj->add(array('columns' => 3));
+        $region = $testObj->getCurrentRegion();
 
-        $res = $this->obj->isYOutRegion(null, 1);
+        $res = $testObj->isYOutRegion(null, 1);
         $this->assertFalse($res);
-        $res = $this->obj->isYOutRegion(-1);
+        $res = $testObj->isYOutRegion(-1);
         $this->assertTrue($res);
-        $res = $this->obj->isYOutRegion($region['RY']);
+        $res = $testObj->isYOutRegion($region['RY']);
         $this->assertFalse($res);
-        $res = $this->obj->isYOutRegion(0);
+        $res = $testObj->isYOutRegion(0);
         $this->assertFalse($res);
-        $res = $this->obj->isYOutRegion(100);
+        $res = $testObj->isYOutRegion(100);
         $this->assertFalse($res);
-        $res = $this->obj->isYOutRegion(297);
+        $res = $testObj->isYOutRegion(297);
         $this->assertFalse($res);
-        $res = $this->obj->isYOutRegion($region['RT']);
+        $res = $testObj->isYOutRegion($region['RT']);
         $this->assertFalse($res);
-        $res = $this->obj->isYOutRegion(298);
+        $res = $testObj->isYOutRegion(298);
         $this->assertTrue($res);
 
-        $this->obj->getNextRegion();
-        $region = $this->obj->getCurrentRegion();
+        $testObj->getNextRegion();
+        $region = $testObj->getCurrentRegion();
 
-        $res = $this->obj->isXOutRegion(null, 1);
+        $res = $testObj->isXOutRegion(null, 1);
         $this->assertFalse($res);
-        $res = $this->obj->isXOutRegion(69);
+        $res = $testObj->isXOutRegion(69);
         $this->assertTrue($res);
-        $res = $this->obj->isXOutRegion($region['RX']);
+        $res = $testObj->isXOutRegion($region['RX']);
         $this->assertFalse($res);
-        $res = $this->obj->isXOutRegion(70);
+        $res = $testObj->isXOutRegion(70);
         $this->assertFalse($res);
-        $res = $this->obj->isXOutRegion(90);
+        $res = $testObj->isXOutRegion(90);
         $this->assertFalse($res);
-        $res = $this->obj->isXOutRegion(140);
+        $res = $testObj->isXOutRegion(140);
         $this->assertFalse($res);
-        $res = $this->obj->isXOutRegion($region['RL']);
+        $res = $testObj->isXOutRegion($region['RL']);
         $this->assertFalse($res);
-        $res = $this->obj->isXOutRegion(141);
+        $res = $testObj->isXOutRegion(141);
         $this->assertTrue($res);
     }
 }

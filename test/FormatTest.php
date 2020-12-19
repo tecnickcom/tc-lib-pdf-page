@@ -28,72 +28,70 @@ use PHPUnit\Framework\TestCase;
  * @license     http://www.gnu.org/copyleft/lesser.html GNU-LGPL v3 (see LICENSE.TXT)
  * @link        https://github.com/tecnickcom/tc-lib-pdf-page
  */
-class FormatTest extends TestCase
+class FormatTest extends TestUtil
 {
-    protected $obj = null;
-
-    public function setUp()
+    protected function getTestObject()
     {
-        //$this->markTestSkipped(); // skip this test
-
         $col = new \Com\Tecnick\Color\Pdf;
         $enc = new \Com\Tecnick\Pdf\Encrypt\Encrypt(false);
-        $this->obj = new \Com\Tecnick\Pdf\Page\Page('mm', $col, $enc, false, false);
+        return new \Com\Tecnick\Pdf\Page\Page('mm', $col, $enc, false, false);
     }
     
     public function testGetPageSize()
     {
-        $dims = $this->obj->getPageFormatSize('A0');
+        $testObj = $this->getTestObject();
+        $dims = $testObj->getPageFormatSize('A0');
         $this->assertEquals(array(2383.937, 3370.394, 'P'), $dims);
 
-        $dims = $this->obj->getPageFormatSize('A4', '', 'in', 2);
+        $dims = $testObj->getPageFormatSize('A4', '', 'in', 2);
         $this->assertEquals(array(8.27, 11.69, 'P'), $dims);
 
-        $dims = $this->obj->getPageFormatSize('LEGAL', '', 'mm', 0);
+        $dims = $testObj->getPageFormatSize('LEGAL', '', 'mm', 0);
         $this->assertEquals(array(216, 356, 'P'), $dims);
 
-        $dims = $this->obj->getPageFormatSize('LEGAL', 'P', 'mm', 0);
+        $dims = $testObj->getPageFormatSize('LEGAL', 'P', 'mm', 0);
         $this->assertEquals(array(216, 356, 'P'), $dims);
 
-        $dims = $this->obj->getPageFormatSize('LEGAL', 'L', 'mm', 0);
+        $dims = $testObj->getPageFormatSize('LEGAL', 'L', 'mm', 0);
         $this->assertEquals(array(356, 216, 'L'), $dims);
     }
 
-    /**
-     * @expectedException \Com\Tecnick\Pdf\Page\Exception
-     */
     public function testGetPageSizeEx()
     {
-        $this->obj->getPageFormatSize('*ERROR*');
+        $this->bcExpectException('\Com\Tecnick\Pdf\Page\Exception');
+        $testObj = $this->getTestObject();
+        $testObj->getPageFormatSize('*ERROR*');
     }
     
     public function testGetPageOrientedSize()
     {
-        $dims = $this->obj->getPageOrientedSize(10, 20);
+        $testObj = $this->getTestObject();
+        $dims = $testObj->getPageOrientedSize(10, 20);
         $this->assertEquals(array(10, 20, 'P'), $dims);
         
-        $dims = $this->obj->getPageOrientedSize(10, 20, 'P');
+        $dims = $testObj->getPageOrientedSize(10, 20, 'P');
         $this->assertEquals(array(10, 20, 'P'), $dims);
         
-        $dims = $this->obj->getPageOrientedSize(10, 20, 'L');
+        $dims = $testObj->getPageOrientedSize(10, 20, 'L');
         $this->assertEquals(array(20, 10, 'L'), $dims);
         
-        $dims = $this->obj->getPageOrientedSize(20, 10, 'P');
+        $dims = $testObj->getPageOrientedSize(20, 10, 'P');
         $this->assertEquals(array(10, 20, 'P'), $dims);
         
-        $dims = $this->obj->getPageOrientedSize(20, 10, 'L');
+        $dims = $testObj->getPageOrientedSize(20, 10, 'L');
         $this->assertEquals(array(20, 10, 'L'), $dims);
 
-        $dims = $this->obj->getPageOrientedSize(20, 10);
+        $dims = $testObj->getPageOrientedSize(20, 10);
         $this->assertEquals(array(20, 10, 'L'), $dims);
     }
     
     public function testGetPageOrientation()
     {
-        $orient = $this->obj->getPageOrientation(10, 20);
+        $testObj = $this->getTestObject();
+        $orient = $testObj->getPageOrientation(10, 20);
         $this->assertEquals('P', $orient);
 
-        $orient = $this->obj->getPageOrientation(20, 10);
+        $orient = $testObj->getPageOrientation(20, 10);
         $this->assertEquals('L', $orient);
     }
 }

@@ -28,148 +28,152 @@ use PHPUnit\Framework\TestCase;
  * @license     http://www.gnu.org/copyleft/lesser.html GNU-LGPL v3 (see LICENSE.TXT)
  * @link        https://github.com/tecnickcom/tc-lib-pdf-page
  */
-class SettingsTest extends TestCase
+class SettingsTest extends TestUtil
 {
-    protected $obj = null;
-
-    public function setUp()
+    protected function getTestObject()
     {
-        //$this->markTestSkipped(); // skip this test
-
         $col = new \Com\Tecnick\Color\Pdf;
         $enc = new \Com\Tecnick\Pdf\Encrypt\Encrypt(false);
-        $this->obj = new \Com\Tecnick\Pdf\Page\Page('mm', $col, $enc, false, false);
+        return new \Com\Tecnick\Pdf\Page\Page('mm', $col, $enc, false, false);
     }
 
     public function testSanitizePageNumber()
     {
+        $testObj = $this->getTestObject();
         $data = array();
-        $this->obj->sanitizePageNumber($data);
+        $testObj->sanitizePageNumber($data);
         $this->assertEquals(array(), $data);
         
         $data = array('num' => -1);
-        $this->obj->sanitizePageNumber($data);
+        $testObj->sanitizePageNumber($data);
         $this->assertEquals(array('num' => 0), $data);
         
         
         $data = array('num' => 0);
-        $this->obj->sanitizePageNumber($data);
+        $testObj->sanitizePageNumber($data);
         $this->assertEquals(array('num' => 0), $data);
         
         
         $data = array('num' => 1);
-        $this->obj->sanitizePageNumber($data);
+        $testObj->sanitizePageNumber($data);
         $this->assertEquals(array('num' => 1), $data);
     }
 
     public function testSanitizeTime()
     {
+        $testObj = $this->getTestObject();
         $data = array();
-        $this->obj->sanitizeTime($data);
+        $testObj->sanitizeTime($data);
         $this->assertNotEmpty($data['time']);
 
         $data = array('time' => -1);
-        $this->obj->sanitizeTime($data);
+        $testObj->sanitizeTime($data);
         $this->assertEquals(array('time' => 0), $data);
 
         $data = array('time' => 0);
-        $this->obj->sanitizeTime($data);
+        $testObj->sanitizeTime($data);
         $this->assertNotEmpty($data['time']);
 
         $data = array('time' => 1);
-        $this->obj->sanitizeTime($data);
+        $testObj->sanitizeTime($data);
         $this->assertEquals(array('time' => 1), $data);
     }
 
     public function testSanitizeGroup()
     {
+        $testObj = $this->getTestObject();
         $data = array();
-        $this->obj->sanitizeGroup($data);
+        $testObj->sanitizeGroup($data);
         $this->assertEquals(array('group' => 0), $data);
         
         $data = array('group' => -1);
-        $this->obj->sanitizeGroup($data);
+        $testObj->sanitizeGroup($data);
         $this->assertEquals(array('group' => 0), $data);
         
         
         $data = array('group' => 0);
-        $this->obj->sanitizeGroup($data);
+        $testObj->sanitizeGroup($data);
         $this->assertEquals(array('group' => 0), $data);
         
         
         $data = array('group' => 1);
-        $this->obj->sanitizeGroup($data);
+        $testObj->sanitizeGroup($data);
         $this->assertEquals(array('group' => 1), $data);
     }
 
     public function testSanitizeContent()
     {
+        $testObj = $this->getTestObject();
         $data = array();
-        $this->obj->sanitizeContent($data);
+        $testObj->sanitizeContent($data);
         $this->assertEquals(array('content' => array('')), $data);
         
         $data = array('content' => 'test');
-        $this->obj->sanitizeContent($data);
+        $testObj->sanitizeContent($data);
         $this->assertEquals(array('content' => array('test')), $data);
     }
 
     public function testSanitizeAnnotRefs()
     {
+        $testObj = $this->getTestObject();
         $data = array();
-        $this->obj->sanitizeAnnotRefs($data);
+        $testObj->sanitizeAnnotRefs($data);
         $this->assertEquals(array('annotrefs' => array()), $data);
     }
 
     public function testSanitizeRotation()
     {
+        $testObj = $this->getTestObject();
         $data = array();
-        $this->obj->sanitizeRotation($data);
+        $testObj->sanitizeRotation($data);
         $this->assertEquals(array('rotation' => 0), $data);
 
         $data = array('rotation' => 0);
-        $this->obj->sanitizeRotation($data);
+        $testObj->sanitizeRotation($data);
         $this->assertEquals(array('rotation' => 0), $data);
 
         $data = array('rotation' => 100);
-        $this->obj->sanitizeRotation($data);
+        $testObj->sanitizeRotation($data);
         $this->assertEquals(array('rotation' => 0), $data);
 
         $data = array('rotation' => 90);
-        $this->obj->sanitizeRotation($data);
+        $testObj->sanitizeRotation($data);
         $this->assertEquals(array('rotation' => 90), $data);
 
         $data = array('rotation' => 180);
-        $this->obj->sanitizeRotation($data);
+        $testObj->sanitizeRotation($data);
         $this->assertEquals(array('rotation' => 180), $data);
 
         $data = array('rotation' => 270);
-        $this->obj->sanitizeRotation($data);
+        $testObj->sanitizeRotation($data);
         $this->assertEquals(array('rotation' => 270), $data);
 
         $data = array('rotation' => 360);
-        $this->obj->sanitizeRotation($data);
+        $testObj->sanitizeRotation($data);
         $this->assertEquals(array('rotation' => 360), $data);
     }
 
     public function testSanitizeZoom()
     {
+        $testObj = $this->getTestObject();
         $data = array();
-        $this->obj->sanitizeZoom($data);
+        $testObj->sanitizeZoom($data);
         $this->assertEquals(array('zoom' => 1), $data);
         
         $data = array('zoom' => 1.2);
-        $this->obj->sanitizeZoom($data);
+        $testObj->sanitizeZoom($data);
         $this->assertEquals(array('zoom' => 1.2), $data);
     }
 
     public function testSanitizeTransitions()
     {
+        $testObj = $this->getTestObject();
         $data = array();
-        $this->obj->sanitizeTransitions($data);
+        $testObj->sanitizeTransitions($data);
         $this->assertEquals(array(), $data);
         
         $data = array('transition' => array('Dur' => 0));
-        $this->obj->sanitizeTransitions($data);
+        $testObj->sanitizeTransitions($data);
         $exp = array(
             'transition' => array(
                 'S' => 'R',
@@ -191,7 +195,7 @@ class SettingsTest extends TestCase
                 'B' => true
             )
         );
-        $this->obj->sanitizeTransitions($data);
+        $testObj->sanitizeTransitions($data);
         $exp = array(
             'transition' => array(
                 'Dur' => 2,
@@ -207,8 +211,9 @@ class SettingsTest extends TestCase
 
     public function testSanitizeMargins()
     {
+        $testObj = $this->getTestObject();
         $data = array();
-        $this->obj->sanitizeMargins($data);
+        $testObj->sanitizeMargins($data);
         $exp = array(
             'margin' => array(
                 'PL' => 0,
@@ -228,7 +233,7 @@ class SettingsTest extends TestCase
             'HeaderHeight' => 0,
             'FooterHeight' => 0,
         );
-        $this->assertEquals($exp, $data, '', 0.01);
+        $this->bcAssertEqualsWithDelta($exp, $data);
 
         $data = array(
             'margin' => array(
@@ -245,7 +250,7 @@ class SettingsTest extends TestCase
             'height' => 297,
             'width' => 210,
         );
-        $this->obj->sanitizeMargins($data);
+        $testObj->sanitizeMargins($data);
         $exp = array(
             'margin' => array(
                 'PL' => 11,
@@ -265,13 +270,14 @@ class SettingsTest extends TestCase
             'HeaderHeight' => 1,
             'FooterHeight' => 2,
         );
-        $this->assertEquals($exp, $data, '', 0.01);
+        $this->bcAssertEqualsWithDelta($exp, $data);
     }
 
     public function testSanitizeBoxData()
     {
+        $testObj = $this->getTestObject();
         $data = array();
-        $this->obj->sanitizeBoxData($data);
+        $testObj->sanitizeBoxData($data);
         $exp = array(
             'orientation' => 'P',
             'pheight' => 841.890,
@@ -349,7 +355,7 @@ class SettingsTest extends TestCase
                 ),
             )
         );
-        $this->assertEquals($exp, $data, '', 0.01);
+        $this->bcAssertEqualsWithDelta($exp, $data);
 
         $data = array(
             'format' => 'MediaBox',
@@ -371,7 +377,7 @@ class SettingsTest extends TestCase
                 )
             )
         );
-        $this->obj->sanitizeBoxData($data);
+        $testObj->sanitizeBoxData($data);
         $exp = array(
             'format' => 'CUSTOM',
             'orientation' => 'L',
@@ -442,7 +448,7 @@ class SettingsTest extends TestCase
             'pwidth' => 841.890,
             'pheight' => 595.276,
         );
-        $this->assertEquals($exp, $data, '', 0.01);
+        $this->bcAssertEqualsWithDelta($exp, $data);
 
         $data = array(
             'width' => 210,
@@ -466,7 +472,7 @@ class SettingsTest extends TestCase
                 )
             )
         );
-        $this->obj->sanitizeBoxData($data);
+        $testObj->sanitizeBoxData($data);
         $exp = array(
             'width' => 210,
             'height' => 297,
@@ -536,13 +542,14 @@ class SettingsTest extends TestCase
             ),
             'orientation' => 'P',
         );
-        $this->assertEquals($exp, $data, '', 0.01);
+        $this->bcAssertEqualsWithDelta($exp, $data);
     }
 
     public function testSanitizePageFormat()
     {
+        $testObj = $this->getTestObject();
         $data = array();
-        $this->obj->sanitizePageFormat($data);
+        $testObj->sanitizePageFormat($data);
         $exp = array(
             'orientation' => 'P',
             'format' => 'A4',
@@ -551,7 +558,7 @@ class SettingsTest extends TestCase
             'width' => 210,
             'height' => 297,
         );
-        $this->assertEquals($exp, $data, '', 0.01);
+        $this->bcAssertEqualsWithDelta($exp, $data);
 
         $data = array(
             'box' => array(
@@ -571,7 +578,7 @@ class SettingsTest extends TestCase
                 )
             )
         );
-        $this->obj->sanitizePageFormat($data);
+        $testObj->sanitizePageFormat($data);
         $exp = array(
             'box' => array(
                 'MediaBox' => array(
@@ -590,6 +597,6 @@ class SettingsTest extends TestCase
             'orientation' => '',
             'format' => 'MediaBox',
         );
-        $this->assertEquals($exp, $data, '', 0.01);
+        $this->bcAssertEqualsWithDelta($exp, $data);
     }
 }
