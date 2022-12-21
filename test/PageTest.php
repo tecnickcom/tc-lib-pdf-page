@@ -300,7 +300,8 @@ class PageTest extends TestUtil
         $testObj->addContent('TEST2');
         $pon = 0;
         $out = $testObj->getPdfPages($pon);
-        $this->assertEquals(2, $testObj->getResourceDictObjID());
+        $this->assertEquals(1, $testObj->getResourceDictObjID());
+        $this->assertEquals(2, $testObj->getRootObjID());
         $this->bcAssertStringContainsString('<< /Type /Pages /Kids [ 3 0 R 4 0 R 5 0 R ] /Count 3 >>', $out);
     }
 }

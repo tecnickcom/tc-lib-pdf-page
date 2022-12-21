@@ -191,7 +191,7 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
             }
             $out .= '>>'."\n";
         }
-        $out = '>>'."\n";
+        $out .= '>>'."\n";
         return $out;
     }
 }

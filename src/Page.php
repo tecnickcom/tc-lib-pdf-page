@@ -432,6 +432,16 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     }
 
     /**
+     * Returns the root object ID.
+     *
+     * return int
+     */
+    public function getRootObjID()
+    {
+        return $this->rootoid;
+    }
+
+    /**
      * Returns the PDF command to output the page content.
      *
      * @param int    $pon     Current PDF object number.
@@ -512,8 +522,9 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      */
     protected function getPageRootObj(&$pon)
     {
-        $out = (++$pon).' 0 obj'."\n";
         $this->rdoid = ++$pon; // reserve object ID for the resource dictionary
+        $this->rootoid = ++$pon;
+        $out = $this->rootoid.' 0 obj'."\n";
         $out .= '<< /Type /Pages /Kids [ ';
         $numpages = count($this->page);
         for ($idx = 0; $idx < $numpages; ++$idx) {
