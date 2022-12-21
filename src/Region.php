@@ -36,6 +36,8 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
     /**
      * Select the specified page region.
      *
+     * @param int $idr ID of the region.
+     *
      * @return array Selected region data
      */
     public function selectRegion($idr)
