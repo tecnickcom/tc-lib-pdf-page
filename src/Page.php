@@ -537,14 +537,14 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     }
 
     /**
-     * Replace page templates and numbers
+     * Replace page templates and numbers.
      *
      * @param array $data Page data
      */
     protected function replacePageTemplates(array $data)
     {
         return implode(
-            '',
+            "\n",
             str_replace(
                 array(self::PAGE_TOT, self::PAGE_NUM),
                 array($this->group[$data['group']], $data['num']),
