@@ -217,8 +217,9 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
         $this->sanitizePageNumber($data);
         $data['content_mark'] = array(0);
         $data['currentRegion'] = 0;
+        $data['id'] = ++$this->pmaxid;
 
-        $this->pageid = ++$this->pmaxid;
+        $this->pageid = $data['id'];
         $this->page[$this->pageid] = $data;
         if (isset($this->group[$data['group']])) {
             $this->group[$data['group']] += 1;
@@ -230,27 +231,25 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     }
 
     /**
-     * Remove the specified page
+     * Remove the specified page.
      *
-     * @param int $idx page index
+     * @param int $pid page index. Omit or set it to -1 for the current page ID.
      *
      * @return array Removed page
      */
-    public function delete($idx)
+    public function delete($pid = -1)
     {
-        if (empty($this->page[$idx])) {
-            throw new PageException('The specified page do not exist');
-        }
-        $page = $this->page[$idx];
-        $this->group[$this->page[$idx]['group']] -= 1;
-        unset($this->page[$idx]);
+        $pid = $this->sanitizePageID($pid);
+        $page = $this->page[$pid];
+        $this->group[$this->page[$pid]['group']] -= 1;
+        unset($this->page[$pid]);
         $this->page = array_values($this->page); // reindex array
         --$this->pmaxid;
         return $page;
     }
 
     /**
-     * Remove and return last page
+     * Remove and return last page.
      *
      * @return array Removed page
      */
@@ -260,7 +259,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     }
 
     /**
-     * Move a page to a previous position
+     * Move a page to a previous position.
      *
      * @param int $from Index of the page to move
      * @param int $new  Destination index
@@ -291,82 +290,81 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     }
 
     /**
+     * Set the current page number (move to the specified page).
+     *
+     * @param int $pid page index. Omit or set it to -1 for the current page ID.
+     */
+    public function setCurrentPage($pid = -1)
+    {
+        $pid = $this->sanitizePageID($pid);
+        $this->pageid = $pid;
+        return $this->page[$this->pageid];
+    }
+
+    /**
      * Returns the specified page data.
      *
-     * @param int $idx Page ID
+     * @param int $pid page index. Omit or set it to -1 for the current page ID.
      *
      * return array
      */
-    public function getPage($idx)
+    public function getPage($pid = -1)
     {
-        if (!isset($this->page[$idx])) {
-            throw new PageException('The page '.$idx.' do not exist.');
-        }
-        return $this->page[$idx];
+        $pid = $this->sanitizePageID($pid);
+        return $this->page[$pid];
     }
 
     /**
-     * Set the current page number (move to the specified page)
-     *
-     * @param int $pid Page ID number
-     */
-    public function setCurrentPage($pid)
-    {
-        $this->pageid = min(max(0, intval($pid)), $this->pmaxid);
-        return $this->page[$this->pageid];
-    }
-
-    /**
-     * Returns the last page array
-     *
-     * @return array
-     */
-    public function getCurrentPage()
-    {
-        return $this->page[$this->pageid];
-    }
-
-    /**
-     * Add page content
+     * Add page content.
      *
      * @param array $data Page data
+     * @param int $pid page index. Omit or set it to -1 for the current page ID.
      */
-    public function addContent($content)
+    public function addContent($content, $pid = -1)
     {
-        $this->page[$this->pageid]['content'][] = (string) $content;
+        $pid = $this->sanitizePageID($pid);
+        $this->page[$pid]['content'][] = (string) $content;
     }
 
     /**
-     * Remove and return last page content
+     * Remove and return last page content.
      *
      * @param array $data Page data
+     * @param int $pid page index. Omit or set it to -1 for the current page ID.
      *
      * @param string content
      */
-    public function popContent()
+    public function popContent($pid = -1)
     {
-        return array_pop($this->page[$this->pageid]['content']);
+        $pid = $this->sanitizePageID($pid);
+        return array_pop($this->page[$pid]['content']);
     }
 
     /**
-     * Add page content mark
+     * Add page content mark.
+     *
+     * @param int $pid page index. Omit or set it to -1 for the current page ID.
      */
-    public function addContentMark()
+    public function addContentMark($pid = -1)
     {
-        $this->page[$this->pageid]['content_mark'][] = count($this->page[$this->pageid]['content']);
+        $pid = $this->sanitizePageID($pid);
+        $this->page[$pid]['content_mark'][] = count($this->page[$pid]['content']);
     }
 
     /**
-     * Remove the last marked page content
+     * Remove the last marked page content.
+     *
+     * @param int $pid page index. Omit or set it to -1 for the current page ID.
      */
-    public function popContentToLastMark()
+    public function popContentToLastMark($pid = -1)
     {
-        $mark = array_pop($this->page[$this->pageid]['content_mark']);
-        $this->page[$this->pageid]['content'] = array_slice($this->page[$this->pageid]['content'], 0, $mark, true);
+        $pid = $this->sanitizePageID($pid);
+        $mark = array_pop($this->page[$pid]['content_mark']);
+        $this->page[$pid]['content'] = array_slice($this->page[$pid]['content'], 0, $mark, true);
     }
 
     /**
-     * Returns the PDF command to output all page sections
+     * Returns the PDF command to output all page sections.
      *
      * @param int $pon Current PDF object number
      *
@@ -527,9 +525,9 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
         $out = $this->rootoid.' 0 obj'."\n";
         $out .= '<< /Type /Pages /Kids [ ';
         $numpages = count($this->page);
-        for ($idx = 0; $idx < $numpages; ++$idx) {
-            $this->page[$idx]['n'] = ++$pon;
-            $out .= $this->page[$idx]['n'].' 0 R ';
+        for ($pid = 0; $pid < $numpages; ++$pid) {
+            $this->page[$pid]['n'] = ++$pon;
+            $out .= $this->page[$pid]['n'].' 0 R ';
         }
         $out .= '] /Count '.$numpages.' >>'."\n"
             .'endobj'."\n";

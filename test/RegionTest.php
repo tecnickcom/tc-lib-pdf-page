@@ -56,7 +56,7 @@ class RegionTest extends TestUtil
         );
         $this->bcAssertEqualsWithDelta($exp, $res);
 
-        $res = $testObj->getCurrentRegion();
+        $res = $testObj->getRegion();
         $this->bcAssertEqualsWithDelta($exp, $res);
 
         $res = $testObj->getNextRegion();
@@ -84,7 +84,7 @@ class RegionTest extends TestUtil
     {
         $testObj = $this->getTestObject();
         $testObj->add(array('columns' => 3));
-        $region = $testObj->getCurrentRegion();
+        $region = $testObj->getRegion();
 
         $res = $testObj->isYOutRegion(null, 1);
         $this->assertFalse($res);
@@ -104,7 +104,7 @@ class RegionTest extends TestUtil
         $this->assertTrue($res);
 
         $testObj->getNextRegion();
-        $region = $testObj->getCurrentRegion();
+        $region = $testObj->getRegion();
 
         $res = $testObj->isXOutRegion(null, 1);
         $this->assertFalse($res);

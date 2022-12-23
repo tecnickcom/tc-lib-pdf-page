@@ -34,61 +34,90 @@ use \Com\Tecnick\Pdf\Page\Exception as PageException;
 abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
 {
     /**
+     * Check if the specified page ID exist.
+     *
+     * @param int $pid page index. Omit or set it to -1 for the current page ID.
+     *
+     * @return int Page ID.
+     */
+    protected function sanitizePageID($pid = -1)
+    {
+        if ($pid < 0) {
+            $pid = $this->pageid;
+        }
+        if (empty($this->page[$pid])) {
+            throw new PageException('The page with index '.$pid.' do not exist.');
+        }
+        return $pid;
+    }
+
+    /**
      * Select the specified page region.
      *
      * @param int $idr ID of the region.
+     * @param int $pid page index. Omit or set it to -1 for the current page ID.
      *
      * @return array Selected region data
      */
-    public function selectRegion($idr)
+    public function selectRegion($idr, $pid = -1)
     {
-        $this->page[$this->pageid]['currentRegion'] = min(max(0, intval($idr)), $this->page[$this->pageid]['columns']);
-        return $this->getCurrentRegion();
+        $pid = $this->sanitizePageID($pid);
+        $this->page[$pid]['currentRegion'] = min(max(0, intval($idr)), $this->page[$pid]['columns']);
+        return $this->getRegion();
     }
 
     /**
      * Returns the current region data
      *
+     * @param int $pid page index. Omit or set it to -1 for the current page ID.
+     *
      * @return array
      */
-    public function getCurrentRegion()
+    public function getRegion($pid = -1)
     {
-        return $this->page[$this->pageid]['region'][$this->page[$this->pageid]['currentRegion']];
-    }
-
-    /**
-     * Returns the page data with the next selected region.
-     * If there are no more regions available,
-     * then the first region on the next page is selected.
-     * A new page is added if required.
-     *
-     * @return array Current page data
-     */
-    public function getNextRegion()
-    {
-        $nextid = ($this->page[$this->pageid]['currentRegion'] + 1);
-        if (isset($this->page[$this->pageid]['region'][$nextid])) {
-            $this->page[$this->pageid]['currentRegion'] = $nextid;
-            return $this->page[$this->pageid];
-        }
-        return $this->getNextPage();
+        $pid = $this->sanitizePageID($pid);
+        return $this->page[$pid]['region'][$this->page[$pid]['currentRegion']];
     }
 
     /**
      * Returns the next page data.
      * Creates a new page if required and page break is enabled.
      *
+     * @param int $pid page index. Omit or set it to -1 for the current page ID.
+     *
      * @return array Page data
      */
-    public function getNextPage()
+    public function getNextPage($pid = -1)
     {
-        if ($this->pageid < $this->pmaxid) {
-            return $this->page[++$this->pageid];
+        $pid = $this->sanitizePageID($pid);
+        if ($pid < $this->pmaxid) {
+            $this->pageid = ++$pid;
+            return $this->page[$this->pageid];
         }
         if (!$this->isAutoPageBreakEnabled()) {
-            return $this->getCurrentPage();
+            return $this->setCurrentPage($pid);
         }
         return $this->add();
+    }
+
+    /**
+     * Returns the page data with the next selected region.
+     * If there are no more regions available, then the first region on the next page is selected.
+     * A new page is added if required.
+     *
+     * @param int $pid page index. Omit or set it to -1 for the current page ID.
+     *
+     * @return array Current page data
+     */
+    public function getNextRegion($pid = -1)
+    {
+        $pid = $this->sanitizePageID($pid);
+        $nextid = ($this->page[$pid]['currentRegion'] + 1);
+        if (isset($this->page[$pid]['region'][$nextid])) {
+            $this->page[$pid]['currentRegion'] = $nextid;
+            return $this->page[$pid];
+        }
+        return $this->getNextPage($pid);
     }
 
     /**
@@ -96,35 +125,41 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
      *
      * @param float $height Height of the block to add.
      * @param float $ypos   Starting Y position or NULL for current position.
+     * @param int $pid page index. Omit or set it to -1 for the current page ID.
      *
      * @return array Page data
      */
-    public function checkRegionBreak($height = 0, $ypos = null)
+    public function checkRegionBreak($height = 0, $ypos = null, $pid = -1)
     {
-        if ($this->isYOutRegion($ypos, $height)) {
-            return $this->getNextRegion();
+        if ($this->isYOutRegion($ypos, $height, $pid)) {
+            return $this->getNextRegion($pid);
         }
-        return $this->getCurrentPage();
+        return $this->getPage($pid);
     }
 
     /**
-     * Return the auto-page-break status
+     * Return the auto-page-break status.
+     *
+     * @param int $pid page index. Omit or set it to -1 for the current page ID.
      *
      * @return bool True if the auto page break is enabled, false otherwise.
      */
-    public function isAutoPageBreakEnabled()
+    public function isAutoPageBreakEnabled($pid = -1)
     {
-        return $this->page[$this->pageid]['autobreak'];
+        $pid = $this->sanitizePageID($pid);
+        return $this->page[$pid]['autobreak'];
     }
 
     /**
      * Enable or disable automatic page break.
      *
      * @param bool $isenabled Set this to true to enable automatic page break.
+     * @param int $pid page index. Omit or set it to -1 for the current page ID.
      */
-    public function enableAutoPageBreak($isenabled = true)
+    public function enableAutoPageBreak($isenabled = true, $pid = -1)
     {
-        $this->page[$this->pageid]['autobreak'] = (bool) $isenabled;
+        $pid = $this->sanitizePageID($pid);
+        $this->page[$pid]['autobreak'] = (bool) $isenabled;
     }
 
     /**
@@ -133,16 +168,14 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
      * @param float  $pos Position
      * @param string $min ID of the min region value to check
      * @param string $max ID of the max region value to check
+     * @param int $pid page index. Omit or set it to -1 for the current page ID.
      *
      * @return boolean
      */
-    private function isOutRegion($pos, $min, $max)
+    private function isOutRegion($pos, $min, $max, $pid = -1)
     {
-        $region = $this->getCurrentRegion();
-        if (($pos < ($region[$min] - self::EPS)) || ($pos > ($region[$max] + self::EPS))) {
-            return true;
-        }
-        return false;
+        $region = $this->getRegion($pid);
+        return (($pos < ($region[$min] - self::EPS)) || ($pos > ($region[$max] + self::EPS)));
     }
 
     /**
@@ -150,15 +183,16 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
      *
      * @param float $posy   Y position or NULL for current position.
      * @param float $height Additional height to add.
+     * @param int $pid page index. Omit or set it to -1 for the current page ID.
      *
      * @return boolean
      */
-    public function isYOutRegion($posy = null, $height = 0)
+    public function isYOutRegion($posy = null, $height = 0, $pid = -1)
     {
         if ($posy === null) {
             $posy = $this->getY();
         }
-        return $this->isOutRegion(floatval($posy + $height), 'RY', 'RT');
+        return $this->isOutRegion(floatval($posy + $height), 'RY', 'RT', $pid);
     }
 
     /**
@@ -166,45 +200,54 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
      *
      * @param float $posx  X position or NULL for current position.
      * @param float $width Additional width to add.
+     * @param int $pid page index. Omit or set it to -1 for the current page ID.
      *
      * @return boolean
      */
-    public function isXOutRegion($posx = null, $width = 0)
+    public function isXOutRegion($posx = null, $width = 0, $pid = -1)
     {
         if ($posx === null) {
             $posx = $this->getX();
         }
-        return $this->isOutRegion(floatval($posx + $width), 'RX', 'RL');
+        return $this->isOutRegion(floatval($posx + $width), 'RX', 'RL', $pid);
     }
 
     /**
      * Return the absolute horizontal cursor position for the current region.
      *
+     * @param int $pid page index. Omit or set it to -1 for the current page ID.
+     *
      * @return float
      */
-    public function getX()
+    public function getX($pid = -1)
     {
-        return $this->page[$this->pageid]['region'][$this->page[$this->pageid]['currentRegion']]['x'];
+        $pid = $this->sanitizePageID($pid);
+        return $this->page[$pid]['region'][$this->page[$pid]['currentRegion']]['x'];
     }
 
     /**
      * Return the absolute vertical cursor position for the current region.
      *
+     * @param int $pid page index. Omit or set it to -1 for the current page ID.
+     *
      * @return float
      */
-    public function getY()
+    public function getY($pid = -1)
     {
-        return $this->page[$this->pageid]['region'][$this->page[$this->pageid]['currentRegion']]['y'];
+        $pid = $this->sanitizePageID($pid);
+        return $this->page[$pid]['region'][$this->page[$pid]['currentRegion']]['y'];
     }
 
     /**
      * Set the absolute horizontal cursor position for the current region.
      *
      * @param foat $xpos X position relative to the page coordinates.
+     * @param int $pid page index. Omit or set it to -1 for the current page ID.
      */
-    public function setX($xpos)
+    public function setX($xpos, $pid = -1)
     {
-        $this->page[$this->pageid]['region'][$this->page[$this->pageid]['currentRegion']]['x'] = floatval($xpos);
+        $pid = $this->sanitizePageID($pid);
+        $this->page[$pid]['region'][$this->page[$pid]['currentRegion']]['x'] = floatval($xpos);
         return $this;
     }
 
@@ -212,10 +255,12 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
      * Set the absolute vertical cursor position for the current region.
      *
      * @param foat $ypos Y position relative to the page coordinates.
+     * @param int $pid page index. Omit or set it to -1 for the current page ID.
      */
-    public function setY($ypos)
+    public function setY($ypos, $pid = -1)
     {
-        $this->page[$this->pageid]['region'][$this->page[$this->pageid]['currentRegion']]['y'] = floatval($ypos);
+        $pid = $this->sanitizePageID($pid);
+        $this->page[$pid]['region'][$this->page[$pid]['currentRegion']]['y'] = floatval($ypos);
         return $this;
     }
 }
