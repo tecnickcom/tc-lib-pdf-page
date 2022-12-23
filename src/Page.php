@@ -33,14 +33,14 @@ use \Com\Tecnick\Pdf\Page\Exception as PageException;
 class Page extends \Com\Tecnick\Pdf\Page\Region
 {
     /**
-     * Alias for total number of pages in a group
+     * Alias for total number of pages in a group.
      *
      * @var string
      */
     const PAGE_TOT = '~#PT';
     
     /**
-     * Alias for page number
+     * Alias for page number.
      *
      * @var string
      */
@@ -58,7 +58,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      *
      * @var int
      */
-    protected $pageid = -1;
+    protected $pid = -1;
 
     /**
      * Maximum page ID.
@@ -68,28 +68,28 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     protected $pmaxid = -1;
     
     /**
-     * Count pages in each group
+     * Count pages in each group.
      *
      * @var array
      */
     protected $group = array(0 => 0);
     
     /**
-     * Unit of measure conversion ratio
+     * Unit of measure conversion ratio.
      *
      * @var float
      */
     protected $kunit = 1.0;
 
     /**
-     * Color object
+     * Color object.
      *
      * @var Color
      */
     protected $col;
 
     /**
-     * Encrypt object
+     * Encrypt object.
      *
      * @var Encrypt
      */
@@ -117,11 +117,11 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     protected $rdoid = 1;
 
     /**
-     * Initialize page data
+     * Initialize page data.
      *
-     * @param string  $unit   Unit of measure ('pt', 'mm', 'cm', 'in')
-     * @param Color   $col    Color object
-     * @param Encrypt $enc    Encrypt object
+     * @param string  $unit   Unit of measure ('pt', 'mm', 'cm', 'in').
+     * @param Color   $col    Color object.
+     * @param Encrypt $enc    Encrypt object.
      * @param bool    $pdfa   True if we are in PDF/A mode.
      * @param bool    $sigapp True if the signature approval is enabled (for incremental updates).
      */
@@ -135,9 +135,9 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     }
 
     /**
-     * Get the unit ratio
+     * Get the unit ratio.
      *
-     * @return float
+     * @return float Unit Ratio.
      */
     public function getKUnit()
     {
@@ -145,7 +145,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     }
 
     /**
-     * Enable Signature Approval
+     * Enable Signature Approval.
      *
      * @param bool $sigapp True if the signature approval is enabled (for incremental updates).
      */
@@ -156,7 +156,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     }
 
     /**
-     * Add a new page
+     * Add a new page.
      *
      * @param array $data Page data:
      *     time        : UTC page modification time in seconds;
@@ -192,7 +192,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      *
      * NOTE: if $data is empty, then the last page format will be cloned.
      *
-     * @return array Page data
+     * @return array Page data with additional Page ID property 'pid'.
      */
     public function add(array $data = array())
     {
@@ -210,24 +210,21 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
             $this->sanitizeMargins($data);
             $this->sanitizeRegions($data);
         }
-
         $this->sanitizeTime($data);
         $this->sanitizeContent($data);
         $this->sanitizeAnnotRefs($data);
         $this->sanitizePageNumber($data);
         $data['content_mark'] = array(0);
         $data['currentRegion'] = 0;
-        $data['id'] = ++$this->pmaxid;
-
-        $this->pageid = $data['id'];
-        $this->page[$this->pageid] = $data;
+        $data['pid'] = ++$this->pmaxid;
+        $this->pid = $data['pid'];
+        $this->page[$this->pid] = $data;
         if (isset($this->group[$data['group']])) {
             $this->group[$data['group']] += 1;
         } else {
             $this->group[$data['group']] = 1;
         }
-
-        return $this->page[$this->pageid];
+        return $this->page[$this->pid];
     }
 
     /**
@@ -235,7 +232,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      *
      * @param int $pid page index. Omit or set it to -1 for the current page ID.
      *
-     * @return array Removed page
+     * @return array Removed page.
      */
     public function delete($pid = -1)
     {
@@ -251,7 +248,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     /**
      * Remove and return last page.
      *
-     * @return array Removed page
+     * @return array Removed page.
      */
     public function pop()
     {
@@ -261,8 +258,8 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     /**
      * Move a page to a previous position.
      *
-     * @param int $from Index of the page to move
-     * @param int $new  Destination index
+     * @param int $from Index of the page to move.
+     * @param int $new  Destination index.
      */
     public function move($from, $new)
     {
@@ -282,7 +279,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     /**
      * Returns the array (stack) containing all pages data.
      *
-     * return array
+     * return array Pages.
      */
     public function getPages()
     {
@@ -297,8 +294,8 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     public function setCurrentPage($pid = -1)
     {
         $pid = $this->sanitizePageID($pid);
-        $this->pageid = $pid;
-        return $this->page[$this->pageid];
+        $this->pid = $pid;
+        return $this->page[$this->pid];
     }
 
     /**
@@ -317,7 +314,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     /**
      * Add page content.
      *
-     * @param array $data Page data
+     * @param array $data Page data.
      * @param int $pid page index. Omit or set it to -1 for the current page ID.
      */
     public function addContent($content, $pid = -1)
@@ -329,10 +326,10 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     /**
      * Remove and return last page content.
      *
-     * @param array $data Page data
+     * @param array $data Page data.
      * @param int $pid page index. Omit or set it to -1 for the current page ID.
      *
-     * @param string content
+     * @param string content.
      */
     public function popContent($pid = -1)
     {
@@ -366,9 +363,9 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     /**
      * Returns the PDF command to output all page sections.
      *
-     * @param int $pon Current PDF object number
+     * @param int $pon Current PDF object number.
      *
-     * @return string PDF command
+     * @return string PDF command.
      */
     public function getPdfPages(&$pon)
     {
@@ -422,7 +419,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     /**
      * Returns the reserved Object ID for the Resource dictionary.
      *
-     * return int
+     * return int Resource dictionary Object ID.
      */
     public function getResourceDictObjID()
     {
@@ -432,7 +429,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     /**
      * Returns the root object ID.
      *
-     * return int
+     * return int Root Object ID.
      */
     public function getRootObjID()
     {
@@ -445,7 +442,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      * @param int    $pon     Current PDF object number.
      * @param string $content Page content.
      *
-     * @return string PDF command
+     * @return string PDF command.
      */
     protected function getPageTransition($page)
     {
@@ -474,9 +471,9 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     /**
      * Get references to page annotations.
      *
-     * @param array $page Page data
+     * @param array $page Page data.
      *
-     * @return string PDF command
+     * @return string PDF command.
      */
     protected function getAnnotationRef($page)
     {
@@ -497,7 +494,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      * @param int    $pon     Current PDF object number.
      * @param string $content Page content.
      *
-     * @return string PDF command
+     * @return string PDF command.
      */
     protected function getPageContentObj(&$pon, $content = '')
     {
@@ -514,9 +511,9 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     /**
      * Returns the PDF command to output the page root object.
      *
-     * @param int $pon Current PDF object number
+     * @param int $pon Current PDF object number.
      *
-     * @return string PDF command
+     * @return string PDF command.
      */
     protected function getPageRootObj(&$pon)
     {
@@ -537,7 +534,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     /**
      * Replace page templates and numbers.
      *
-     * @param array $data Page data
+     * @param array $data Page data.
      */
     protected function replacePageTemplates(array $data)
     {

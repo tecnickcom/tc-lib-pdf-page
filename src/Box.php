@@ -31,7 +31,7 @@ use \Com\Tecnick\Pdf\Page\Exception as PageException;
 abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
 {
     /**
-     * Array of page box names
+     * Array of page box names.
      *
      * @var array
      */
@@ -70,7 +70,7 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
     /**
      * Set page boundaries.
      *
-     * @param array  $dims    Array of page dimensions to modify
+     * @param array  $dims    Array of page dimensions to modify.
      * @param string $type    Box type: MediaBox, CropBox, BleedBox, TrimBox, ArtBox.
      * @param float  $llx     Lower-left x coordinate in user units.
      * @param float  $lly     Lower-left y coordinate in user units.
@@ -109,12 +109,12 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
     }
 
     /**
-     * Initialize page boxes
+     * Initialize page boxes.
      *
-     * @param float $width  Page width in points
-     * @param float $height Page height in points
+     * @param float $width  Page width in points.
+     * @param float $height Page height in points.
      *
-     * @return array Page boxes
+     * @return array Page boxes.
      */
     public function setPageBoxes($width, $height)
     {
@@ -153,7 +153,7 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
     }
 
     /**
-     * Returns the PDF command to output the specified page BoxColorInfo
+     * Returns the PDF command to output the specified page BoxColorInfo.
      *
      * @param array $dims Array of page dimensions.
      *

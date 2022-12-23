@@ -64,7 +64,7 @@ abstract class Mode extends \Com\Tecnick\Pdf\Page\Format
     /**
      * Get the canonical page layout name.
      *
-     * @param string $name Page layout name
+     * @param string $name Page layout name.
      *
      * @return string Canonical page layout name.
      */
@@ -82,7 +82,7 @@ abstract class Mode extends \Com\Tecnick\Pdf\Page\Format
      *
      * @param string $mode A name object specifying how the document should be displayed when opened.
      *
-     * @return string Canonical page display mode
+     * @return string Canonical page display mode.
      */
     public function getDisplay($mode = '')
     {

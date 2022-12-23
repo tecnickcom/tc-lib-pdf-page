@@ -34,14 +34,14 @@ use \Com\Tecnick\Pdf\Page\Exception as PageException;
 abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
 {
     /**
-     * Epsilon precision used to compare floating point values
+     * Epsilon precision used to compare floating point values.
      */
     const EPS = 0.0001;
 
     /**
      * Sanitize or set the page modification time.
      *
-     * @param array $data Page data
+     * @param array $data Page data.
      */
     public function sanitizePageNumber(array &$data)
     {
@@ -53,7 +53,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
     /**
      * Sanitize or set the page modification time.
      *
-     * @param array $data Page data
+     * @param array $data Page data.
      */
     public function sanitizeTime(array &$data)
     {
@@ -65,9 +65,9 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
     }
 
     /**
-     * Sanitize or set the page group
+     * Sanitize or set the page group.
      *
-     * @param array $data Page data
+     * @param array $data Page data.
      */
     public function sanitizeGroup(array &$data)
     {
@@ -81,7 +81,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
     /**
      * Sanitize or set the page content.
      *
-     * @param array $data Page data
+     * @param array $data Page data.
      */
     public function sanitizeContent(array &$data)
     {
@@ -93,9 +93,9 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
     }
 
     /**
-     * Sanitize or set the annotation references
+     * Sanitize or set the annotation references.
      *
-     * @param array $data Page data
+     * @param array $data Page data.
      */
     public function sanitizeAnnotRefs(array &$data)
     {
@@ -109,7 +109,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
      * The number of degrees by which the page shall be rotated clockwise when displayed or printed.
      * The value shall be a multiple of 90.
      *
-     * @param array $data Page data
+     * @param array $data Page data.
      */
     public function sanitizeRotation(array &$data)
     {
@@ -123,7 +123,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
     /**
      * Sanitize or set the page preferred zoom (magnification) factor.
      *
-     * @param array $data Page data
+     * @param array $data Page data.
      */
     public function sanitizeZoom(array &$data)
     {
@@ -137,7 +137,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
     /**
      * Sanitize or set the page transitions.
      *
-     * @param array $data Page data
+     * @param array $data Page data.
      */
     public function sanitizeTransitions(array &$data)
     {
@@ -211,9 +211,9 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
     }
 
     /**
-     * Sanitize or set the page margins
+     * Sanitize or set the page margins.
      *
-     * @param array $data Page data
+     * @param array $data Page data.
      */
     public function sanitizeMargins(array &$data)
     {
@@ -256,9 +256,9 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
     }
 
     /**
-     * Sanitize or set the page regions (columns)
+     * Sanitize or set the page regions (columns).
      *
-     * @param array $data Page data
+     * @param array $data Page data.
      */
     public function sanitizeRegions(array &$data)
     {
@@ -326,7 +326,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
     /**
      * Sanitize or set the page boxes containing the page boundaries.
      *
-     * @param array $data Page data
+     * @param array $data Page data.
      */
     public function sanitizeBoxData(array &$data)
     {
@@ -398,9 +398,9 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
     }
 
     /**
-     * Sanitize or set the page format
+     * Sanitize or set the page format.
      *
-     * @param array $data Page data
+     * @param array $data Page data.
      */
     public function sanitizePageFormat(array &$data)
     {

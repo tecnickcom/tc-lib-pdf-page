@@ -123,26 +123,26 @@ class PageTest extends TestUtil
         );
         
         unset($res['time']);
-        $exp['id'] = 0;
+        $exp['pid'] = 0;
         $this->bcAssertEqualsWithDelta($exp, $res);
 
         // 2
         $res = $testObj->add();
         unset($res['time']);
-        $exp['id'] = 1;
+        $exp['pid'] = 1;
         $this->bcAssertEqualsWithDelta($exp, $res);
 
         // 3
         $res = $testObj->add(array('group' => 1));
         unset($res['time']);
-        $exp['id'] = 2;
+        $exp['pid'] = 2;
         $exp['group'] = 1;
         $this->bcAssertEqualsWithDelta($exp, $res);
 
         // 3
         $res = $testObj->add(array('columns' => 2));
         unset($res['time']);
-        $exp['id'] = 3;
+        $exp['pid'] = 3;
         $exp['group'] = 0;
         $exp['columns'] = 2;
         $exp['region'] = array (

@@ -31,8 +31,8 @@ use \Com\Tecnick\Pdf\Page\Exception as PageException;
 abstract class Format
 {
     /**
-     * Array of conversion ratios relative to points
-     * 72 is the default DPI (Dot Per Inch) document resolution
+     * Array of conversion ratios relative to points.
+     * 72 is the default DPI (Dot Per Inch) document resolution.
      *
      * @var array
      */
@@ -475,14 +475,14 @@ abstract class Format
     );
 
     /**
-     * Get page dimensions
+     * Get page dimensions.
      *
      * @param string $format      The page format name.
      * @param string $orientation Page orientation ('P' = portrait; 'L' = landscape, '' = default).
      * @param string $unit        Unit name (default points).
      * @param int    $dec         Number of decimals to return.
      *
-     * @return array Page width, height and orientation in specified unit
+     * @return array Page width, height and orientation in specified unit.
      */
     public function getPageFormatSize($format, $orientation = '', $unit = '', $dec = 6)
     {
@@ -499,11 +499,11 @@ abstract class Format
     /**
      * Returns the page dimensions oriented as specified.
      *
-     * @param float  $width  Page width
-     * @param float  $height Page height
+     * @param float  $width  Page width.
+     * @param float  $height Page height.
      * @param string $orientation Page orientation ('P' = portrait; 'L' = landscape, '' = default).
      *
-     * @return array Page width and height in points
+     * @return array Page width and height in points.
      */
     public function getPageOrientedSize($width, $height, $orientation = '')
     {
@@ -520,10 +520,10 @@ abstract class Format
     /**
      * Returns the page orientation.
      *
-     * @param float  $width  Page width
-     * @param float  $height Page height
+     * @param float  $width  Page width.
+     * @param float  $height Page height.
      *
-     * @return string page orientation 'P' or 'L'
+     * @return string page orientation 'P' or 'L'.
      */
     public function getPageOrientation($width, $height)
     {
@@ -534,9 +534,9 @@ abstract class Format
     }
 
     /**
-     * Get the unit ratio for the specified unit of measure
+     * Get the unit ratio for the specified unit of measure.
      *
-     * @param string $unit   Name of the unit of measure
+     * @param string $unit   Name of the unit of measure.
      *
      * @return float
      */
@@ -550,11 +550,11 @@ abstract class Format
     }
 
     /**
-     * Convert Points to another unit
+     * Convert Points to another unit.
      *
-     * @param float  $points Value to convert
-     * @param string $unit   Name of the unit to convert to
-     * @param int    $dec    Number of decimals to return
+     * @param float  $points Value to convert.
+     * @param string $unit   Name of the unit to convert to.
+     * @param int    $dec    Number of decimals to return.
      *
      * @return float
      */

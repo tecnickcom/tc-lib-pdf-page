@@ -43,7 +43,7 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
     protected function sanitizePageID($pid = -1)
     {
         if ($pid < 0) {
-            $pid = $this->pageid;
+            $pid = $this->pid;
         }
         if (empty($this->page[$pid])) {
             throw new PageException('The page with index '.$pid.' do not exist.');
@@ -57,7 +57,7 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
      * @param int $idr ID of the region.
      * @param int $pid page index. Omit or set it to -1 for the current page ID.
      *
-     * @return array Selected region data
+     * @return array Selected region data.
      */
     public function selectRegion($idr, $pid = -1)
     {
@@ -67,11 +67,11 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
     }
 
     /**
-     * Returns the current region data
+     * Returns the current region data.
      *
      * @param int $pid page index. Omit or set it to -1 for the current page ID.
      *
-     * @return array
+     * @return array Region.
      */
     public function getRegion($pid = -1)
     {
@@ -85,14 +85,14 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
      *
      * @param int $pid page index. Omit or set it to -1 for the current page ID.
      *
-     * @return array Page data
+     * @return array Page data.
      */
     public function getNextPage($pid = -1)
     {
         $pid = $this->sanitizePageID($pid);
         if ($pid < $this->pmaxid) {
-            $this->pageid = ++$pid;
-            return $this->page[$this->pageid];
+            $this->pid = ++$pid;
+            return $this->page[$this->pid];
         }
         if (!$this->isAutoPageBreakEnabled()) {
             return $this->setCurrentPage($pid);
@@ -107,7 +107,7 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
      *
      * @param int $pid page index. Omit or set it to -1 for the current page ID.
      *
-     * @return array Current page data
+     * @return array Current page data.
      */
     public function getNextRegion($pid = -1)
     {
@@ -127,7 +127,7 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
      * @param float $ypos   Starting Y position or NULL for current position.
      * @param int $pid page index. Omit or set it to -1 for the current page ID.
      *
-     * @return array Page data
+     * @return array Page data.
      */
     public function checkRegionBreak($height = 0, $ypos = null, $pid = -1)
     {
@@ -165,9 +165,9 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
     /**
      * Check if the specified position is outside the region.
      *
-     * @param float  $pos Position
-     * @param string $min ID of the min region value to check
-     * @param string $max ID of the max region value to check
+     * @param float  $pos Position.
+     * @param string $min ID of the min region value to check.
+     * @param string $max ID of the max region value to check.
      * @param int $pid page index. Omit or set it to -1 for the current page ID.
      *
      * @return boolean

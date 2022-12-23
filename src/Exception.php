@@ -18,7 +18,7 @@ namespace Com\Tecnick\Pdf\Page;
 /**
  * Com\Tecnick\Pdf\Page\Exception
  *
- * Custom Exception class
+ * Custom Exception class.
  *
  * @since       2011-05-23
  * @category    Library
