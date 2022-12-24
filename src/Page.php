@@ -103,6 +103,13 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     protected $pdfa = false;
 
     /**
+     * Enable stream compression.
+     *
+     * @var int
+     */
+    protected $compress = true;
+
+    /**
      * True if the signature approval is enabled (for incremental updates).
      *
      * @var bool
@@ -119,18 +126,26 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     /**
      * Initialize page data.
      *
-     * @param string  $unit   Unit of measure ('pt', 'mm', 'cm', 'in').
-     * @param Color   $col    Color object.
-     * @param Encrypt $enc    Encrypt object.
-     * @param bool    $pdfa   True if we are in PDF/A mode.
-     * @param bool    $sigapp True if the signature approval is enabled (for incremental updates).
+     * @param string  $unit     Unit of measure ('pt', 'mm', 'cm', 'in').
+     * @param Color   $col      Color object.
+     * @param Encrypt $enc      Encrypt object.
+     * @param bool    $pdfa     True if we are in PDF/A mode.
+     * @param bool    $compress Set to false to disable stream compression.
+     * @param bool    $sigapp   True if the signature approval is enabled (for incremental updates).
      */
-    public function __construct($unit, Color $col, Encrypt $enc, $pdfa = false, $sigapp = false)
-    {
+    public function __construct(
+        $unit,
+        Color $col,
+        Encrypt $enc,
+        $pdfa = false,
+        $compress = true,
+        $sigapp = false
+    ) {
         $this->kunit = $this->getUnitRatio($unit);
         $this->col = $col;
         $this->enc = $enc;
         $this->pdfa = (bool) $pdfa;
+        $this->compress = (bool) $compress;
         $this->sigapp = (bool) $sigapp;
     }
 
@@ -498,9 +513,15 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      */
     protected function getPageContentObj(&$pon, $content = '')
     {
-        $stream = $this->enc->encryptString(gzcompress($content), ++$pon);
         $out = $pon.' 0 obj'."\n"
-            .'<</Filter /FlateDecode /Length '.strlen($stream).'>>'."\n"
+            .'<<';
+        if ($this->compress) {
+            $out .= ' /Filter /FlateDecode';
+            $content = gzcompress($content);
+        }
+        $stream = $this->enc->encryptString($content, ++$pon);
+        $out .= ' /Length '.strlen($stream)
+            .' >>'."\n"
             .'stream'."\n"
             .$stream."\n"
             .'endstream'."\n"
