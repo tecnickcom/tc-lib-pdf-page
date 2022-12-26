@@ -385,8 +385,6 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     public function getPdfPages(&$pon)
     {
         $out = $this->getPageRootObj($pon);
-        $rootobjid = ($this->rdoid - 1);
-
         foreach ($this->page as $num => $page) {
             if (!isset($page['num'])) {
                 if ($num > 0) {
@@ -409,7 +407,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
             $out .= $page['n'].' 0 obj'."\n"
                 .'<<'."\n"
                 .'/Type /Page'."\n"
-                .'/Parent '.$rootobjid.' 0 R'."\n";
+                .'/Parent '.$this->rootoid.' 0 R'."\n";
             if (!$this->pdfa) {
                 $out .= '/Group << /Type /Group /S /Transparency /CS /DeviceRGB >>'."\n";
             }
@@ -427,7 +425,6 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
                 .'>>'."\n"
                 .'endobj'."\n";
         }
-
         return $out;
     }
 
@@ -513,13 +510,13 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      */
     protected function getPageContentObj(&$pon, $content = '')
     {
-        $out = $pon.' 0 obj'."\n"
+        $out = ++$pon.' 0 obj'."\n"
             .'<<';
         if ($this->compress) {
             $out .= ' /Filter /FlateDecode';
             $content = gzcompress($content);
         }
-        $stream = $this->enc->encryptString($content, ++$pon);
+        $stream = $this->enc->encryptString($content, $pon);
         $out .= ' /Length '.strlen($stream)
             .' >>'."\n"
             .'stream'."\n"
