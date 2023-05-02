@@ -125,7 +125,7 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
      *
      * @param float $height Height of the block to add.
      * @param float $ypos   Starting Y position or NULL for current position.
-     * @param int $pid page index. Omit or set it to -1 for the current page ID.
+     * @param int   $pid    Page index. Omit or set it to -1 for the current page ID.
      *
      * @return array Page data.
      */
