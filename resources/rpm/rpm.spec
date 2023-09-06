@@ -20,9 +20,9 @@ Requires:  php(language) >= 5.4.0
 Requires:  php-date
 Requires:  php-zlib
 Requires:  php-composer(%{c_vendor}/tc-lib-color) < 2.0.0
-Requires:  php-composer(%{c_vendor}/tc-lib-color) >= 1.14.25
+Requires:  php-composer(%{c_vendor}/tc-lib-color) >= 1.14.26
 Requires:  php-composer(%{c_vendor}/tc-lib-pdf-encrypt) < 2.0.0
-Requires:  php-composer(%{c_vendor}/tc-lib-pdf-encrypt) >= 1.6.21
+Requires:  php-composer(%{c_vendor}/tc-lib-pdf-encrypt) >= 1.6.22
 
 Provides:  php-composer(%{c_vendor}/%{gh_project}) = %{version}
 Provides:  php-%{gh_project} = %{version}
