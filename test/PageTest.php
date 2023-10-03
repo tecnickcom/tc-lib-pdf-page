@@ -308,4 +308,15 @@ class PageTest extends TestUtil
         $this->assertEquals(2, $testObj->getRootObjID());
         $this->bcAssertStringContainsString('<< /Type /Pages /Kids [ 3 0 R 4 0 R 5 0 R ] /Count 3 >>', $out);
     }
+
+    public function testaddAnnotRef()
+    {
+        $testObj = $this->getTestObject();
+        $testObj->add();
+        $testObj->addAnnotRef(13);
+        $testObj->addAnnotRef(17);
+        $page = $testObj->getPage();
+        $this->assertEquals(13, $page['annotrefs'][0]);
+        $this->assertEquals(17, $page['annotrefs'][1]);
+    }
 }

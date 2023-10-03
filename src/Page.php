@@ -29,6 +29,8 @@ use \Com\Tecnick\Pdf\Page\Exception as PageException;
  * @copyright   2011-2015 Nicola Asuni - Tecnick.com LTD
  * @license     http://www.gnu.org/copyleft/lesser.html GNU-LGPL v3 (see LICENSE.TXT)
  * @link        https://github.com/tecnickcom/tc-lib-pdf-page
+ *
+ * @SuppressWarnings(PHPMD.TooManyPublicMethods)
  */
 class Page extends \Com\Tecnick\Pdf\Page\Region
 {
@@ -324,6 +326,18 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     {
         $pid = $this->sanitizePageID($pid);
         return $this->page[$pid];
+    }
+
+    /**
+     * Add Annotation references.
+     *
+     * @param int $oid Annotation object IDs.
+     * @param int $pid page index. Omit or set it to -1 for the current page ID.
+     */
+    public function addAnnotRef($oid, $pid = -1)
+    {
+        $pid = $this->sanitizePageID($pid);
+        $this->page[$pid]['annotrefs'][] = (int) $oid;
     }
 
     /**

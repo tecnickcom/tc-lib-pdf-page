@@ -45,7 +45,7 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
         if ($pid < 0) {
             $pid = $this->pid;
         }
-        if (empty($this->page[$pid])) {
+        if (!isset($this->page[$pid])) {
             throw new PageException('The page with index '.$pid.' do not exist.');
         }
         return $pid;
