@@ -1,4 +1,5 @@
 <?php
+
 /**
  * FormatTest.php
  *
@@ -32,11 +33,11 @@ class FormatTest extends TestUtil
 {
     protected function getTestObject()
     {
-        $col = new \Com\Tecnick\Color\Pdf;
+        $col = new \Com\Tecnick\Color\Pdf();
         $enc = new \Com\Tecnick\Pdf\Encrypt\Encrypt(false);
         return new \Com\Tecnick\Pdf\Page\Page('mm', $col, $enc, false, false);
     }
-    
+
     public function testGetPageSize()
     {
         $testObj = $this->getTestObject();
@@ -62,29 +63,29 @@ class FormatTest extends TestUtil
         $testObj = $this->getTestObject();
         $testObj->getPageFormatSize('*ERROR*');
     }
-    
+
     public function testGetPageOrientedSize()
     {
         $testObj = $this->getTestObject();
         $dims = $testObj->getPageOrientedSize(10, 20);
         $this->assertEquals(array(10, 20, 'P'), $dims);
-        
+
         $dims = $testObj->getPageOrientedSize(10, 20, 'P');
         $this->assertEquals(array(10, 20, 'P'), $dims);
-        
+
         $dims = $testObj->getPageOrientedSize(10, 20, 'L');
         $this->assertEquals(array(20, 10, 'L'), $dims);
-        
+
         $dims = $testObj->getPageOrientedSize(20, 10, 'P');
         $this->assertEquals(array(10, 20, 'P'), $dims);
-        
+
         $dims = $testObj->getPageOrientedSize(20, 10, 'L');
         $this->assertEquals(array(20, 10, 'L'), $dims);
 
         $dims = $testObj->getPageOrientedSize(20, 10);
         $this->assertEquals(array(20, 10, 'L'), $dims);
     }
-    
+
     public function testGetPageOrientation()
     {
         $testObj = $this->getTestObject();

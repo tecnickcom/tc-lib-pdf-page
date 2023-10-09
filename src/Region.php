@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Region.php
  *
@@ -15,8 +16,8 @@
 
 namespace Com\Tecnick\Pdf\Page;
 
-use \Com\Tecnick\Color\Pdf as Color;
-use \Com\Tecnick\Pdf\Page\Exception as PageException;
+use Com\Tecnick\Color\Pdf as Color;
+use Com\Tecnick\Pdf\Page\Exception as PageException;
 
 /**
  * Com\Tecnick\Pdf\Page\Region
@@ -46,7 +47,7 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
             $pid = $this->pid;
         }
         if (!isset($this->page[$pid])) {
-            throw new PageException('The page with index '.$pid.' do not exist.');
+            throw new PageException('The page with index ' . $pid . ' do not exist.');
         }
         return $pid;
     }

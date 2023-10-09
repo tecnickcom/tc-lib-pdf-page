@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Format.php
  *
@@ -15,7 +16,7 @@
 
 namespace Com\Tecnick\Pdf\Page;
 
-use \Com\Tecnick\Pdf\Page\Exception as PageException;
+use Com\Tecnick\Pdf\Page\Exception as PageException;
 
 /**
  * Com\Tecnick\Pdf\Page\Format
@@ -453,7 +454,7 @@ abstract class Format
         'JP_SANGO_BAN_B20_DORI'  => array(  515.906,   583.937), // = (  182 x 206  ) mm  = (  7.17 x 8.11  ) in
         'JP_SANGO_BAN_B36_DORI'  => array(  342.992,   484.724), // = (  121 x 171  ) mm  = (  4.76 x 6.73  ) in
         'JP_SANGO_BAN_B40_DORI'  => array(  238.110,   419.528), // = (   84 x 148  ) mm  = (  3.31 x 5.83  ) in
-        'JP_SANROKU_BAN_B48_DORI'=> array(  257.953,   484.724), // = (   91 x 171  ) mm  = (  3.58 x 6.73  ) in
+        'JP_SANROKU_BAN_B48_DORI' => array(  257.953,   484.724), // = (   91 x 171  ) mm  = (  3.58 x 6.73  ) in
         'JP_SANSAN_BAN'          => array( 1975.748,  2834.646), // = (  697 x 1000 ) mm  = ( 27.44 x 39.37 ) in
         'JP_SANSHI_BAN'          => array( 2060.787,  2834.646), // = (  727 x 1000 ) mm  = ( 28.62 x 39.37 ) in
         'JP_SHIKISHIBAN'         => array(  581.102,   651.969), // = (  205 x 230  ) mm  = (  8.07 x 9.06  ) in
@@ -487,7 +488,7 @@ abstract class Format
     public function getPageFormatSize($format, $orientation = '', $unit = '', $dec = 6)
     {
         if (!isset(self::$format[$format])) {
-            throw new PageException('unknown page format: '.$format);
+            throw new PageException('unknown page format: ' . $format);
         }
         return $this->getPageOrientedSize(
             $this->convertPoints(self::$format[$format][0], $unit, $dec),
@@ -544,7 +545,7 @@ abstract class Format
     {
         $unit = strtolower($unit);
         if (!isset(self::$unitratio[$unit])) {
-            throw new PageException('unknown unit: '.$unit);
+            throw new PageException('unknown unit: ' . $unit);
         }
         return self::$unitratio[$unit];
     }

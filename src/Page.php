@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Page.php
  *
@@ -15,9 +16,9 @@
 
 namespace Com\Tecnick\Pdf\Page;
 
-use \Com\Tecnick\Color\Pdf as Color;
-use \Com\Tecnick\Pdf\Encrypt\Encrypt;
-use \Com\Tecnick\Pdf\Page\Exception as PageException;
+use Com\Tecnick\Color\Pdf as Color;
+use Com\Tecnick\Pdf\Encrypt\Encrypt;
+use Com\Tecnick\Pdf\Page\Exception as PageException;
 
 /**
  * Com\Tecnick\Pdf\Page\Page
@@ -40,7 +41,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      * @var string
      */
     const PAGE_TOT = '~#PT';
-    
+
     /**
      * Alias for page number.
      *
@@ -68,14 +69,14 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      * @var int
      */
     protected $pmaxid = -1;
-    
+
     /**
      * Count pages in each group.
      *
      * @var array
      */
     protected $group = array(0 => 0);
-    
+
     /**
      * Unit of measure conversion ratio.
      *
@@ -413,31 +414,31 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
                 }
             }
             $this->page[$num]['num'] = $page['num'];
-            
+
             $content = $this->replacePageTemplates($page);
             $out .= $this->getPageContentObj($pon, $content);
             $contentobjid = $pon;
 
-            $out .= $page['n'].' 0 obj'."\n"
-                .'<<'."\n"
-                .'/Type /Page'."\n"
-                .'/Parent '.$this->rootoid.' 0 R'."\n";
+            $out .= $page['n'] . ' 0 obj' . "\n"
+                . '<<' . "\n"
+                . '/Type /Page' . "\n"
+                . '/Parent ' . $this->rootoid . ' 0 R' . "\n";
             if (!$this->pdfa) {
-                $out .= '/Group << /Type /Group /S /Transparency /CS /DeviceRGB >>'."\n";
+                $out .= '/Group << /Type /Group /S /Transparency /CS /DeviceRGB >>' . "\n";
             }
             if (!$this->sigapp) {
-                $out .= '/LastModified '.$this->enc->getFormattedDate($page['time'], $pon)."\n";
+                $out .= '/LastModified ' . $this->enc->getFormattedDate($page['time'], $pon) . "\n";
             }
-            $out .= '/Resources '.$this->rdoid.' 0 R'."\n"
-                .$this->getBox($page['box'])
-                .$this->getBoxColorInfo($page['box'])
-                .'/Contents '.$contentobjid.' 0 R'."\n"
-                .'/Rotate '.$page['rotation']."\n"
-                .'/PZ '.sprintf('%F', $page['zoom'])."\n"
-                .$this->getPageTransition($page)
-                .$this->getAnnotationRef($page)
-                .'>>'."\n"
-                .'endobj'."\n";
+            $out .= '/Resources ' . $this->rdoid . ' 0 R' . "\n"
+                . $this->getBox($page['box'])
+                . $this->getBoxColorInfo($page['box'])
+                . '/Contents ' . $contentobjid . ' 0 R' . "\n"
+                . '/Rotate ' . $page['rotation'] . "\n"
+                . '/PZ ' . sprintf('%F', $page['zoom']) . "\n"
+                . $this->getPageTransition($page)
+                . $this->getAnnotationRef($page)
+                . '>>' . "\n"
+                . 'endobj' . "\n";
         }
         return $out;
     }
@@ -478,19 +479,19 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
         $entries = array('S', 'D', 'Dm', 'M', 'Di', 'SS', 'B');
         $out = '';
         if (isset($page['transition']['Dur'])) {
-            $out .= '/Dur '.sprintf('%F', $page['transition']['Dur'])."\n";
+            $out .= '/Dur ' . sprintf('%F', $page['transition']['Dur']) . "\n";
         }
-        $out .= '/Trans <<'."\n"
-            .'/Type /Trans'."\n";
+        $out .= '/Trans <<' . "\n"
+            . '/Type /Trans' . "\n";
         foreach ($page['transition'] as $key => $val) {
             if (in_array($key, $entries)) {
                 if (is_float($val)) {
                     $val = sprintf('%F', $val);
                 }
-                $out .= '/'.$key.' /'.$val."\n";
+                $out .= '/' . $key . ' /' . $val . "\n";
             }
         }
-        $out .= '>>'."\n";
+        $out .= '>>' . "\n";
         return $out;
     }
 
@@ -508,9 +509,9 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
         }
         $out = '/Annots [ ';
         foreach ($page['annotrefs'] as $val) {
-            $out .= intval($val).' 0 R ';
+            $out .= intval($val) . ' 0 R ';
         }
-        $out .= ']'."\n";
+        $out .= ']' . "\n";
         return $out;
     }
 
@@ -524,19 +525,19 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      */
     protected function getPageContentObj(&$pon, $content = '')
     {
-        $out = ++$pon.' 0 obj'."\n"
-            .'<<';
+        $out = ++$pon . ' 0 obj' . "\n"
+            . '<<';
         if ($this->compress) {
             $out .= ' /Filter /FlateDecode';
             $content = gzcompress($content);
         }
         $stream = $this->enc->encryptString($content, $pon);
-        $out .= ' /Length '.strlen($stream)
-            .' >>'."\n"
-            .'stream'."\n"
-            .$stream."\n"
-            .'endstream'."\n"
-            .'endobj'."\n";
+        $out .= ' /Length ' . strlen($stream)
+            . ' >>' . "\n"
+            . 'stream' . "\n"
+            . $stream . "\n"
+            . 'endstream' . "\n"
+            . 'endobj' . "\n";
         return $out;
     }
 
@@ -551,15 +552,15 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     {
         $this->rdoid = ++$pon; // reserve object ID for the resource dictionary
         $this->rootoid = ++$pon;
-        $out = $this->rootoid.' 0 obj'."\n";
+        $out = $this->rootoid . ' 0 obj' . "\n";
         $out .= '<< /Type /Pages /Kids [ ';
         $numpages = count($this->page);
         for ($pid = 0; $pid < $numpages; ++$pid) {
             $this->page[$pid]['n'] = ++$pon;
-            $out .= $this->page[$pid]['n'].' 0 R ';
+            $out .= $this->page[$pid]['n'] . ' 0 R ';
         }
-        $out .= '] /Count '.$numpages.' >>'."\n"
-            .'endobj'."\n";
+        $out .= '] /Count ' . $numpages . ' >>' . "\n"
+            . 'endobj' . "\n";
         return $out;
     }
 

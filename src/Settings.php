@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Settings.php
  *
@@ -15,8 +16,8 @@
 
 namespace Com\Tecnick\Pdf\Page;
 
-use \Com\Tecnick\Color\Pdf as Color;
-use \Com\Tecnick\Pdf\Page\Exception as PageException;
+use Com\Tecnick\Color\Pdf as Color;
+use Com\Tecnick\Pdf\Page\Exception as PageException;
 
 /**
  * Com\Tecnick\Pdf\Page\Settings
@@ -175,21 +176,24 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
             $data['transition']['D'] = intval($data['transition']['D']);
         }
         // dimension in which the specified transition effect shall occur
-        if (empty($data['transition']['Dm'])
+        if (
+            empty($data['transition']['Dm'])
             || !in_array($data['transition']['S'], array('Split', 'Blinds'))
             || !in_array($data['transition']['Dm'], array('H', 'V'))
         ) {
             unset($data['transition']['Dm']);
         }
         // direction of motion for the specified transition effect
-        if (empty($data['transition']['M'])
+        if (
+            empty($data['transition']['M'])
             || !in_array($data['transition']['S'], array('Split', 'Box', 'Fly'))
             || !in_array($data['transition']['M'], array('I', 'O'))
         ) {
             unset($data['transition']['M']);
         }
         // direction in which the specified transition effect shall moves
-        if (empty($data['transition']['Di'])
+        if (
+            empty($data['transition']['Di'])
             || !in_array($data['transition']['S'], array('Wipe', 'Glitter', 'Fly', 'Cover', 'Uncover', 'Push'))
             || !in_array($data['transition']['Di'], array('None', 0, 90, 180, 270, 315))
             || (in_array($data['transition']['Di'], array(90, 180)) && ($data['transition']['S'] != 'Wipe'))

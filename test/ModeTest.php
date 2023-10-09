@@ -1,4 +1,5 @@
 <?php
+
 /**
  * ModeTest.php
  *
@@ -32,7 +33,7 @@ class ModeTest extends TestUtil
 {
     protected function getTestObject()
     {
-        $col = new \Com\Tecnick\Color\Pdf;
+        $col = new \Com\Tecnick\Color\Pdf();
         $enc = new \Com\Tecnick\Pdf\Encrypt\Encrypt(false);
         return new \Com\Tecnick\Pdf\Page\Page('mm', $col, $enc, false, false);
     }

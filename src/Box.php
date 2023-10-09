@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Box.php
  *
@@ -15,7 +16,7 @@
 
 namespace Com\Tecnick\Pdf\Page;
 
-use \Com\Tecnick\Pdf\Page\Exception as PageException;
+use Com\Tecnick\Pdf\Page\Exception as PageException;
 
 /**
  * Com\Tecnick\Pdf\Page\Box
@@ -87,7 +88,7 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
             $dims = array();
         }
         if (!in_array($type, self::$box)) {
-            throw new PageException('unknown page box type: '.$type);
+            throw new PageException('unknown page box type: ' . $type);
         }
         $dims[$type]['llx'] = $llx;
         $dims[$type]['lly'] = $lly;
@@ -141,13 +142,13 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
                 continue;
                 // @codeCoverageIgnoreEnd
             }
-            $out .= '/'.$box.' ['.sprintf(
+            $out .= '/' . $box . ' [' . sprintf(
                 '%F %F %F %F',
                 $dims[$box]['llx'],
                 $dims[$box]['lly'],
                 $dims[$box]['urx'],
                 $dims[$box]['ury']
-            ).']'."\n";
+            ) . ']' . "\n";
         }
         return $out;
     }
@@ -161,37 +162,37 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
      */
     protected function getBoxColorInfo(array $dims)
     {
-        $out = '/BoxColorInfo <<'."\n";
+        $out = '/BoxColorInfo <<' . "\n";
         foreach (self::$box as $box) {
             if (empty($dims[$box])) {
                 // @codeCoverageIgnoreStart
                 continue;
                 // @codeCoverageIgnoreEnd
             }
-            $out .= '/'.$box.' <<'."\n";
+            $out .= '/' . $box . ' <<' . "\n";
             if (!empty($dims[$box]['bci']['color'])) {
-                $out .= '/C ['.$this->col->getPdfRgbComponents($dims[$box]['bci']['color']).']'."\n";
+                $out .= '/C [' . $this->col->getPdfRgbComponents($dims[$box]['bci']['color']) . ']' . "\n";
             }
             if (!empty($dims[$box]['bci']['width'])) {
-                $out .= '/W '.sprintf('%F', ($dims[$box]['bci']['width'] * $this->kunit))."\n";
+                $out .= '/W ' . sprintf('%F', ($dims[$box]['bci']['width'] * $this->kunit)) . "\n";
             }
             if (!empty($dims[$box]['bci']['style'])) {
                 $mode = strtoupper($dims[$box]['bci']['style'][0]);
                 if ($mode !== 'D') {
                     $mode = 'S';
                 }
-                $out .= '/S /'.$mode."\n";
+                $out .= '/S /' . $mode . "\n";
             }
             if (!empty($dims[$box]['bci']['dash'])) {
                 $out .= '/D [';
                 foreach ($dims[$box]['bci']['dash'] as $dash) {
                     $out .= sprintf(' %F', ((float) $dash * $this->kunit));
                 }
-                $out .= ' ]'."\n";
+                $out .= ' ]' . "\n";
             }
-            $out .= '>>'."\n";
+            $out .= '>>' . "\n";
         }
-        $out .= '>>'."\n";
+        $out .= '>>' . "\n";
         return $out;
     }
 }

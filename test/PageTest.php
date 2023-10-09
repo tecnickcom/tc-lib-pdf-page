@@ -1,4 +1,5 @@
 <?php
+
 /**
  * PageTest.php
  *
@@ -32,7 +33,7 @@ class PageTest extends TestUtil
 {
     protected function getTestObject()
     {
-        $col = new \Com\Tecnick\Color\Pdf;
+        $col = new \Com\Tecnick\Color\Pdf();
         $enc = new \Com\Tecnick\Pdf\Encrypt\Encrypt(false);
         return new \Com\Tecnick\Pdf\Page\Page('mm', $col, $enc, false, true, false);
     }
@@ -121,7 +122,7 @@ class PageTest extends TestUtil
             'content_mark' => array(0 => 0),
             'autobreak' => true,
         );
-        
+
         unset($res['time']);
         $exp['pid'] = 0;
         $this->bcAssertEqualsWithDelta($exp, $res);
@@ -233,7 +234,7 @@ class PageTest extends TestUtil
         $testObj->add(array('group' => 3));
 
         $this->assertEquals($testObj->getPage(3), $testObj->getPage());
-        
+
         $testObj->move(3, 0);
         $this->assertCount(4, $testObj->getPages());
 
