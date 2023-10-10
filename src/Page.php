@@ -36,97 +36,6 @@ use Com\Tecnick\Pdf\Page\Exception as PageException;
 class Page extends \Com\Tecnick\Pdf\Page\Region
 {
     /**
-     * Alias for total number of pages in a group.
-     *
-     * @var string
-     */
-    const PAGE_TOT = '~#PT';
-
-    /**
-     * Alias for page number.
-     *
-     * @var string
-     */
-    const PAGE_NUM = '~#PN';
-
-    /**
-     * Array of pages (stack).
-     *
-     * @var array
-     */
-    protected $page = array();
-
-    /**
-     * Current page ID.
-     *
-     * @var int
-     */
-    protected $pid = -1;
-
-    /**
-     * Maximum page ID.
-     *
-     * @var int
-     */
-    protected $pmaxid = -1;
-
-    /**
-     * Count pages in each group.
-     *
-     * @var array
-     */
-    protected $group = array(0 => 0);
-
-    /**
-     * Unit of measure conversion ratio.
-     *
-     * @var float
-     */
-    protected $kunit = 1.0;
-
-    /**
-     * Color object.
-     *
-     * @var Color
-     */
-    protected $col;
-
-    /**
-     * Encrypt object.
-     *
-     * @var Encrypt
-     */
-    protected $enc;
-
-    /**
-     * True if we are in PDF/A mode.
-     *
-     * @var bool
-     */
-    protected $pdfa = false;
-
-    /**
-     * Enable stream compression.
-     *
-     * @var int
-     */
-    protected $compress = true;
-
-    /**
-     * True if the signature approval is enabled (for incremental updates).
-     *
-     * @var bool
-     */
-    protected $sigapp = false;
-
-    /**
-     * Reserved Object ID for the resource dictionary.
-     *
-     * @var int
-     */
-    protected $rdoid = 1;
-
-    /**
      * Initialize page data.
      *
      * @param string  $unit     Unit of measure ('pt', 'mm', 'cm', 'in').
@@ -171,78 +80,6 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     {
         $this->sigapp = (bool) $sigapp;
         return $this;
-    }
-
-    /**
-     * Add a new page.
-     *
-     * @param array $data Page data:
-     *     time        : UTC page modification time in seconds;
-     *     group       : page group number;
-     *     num         : if set overwrites the page number;
-     *     content     : string containing the raw page content;
-     *     annotrefs   : array containing the annotation object references;
-     *     format      : page format name, or alternatively you can set width and height as below;
-     *     width       : page width;
-     *     height      : page height;
-     *     orientation : page orientation ('P' or 'L');
-     *     rotation    : the number of degrees by which the page shall be rotated clockwise when displayed or printed;
-     *     box         : array containing page box boundaries and settings (@see setBox);
-     *     transition  : array containing page transition data (@see getPageTransition);
-     *     zoom        : preferred zoom (magnification) factor;
-     *     margin      : page margins:
-     *                   PL : page left margin measured from the left page edge
-     *                   PR : page right margin measured from the right page edge
-     *                   PT : page top or header top measured distance from the top page edge
-     *                   HB : header bottom measured from the top page edge
-     *                   CT : content top measured from the top page edge
-     *                   CB : content bottom (page breaking point) measured from the top page edge
-     *                   FT : footer top measured from the bottom page edge
-     *                   PB : page bottom (footer bottom) measured from the bottom page edge
-     *     columns     : number of equal vertical columns, if set it will automatically populate the region array
-     *     region      : array containing the ordered list of rectangular areas where it is allowed to write,
-     *                   each region is defined by:
-     *                   RX : horizontal coordinate of top-left corner
-     *                   RY : vertical coordinate of top-left corner
-     *                   RW : region width
-     *                   RH : region height
-     *     autobreak   : true to automatically add a page when the content reaches the breaking point.
-     *
-     * NOTE: if $data is empty, then the last page format will be cloned.
-     *
-     * @return array Page data with additional Page ID property 'pid'.
-     */
-    public function add(array $data = array())
-    {
-        if (empty($data) && ($this->pmaxid >= 0)) {
-            // clone last page data
-            $data = $this->page[$this->pmaxid];
-            unset($data['time'], $data['content'], $data['annotrefs'], $data['pagenum']);
-        } else {
-            $this->sanitizeGroup($data);
-            $this->sanitizeRotation($data);
-            $this->sanitizeZoom($data);
-            $this->sanitizePageFormat($data);
-            $this->sanitizeBoxData($data);
-            $this->sanitizeTransitions($data);
-            $this->sanitizeMargins($data);
-            $this->sanitizeRegions($data);
-        }
-        $this->sanitizeTime($data);
-        $this->sanitizeContent($data);
-        $this->sanitizeAnnotRefs($data);
-        $this->sanitizePageNumber($data);
-        $data['content_mark'] = array(0);
-        $data['currentRegion'] = 0;
-        $data['pid'] = ++$this->pmaxid;
-        $this->pid = $data['pid'];
-        $this->page[$this->pid] = $data;
-        if (isset($this->group[$data['group']])) {
-            $this->group[$data['group']] += 1;
-        } else {
-            $this->group[$data['group']] = 1;
-        }
-        return $this->page[$this->pid];
     }
 
     /**
@@ -302,31 +139,6 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     public function getPages()
     {
         return $this->page;
-    }
-
-    /**
-     * Set the current page number (move to the specified page).
-     *
-     * @param int $pid page index. Omit or set it to -1 for the current page ID.
-     */
-    public function setCurrentPage($pid = -1)
-    {
-        $pid = $this->sanitizePageID($pid);
-        $this->pid = $pid;
-        return $this->page[$this->pid];
-    }
-
-    /**
-     * Returns the specified page data.
-     *
-     * @param int $pid page index. Omit or set it to -1 for the current page ID.
-     *
-     * return array
-     */
-    public function getPage($pid = -1)
-    {
-        $pid = $this->sanitizePageID($pid);
-        return $this->page[$pid];
     }
 
     /**

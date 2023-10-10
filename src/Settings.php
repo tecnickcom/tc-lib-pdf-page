@@ -40,6 +40,90 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
     const EPS = 0.0001;
 
     /**
+     * Alias for total number of pages in a group.
+     *
+     * @var string
+     */
+    const PAGE_TOT = '~#PT';
+
+    /**
+     * Alias for page number.
+     *
+     * @var string
+     */
+    const PAGE_NUM = '~#PN';
+
+    /**
+     * Array of pages (stack).
+     *
+     * @var array
+     */
+    protected $page = array();
+
+    /**
+     * Current page ID.
+     *
+     * @var int
+     */
+    protected $pid = -1;
+
+    /**
+     * Maximum page ID.
+     *
+     * @var int
+     */
+    protected $pmaxid = -1;
+
+    /**
+     * Count pages in each group.
+     *
+     * @var array
+     */
+    protected $group = array(0 => 0);
+
+    /**
+     * Encrypt object.
+     *
+     * @var Encrypt
+     */
+    protected $enc;
+
+    /**
+     * True if we are in PDF/A mode.
+     *
+     * @var bool
+     */
+    protected $pdfa = false;
+
+    /**
+     * Enable stream compression.
+     *
+     * @var int
+     */
+    protected $compress = true;
+
+    /**
+     * True if the signature approval is enabled (for incremental updates).
+     *
+     * @var bool
+     */
+    protected $sigapp = false;
+
+    /**
+     * Reserved Object ID for the resource dictionary.
+     *
+     * @var int
+     */
+    protected $rdoid = 1;
+
+    /**
+     * Root object ID.
+     *
+     * @var int
+     */
+    protected $rootoid = 0;
+
+    /**
      * Sanitize or set the page modification time.
      *
      * @param array $data Page data.

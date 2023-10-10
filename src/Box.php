@@ -32,6 +32,20 @@ use Com\Tecnick\Pdf\Page\Exception as PageException;
 abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
 {
     /**
+     * Unit of measure conversion ratio.
+     *
+     * @var float
+     */
+    protected $kunit = 1.0;
+
+    /**
+     * Color object.
+     *
+     * @var Color
+     */
+    protected $col;
+
+    /**
      * Array of page box names.
      *
      * @var array
