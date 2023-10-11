@@ -84,7 +84,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
     /**
      * Encrypt object.
      *
-     * @var Encrypt
+     * @var \Com\Tecnick\Pdf\Encrypt\Encrypt
      */
     protected $enc;
 
@@ -98,7 +98,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
     /**
      * Enable stream compression.
      *
-     * @var int
+     * @var bool
      */
     protected $compress = true;
 

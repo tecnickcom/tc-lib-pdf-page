@@ -156,8 +156,8 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     /**
      * Add page content.
      *
-     * @param array $data Page data.
-     * @param int $pid page index. Omit or set it to -1 for the current page ID.
+     * @param string $content Page content.
+     * @param int    $pid     Page index. Omit or set it to -1 for the current page ID.
      */
     public function addContent($content, $pid = -1)
     {
@@ -168,10 +168,9 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     /**
      * Remove and return last page content.
      *
-     * @param array $data Page data.
      * @param int $pid page index. Omit or set it to -1 for the current page ID.
      *
-     * @param string content.
+     * @return string
      */
     public function popContent($pid = -1)
     {
@@ -278,8 +277,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     /**
      * Returns the PDF command to output the page content.
      *
-     * @param int    $pon     Current PDF object number.
-     * @param string $content Page content.
+     * @param array $page Page data.
      *
      * @return string PDF command.
      */

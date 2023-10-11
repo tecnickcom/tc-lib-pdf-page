@@ -65,7 +65,7 @@ class SettingsTest extends TestUtil
         $testObj = $this->getTestObject();
         $data = array();
         $testObj->sanitizeTime($data);
-        $this->assertNotEmpty($data['time']);
+        $this->assertNotEmpty($data['time']); /* @phpstan-ignore-line */
 
         $data = array('time' => -1);
         $testObj->sanitizeTime($data);

@@ -339,8 +339,8 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
     /**
      * Set the absolute horizontal cursor position for the current region.
      *
-     * @param foat $xpos X position relative to the page coordinates.
-     * @param int $pid page index. Omit or set it to -1 for the current page ID.
+     * @param float $xpos X position relative to the page coordinates.
+     * @param int   $pid page index. Omit or set it to -1 for the current page ID.
      */
     public function setX($xpos, $pid = -1)
     {
@@ -352,8 +352,8 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
     /**
      * Set the absolute vertical cursor position for the current region.
      *
-     * @param foat $ypos Y position relative to the page coordinates.
-     * @param int $pid page index. Omit or set it to -1 for the current page ID.
+     * @param float $ypos Y position relative to the page coordinates.
+     * @param int   $pid page index. Omit or set it to -1 for the current page ID.
      */
     public function setY($ypos, $pid = -1)
     {

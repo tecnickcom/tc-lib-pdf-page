@@ -41,7 +41,7 @@ class PageTest extends TestUtil
     public function testGetKUnit()
     {
         $testObj = $this->getTestObject();
-        $this->assertEquals(2.83464566929134, $testObj->getKUnit(), '', 0.001);
+        $this->bcAssertEqualsWithDelta(2.83464566929134, $testObj->getKUnit(), 0.001);
     }
 
     public function testEnableSignatureApproval()

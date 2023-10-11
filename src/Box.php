@@ -16,6 +16,7 @@
 
 namespace Com\Tecnick\Pdf\Page;
 
+use Com\Tecnick\Color\Pdf as Color;
 use Com\Tecnick\Pdf\Page\Exception as PageException;
 
 /**
