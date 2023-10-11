@@ -3,7 +3,7 @@
 
 [![Latest Stable Version](https://poser.pugx.org/tecnickcom/tc-lib-pdf-page/version)](https://packagist.org/packages/tecnickcom/tc-lib-pdf-page)
 ![Build](https://github.com/tecnickcom/tc-lib-pdf-page/actions/workflows/check.yml/badge.svg)
-[![Coverage](https://coveralls.io/repos/tecnickcom/tc-lib-pdf-page/badge.svg?branch=main&service=github)](https://coveralls.io/github/tecnickcom/tc-lib-pdf-page?branch=main)
+[![Coverage](https://codecov.io/gh/tecnickcom/tc-lib-pdf-page/graph/badge.svg?token=F6CPFHI3ED)](https://codecov.io/gh/tecnickcom/tc-lib-pdf-page)
 [![License](https://poser.pugx.org/tecnickcom/tc-lib-pdf-page/license)](https://packagist.org/packages/tecnickcom/tc-lib-pdf-page)
 [![Downloads](https://poser.pugx.org/tecnickcom/tc-lib-pdf-page/downloads)](https://packagist.org/packages/tecnickcom/tc-lib-pdf-page)
 
