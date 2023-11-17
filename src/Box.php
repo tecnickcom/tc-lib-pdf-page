@@ -29,6 +29,94 @@ use Com\Tecnick\Pdf\Page\Exception as PageException;
  * @copyright 2011-2023 Nicola Asuni - Tecnick.com LTD
  * @license   http://www.gnu.org/copyleft/lesser.html GNU-LGPL v3 (see LICENSE.TXT)
  * @link      https://github.com/tecnickcom/tc-lib-pdf-page
+ *
+ * @phpstan-type PageBci array{
+ *            'color': string,
+ *            'width': float,
+ *            'style': string,
+ *            'dash': array<int>,
+ *          }
+ *
+ * @phpstan-type PageBox array{
+ *            'llx': float,
+ *            'lly': float,
+ *            'urx': float,
+ *            'ury': float,
+ *            'bci'?: PageBci,
+ *          }
+ *
+ * @phpstan-type MarginData array{
+ *            'CB': float,
+ *            'CT': float,
+ *            'FT': float,
+ *            'HB': float,
+ *            'PB': float,
+ *            'PL': float,
+ *            'PR': float,
+ *            'PT': float,
+ *        }
+ *
+ * @phpstan-type RegionData array{
+ *            'RB': float,
+ *            'RH': float,
+ *            'RL': float,
+ *            'RR': float,
+ *            'RT': float,
+ *            'RW': float,
+ *            'RX': float,
+ *            'RY': float,
+ *            'x' : float,
+ *            'y' : float,
+ *        }
+ *
+
+ * @phpstan-type TransitionData array{
+ *            'B': bool,
+ *            'D': int,
+ *            'Di': string|int,
+ *            'Dm': string,
+ *            'Dur': float,
+ *            'M': string,
+ *            'S': string,
+ *            'SS': float,
+ *        }
+ *
+ * @phpstan-type PageData array{
+ *        'annotrefs': array<int,int>,
+ *        'autobreak': bool,
+ *        'box': array<string, array{
+ *            'llx': float,
+ *            'lly': float,
+ *            'urx': float,
+ *            'ury': float,
+ *            'bci': PageBci,
+ *        }>,
+ *        'columns': int,
+ *        'content': array<string>,
+ *        'content_mark': array<int>,
+ *        'ContentHeight': float,
+ *        'ContentWidth': float,
+ *        'FooterHeight': float,
+ *        'HeaderHeight': float,
+ *        'currentRegion': int,
+ *        'format': string,
+ *        'group': int,
+ *        'height': float,
+ *        'margin': MarginData,
+ *        'n': int,
+ *        'num': int,
+ *        'orientation': string,
+ *        'pagenum': int,
+ *        'pheight': float,
+ *        'pid': int,
+ *        'pwidth': float,
+ *        'region': array<int, RegionData>,
+ *        'rotation': int,
+ *        'time': int,
+ *        'transition': TransitionData,
+ *        'width': float,
+ *        'zoom': float,
+ *    }
  */
 abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
 {
@@ -58,31 +146,9 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
     /**
      * Swap X and Y coordinates of page boxes (change page boxes orientation).
      *
-     * @param array<string, array{
-     *            'llx': float,
-     *            'lly': float,
-     *            'urx': float,
-     *            'ury': float,
-     *            'bci'?: array{
-     *               'color': string,
-     *               'width': float,
-     *               'style': string,
-     *               'dash': array<int>,
-     *            },
-     *          }> $dims Array of page dimensions.
+     * @param array<string, PageBox> $dims Array of page dimensions.
      *
-     * @return array<string, array{
-     *            'llx': float,
-     *            'lly': float,
-     *            'urx': float,
-     *            'ury': float,
-     *            'bci'?: array{
-     *               'color': string,
-     *               'width': float,
-     *               'style': string,
-     *               'dash': array<int>,
-     *            },
-     *          }> Page dimensions.
+     * @return array<string, PageBox> Page dimensions.
      */
     public function swapCoordinates(array $dims): array
     {
@@ -104,42 +170,15 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
     /**
      * Set page boundaries.
      *
-     * @param array<string, array{
-     *            'llx': float,
-     *            'lly': float,
-     *            'urx': float,
-     *            'ury': float,
-     *            'bci'?: array{
-     *               'color': string,
-     *               'width': float,
-     *               'style': string,
-     *               'dash': array<int>,
-     *            },
-     *          }>  $dims    Array of page dimensions to modify.
-     * @param string               $type Box type: MediaBox, CropBox, BleedBox, TrimBox, ArtBox.
-     * @param float                $llx  Lower-left x coordinate in user units.
-     * @param float                $lly  Lower-left y coordinate in user units.
-     * @param float                $urx  Upper-right x coordinate in user units.
-     * @param float                $ury  Upper-right y coordinate in user units.
-     * @param array{
-     *               'color': string,
-     *               'width': float,
-     *               'style': string,
-     *               'dash': array<int>,
-     *            }  $bci     BoxColorInfo: guideline style (color, width, style, dash).
+     * @param array<string, PageBox> $dims Array of page dimensions to modify.
+     * @param string                 $type Box type: MediaBox, CropBox, BleedBox, TrimBox, ArtBox.
+     * @param float                  $llx  Lower-left x coordinate in user units.
+     * @param float                  $lly  Lower-left y coordinate in user units.
+     * @param float                  $urx  Upper-right x coordinate in user units.
+     * @param float                  $ury  Upper-right y coordinate in user units.
+     * @param PageBci                $bci  BoxColorInfo: guideline style (color, width, style, dash).
      *
-     * @return array<string, array{
-     *            'llx': float,
-     *            'lly': float,
-     *            'urx': float,
-     *            'ury': float,
-     *            'bci': array{
-     *               'color': string,
-     *               'width': float,
-     *               'style': string,
-     *               'dash': array<int>,
-     *            },
-     *          }> Page dimensions.
+     * @return array<string, PageBox> Page dimensions.
      */
     public function setBox(
         array $dims,
@@ -185,18 +224,7 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
      * @param float $width  Page width in points.
      * @param float $height Page height in points.
      *
-     * @return array<string, array{
-     *            'llx': float,
-     *            'lly': float,
-     *            'urx': float,
-     *            'ury': float,
-     *            'bci'?: array{
-     *               'color': string,
-     *               'width': float,
-     *               'style': string,
-     *               'dash': array<int>,
-     *            },
-     *          }> Page boxes.
+     * @return array<string, PageBox> Page boxes.
      */
     public function setPageBoxes(float $width, float $height): array
     {
@@ -244,12 +272,7 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
      * Returns the PDF command to output the specified page BoxColorInfo.
      *
      * @param array<string, array{
-     *            'bci': array{
-     *               'color': string,
-     *               'width': float,
-     *               'style': string,
-     *               'dash': array<int>,
-     *            },
+     *            'bci': PageBci,
      *          }> $dims Array of page dimensions.
      *
      * @SuppressWarnings(PHPMD.CyclomaticComplexity)

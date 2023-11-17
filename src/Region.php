@@ -29,6 +29,9 @@ use Com\Tecnick\Pdf\Page\Exception as PageException;
  * @license   http://www.gnu.org/copyleft/lesser.html GNU-LGPL v3 (see LICENSE.TXT)
  * @link      https://github.com/tecnickcom/tc-lib-pdf-page
  *
+ * @phpstan-import-type RegionData from \Com\Tecnick\Pdf\Page\Box
+ * @phpstan-import-type PageData from \Com\Tecnick\Pdf\Page\Box
+ *
  * A page region defines the writable area of the page.
  */
 abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
@@ -139,76 +142,7 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
      *
      * NOTE: if $data is null, then the last page format will be cloned.
      *
-     * @return array{
-     *        'annotrefs': array<int,int>,
-     *        'autobreak': bool,
-     *        'box': array<string, array{
-     *             'llx': float,
-     *             'lly': float,
-     *             'urx': float,
-     *             'ury': float,
-     *             'bci': array{
-     *                'color': string,
-     *                'width': float,
-     *                'style': string,
-     *                'dash': array<int>,
-     *             },
-     *        }>,
-     *        'columns': int,
-     *        'content': array<string>,
-     *        'content_mark': array<int>,
-     *        'ContentHeight': float,
-     *        'ContentWidth': float,
-     *        'FooterHeight': float,
-     *        'HeaderHeight': float,
-     *        'currentRegion': int,
-     *        'format': string,
-     *        'group': int,
-     *        'height': float,
-     *        'margin': array{
-     *            'CB': float,
-     *            'CT': float,
-     *            'FT': float,
-     *            'HB': float,
-     *            'PB': float,
-     *            'PL': float,
-     *            'PR': float,
-     *            'PT': float,
-     *        },
-     *        'n': int,
-     *        'num': int,
-     *        'orientation': string,
-     *        'pagenum': int,
-     *        'pheight': float,
-     *        'pid': int,
-     *        'pwidth': float,
-     *        'region': array<int, array{
-     *            'RB': float,
-     *            'RH': float,
-     *            'RL': float,
-     *            'RR': float,
-     *            'RT': float,
-     *            'RW': float,
-     *            'RX': float,
-     *            'RY': float,
-     *            'x' : float,
-     *            'y' : float,
-     *        }>,
-     *        'rotation': int,
-     *        'time': int,
-     *        'transition': array{
-     *            'B': bool,
-     *            'D': int,
-     *            'Di': string|int,
-     *            'Dm': string,
-     *            'Dur': float,
-     *            'M': string,
-     *            'S': string,
-     *            'SS': float,
-     *        },
-     *        'width': float,
-     *        'zoom': float,
-     *    } Page data with additional Page ID property 'pid'.
+     * @return PageData Page data with additional Page ID property 'pid'.
      */
     public function add(array $data = []): array
     {
@@ -250,75 +184,7 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
      *
      * @param int $pid page index. Omit or set it to -1 for the current page ID.
      *
-     * @return array{
-     *        'annotrefs': array<int,int>,
-     *        'autobreak': bool,
-     *        'box': array<string, array{
-     *             'llx': float,
-     *             'lly': float,
-     *             'urx': float,
-     *             'ury': float,
-     *             'bci': array{
-     *                'color': string,
-     *                'width': float,
-     *                'style': string,
-     *                'dash': array<int>,
-     *             },
-     *        }>,
-     *        'columns': int,
-     *        'content': array<string>,
-     *        'content_mark': array<int>,
-     *        'ContentHeight': float,
-     *        'ContentWidth': float,
-     *        'FooterHeight': float,
-     *        'HeaderHeight': float,
-     *        'currentRegion': int,
-     *        'format': string,
-     *        'group': int,
-     *        'height': float,
-     *        'margin': array{
-     *            'CB': float,
-     *            'CT': float,
-     *            'FT': float,
-     *            'HB': float,
-     *            'PB': float,
-     *            'PL': float,
-     *            'PR': float,
-     *            'PT': float,
-     *        },
-     *        'n': int,
-     *        'num': int,
-     *        'orientation': string,
-     *        'pagenum': int,
-     *        'pheight': float,
-     *        'pid': int,
-     *        'pwidth': float,
-     *        'region': array<int, array{
-     *            'RB': float,
-     *            'RH': float,
-     *            'RL': float,
-     *            'RR': float,
-     *            'RT': float,
-     *            'RW': float,
-     *            'RX': float,
-     *            'RY': float,
-     *            'x' : float,
-     *            'y' : float,
-     *        }>,
-     *        'rotation': int,
-     *        'time': int,
-     *        'transition': array{'B': bool,
-     *            'D': int,
-     *            'Di': string|int,
-     *            'Dm': string,
-     *            'Dur': float,
-     *            'M': string,
-     *            'S': string,
-     *            'SS': float,
-     *        },
-     *        'width': float,
-     *        'zoom': float,
-     *    } Page data.
+     * @return PageData Page data.
      */
     public function setCurrentPage(int $pid = -1): array
     {
@@ -332,75 +198,7 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
      *
      * @param int $pid page index. Omit or set it to -1 for the current page ID.
      *
-     * @return array{
-     *        'annotrefs': array<int,int>,
-     *        'autobreak': bool,
-     *        'box': array<string, array{
-     *             'llx': float,
-     *             'lly': float,
-     *             'urx': float,
-     *             'ury': float,
-     *             'bci': array{
-     *                'color': string,
-     *                'width': float,
-     *                'style': string,
-     *                'dash': array<int>,
-     *             },
-     *        }>,
-     *        'columns': int,
-     *        'content': array<string>,
-     *        'content_mark': array<int>,
-     *        'ContentHeight': float,
-     *        'ContentWidth': float,
-     *        'FooterHeight': float,
-     *        'HeaderHeight': float,
-     *        'currentRegion': int,
-     *        'format': string,
-     *        'group': int,
-     *        'height': float,
-     *        'margin': array{
-     *            'CB': float,
-     *            'CT': float,
-     *            'FT': float,
-     *            'HB': float,
-     *            'PB': float,
-     *            'PL': float,
-     *            'PR': float,
-     *            'PT': float,
-     *        },
-     *        'n': int,
-     *        'num': int,
-     *        'orientation': string,
-     *        'pagenum': int,
-     *        'pheight': float,
-     *        'pid': int,
-     *        'pwidth': float,
-     *        'region': array<int, array{
-     *            'RB': float,
-     *            'RH': float,
-     *            'RL': float,
-     *            'RR': float,
-     *            'RT': float,
-     *            'RW': float,
-     *            'RX': float,
-     *            'RY': float,
-     *            'x' : float,
-     *            'y' : float,
-     *        }>,
-     *        'rotation': int,
-     *        'time': int,
-     *        'transition': array{'B': bool,
-     *            'D': int,
-     *            'Di': string|int,
-     *            'Dm': string,
-     *            'Dur': float,
-     *            'M': string,
-     *            'S': string,
-     *            'SS': float,
-     *        },
-     *        'width': float,
-     *        'zoom': float,
-     *    } Page data.
+     * @return PageData Page data.
      */
     public function getPage(int $pid = -1): array
     {
@@ -434,18 +232,7 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
      * @param int $idr ID of the region.
      * @param int $pid page index. Omit or set it to -1 for the current page ID.
      *
-     * @return array{
-     *            'RB': float,
-     *            'RH': float,
-     *            'RL': float,
-     *            'RR': float,
-     *            'RT': float,
-     *            'RW': float,
-     *            'RX': float,
-     *            'RY': float,
-     *            'x' : float,
-     *            'y' : float,
-     *        } Selected region data.
+     * @return RegionData Selected region data.
      */
     public function selectRegion(int $idr, int $pid = -1): array
     {
@@ -459,18 +246,7 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
      *
      * @param int $pid page index. Omit or set it to -1 for the current page ID.
      *
-     * @return array{
-     *            'RB': float,
-     *            'RH': float,
-     *            'RL': float,
-     *            'RR': float,
-     *            'RT': float,
-     *            'RW': float,
-     *            'RX': float,
-     *            'RY': float,
-     *            'x' : float,
-     *            'y' : float,
-     *        } Region.
+     * @return RegionData Region.
      */
     public function getRegion(int $pid = -1): array
     {
@@ -484,75 +260,7 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
      *
      * @param int $pid page index. Omit or set it to -1 for the current page ID.
      *
-     * @return array{
-     *        'annotrefs': array<int,int>,
-     *        'autobreak': bool,
-     *        'box': array<string, array{
-     *             'llx': float,
-     *             'lly': float,
-     *             'urx': float,
-     *             'ury': float,
-     *             'bci': array{
-     *                'color': string,
-     *                'width': float,
-     *                'style': string,
-     *                'dash': array<int>,
-     *             },
-     *        }>,
-     *        'columns': int,
-     *        'content': array<string>,
-     *        'content_mark': array<int>,
-     *        'ContentHeight': float,
-     *        'ContentWidth': float,
-     *        'FooterHeight': float,
-     *        'HeaderHeight': float,
-     *        'currentRegion': int,
-     *        'format': string,
-     *        'group': int,
-     *        'height': float,
-     *        'margin': array{
-     *            'CB': float,
-     *            'CT': float,
-     *            'FT': float,
-     *            'HB': float,
-     *            'PB': float,
-     *            'PL': float,
-     *            'PR': float,
-     *            'PT': float,
-     *        },
-     *        'n': int,
-     *        'num': int,
-     *        'orientation': string,
-     *        'pagenum': int,
-     *        'pheight': float,
-     *        'pid': int,
-     *        'pwidth': float,
-     *        'region': array<int, array{
-     *            'RB': float,
-     *            'RH': float,
-     *            'RL': float,
-     *            'RR': float,
-     *            'RT': float,
-     *            'RW': float,
-     *            'RX': float,
-     *            'RY': float,
-     *            'x' : float,
-     *            'y' : float,
-     *        }>,
-     *        'rotation': int,
-     *        'time': int,
-     *        'transition': array{'B': bool,
-     *            'D': int,
-     *            'Di': string|int,
-     *            'Dm': string,
-     *            'Dur': float,
-     *            'M': string,
-     *            'S': string,
-     *            'SS': float,
-     *        },
-     *        'width': float,
-     *        'zoom': float,
-     *    } Page data.
+     * @return PageData Page data.
      */
     public function getNextPage(int $pid = -1): array
     {
@@ -576,75 +284,7 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
      *
      * @param int $pid page index. Omit or set it to -1 for the current page ID.
      *
-     * @return array{
-     *        'annotrefs': array<int,int>,
-     *        'autobreak': bool,
-     *        'box': array<string, array{
-     *             'llx': float,
-     *             'lly': float,
-     *             'urx': float,
-     *             'ury': float,
-     *             'bci': array{
-     *                'color': string,
-     *                'width': float,
-     *                'style': string,
-     *                'dash': array<int>,
-     *             },
-     *        }>,
-     *        'columns': int,
-     *        'content': array<string>,
-     *        'content_mark': array<int>,
-     *        'ContentHeight': float,
-     *        'ContentWidth': float,
-     *        'FooterHeight': float,
-     *        'HeaderHeight': float,
-     *        'currentRegion': int,
-     *        'format': string,
-     *        'group': int,
-     *        'height': float,
-     *        'margin': array{
-     *            'CB': float,
-     *            'CT': float,
-     *            'FT': float,
-     *            'HB': float,
-     *            'PB': float,
-     *            'PL': float,
-     *            'PR': float,
-     *            'PT': float,
-     *        },
-     *        'n': int,
-     *        'num': int,
-     *        'orientation': string,
-     *        'pagenum': int,
-     *        'pheight': float,
-     *        'pid': int,
-     *        'pwidth': float,
-     *        'region': array<int, array{
-     *            'RB': float,
-     *            'RH': float,
-     *            'RL': float,
-     *            'RR': float,
-     *            'RT': float,
-     *            'RW': float,
-     *            'RX': float,
-     *            'RY': float,
-     *            'x' : float,
-     *            'y' : float,
-     *        }>,
-     *        'rotation': int,
-     *        'time': int,
-     *        'transition': array{'B': bool,
-     *            'D': int,
-     *            'Di': string|int,
-     *            'Dm': string,
-     *            'Dur': float,
-     *            'M': string,
-     *            'S': string,
-     *            'SS': float,
-     *        },
-     *        'width': float,
-     *        'zoom': float,
-     *    } Current page data.
+     * @return PageData Current page data.
      */
     public function getNextRegion(int $pid = -1): array
     {
@@ -665,75 +305,7 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
      * @param ?float $ypos   Starting Y position or NULL for current position.
      * @param int    $pid    Page index. Omit or set it to -1 for the current page ID.
      *
-     * @return array{
-     *        'annotrefs': array<int,int>,
-     *        'autobreak': bool,
-     *        'box': array<string, array{
-     *             'llx': float,
-     *             'lly': float,
-     *             'urx': float,
-     *             'ury': float,
-     *             'bci': array{
-     *                'color': string,
-     *                'width': float,
-     *                'style': string,
-     *                'dash': array<int>,
-     *             },
-     *        }>,
-     *        'columns': int,
-     *        'content': array<string>,
-     *        'content_mark': array<int>,
-     *        'ContentHeight': float,
-     *        'ContentWidth': float,
-     *        'FooterHeight': float,
-     *        'HeaderHeight': float,
-     *        'currentRegion': int,
-     *        'format': string,
-     *        'group': int,
-     *        'height': float,
-     *        'margin': array{
-     *            'CB': float,
-     *            'CT': float,
-     *            'FT': float,
-     *            'HB': float,
-     *            'PB': float,
-     *            'PL': float,
-     *            'PR': float,
-     *            'PT': float,
-     *        },
-     *        'n': int,
-     *        'num': int,
-     *        'orientation': string,
-     *        'pagenum': int,
-     *        'pheight': float,
-     *        'pid': int,
-     *        'pwidth': float,
-     *        'region': array<int, array{
-     *            'RB': float,
-     *            'RH': float,
-     *            'RL': float,
-     *            'RR': float,
-     *            'RT': float,
-     *            'RW': float,
-     *            'RX': float,
-     *            'RY': float,
-     *            'x' : float,
-     *            'y' : float,
-     *        }>,
-     *        'rotation': int,
-     *        'time': int,
-     *        'transition': array{'B': bool,
-     *            'D': int,
-     *            'Di': string|int,
-     *            'Dm': string,
-     *            'Dur': float,
-     *            'M': string,
-     *            'S': string,
-     *            'SS': float,
-     *        },
-     *        'width': float,
-     *        'zoom': float,
-     *    } Page data.
+     * @return PageData Page data.
      */
     public function checkRegionBreak(
         float $height = 0.0,

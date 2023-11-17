@@ -29,6 +29,13 @@ use Com\Tecnick\Pdf\Encrypt\Encrypt;
  * @license   http://www.gnu.org/copyleft/lesser.html GNU-LGPL v3 (see LICENSE.TXT)
  * @link      https://github.com/tecnickcom/tc-lib-pdf-page
  *
+ * @phpstan-import-type PageBci from \Com\Tecnick\Pdf\Page\Box
+ * @phpstan-import-type PageBox from \Com\Tecnick\Pdf\Page\Box
+ * @phpstan-import-type MarginData from \Com\Tecnick\Pdf\Page\Box
+ * @phpstan-import-type RegionData from \Com\Tecnick\Pdf\Page\Box
+ * @phpstan-import-type TransitionData from \Com\Tecnick\Pdf\Page\Box
+ * @phpstan-import-type PageData from \Com\Tecnick\Pdf\Page\Box
+ *
  * @SuppressWarnings(PHPMD)
  */
 abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
@@ -55,75 +62,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
     /**
      * Array of pages (stack).
      *
-     * @var array<int, array{
-     *        'annotrefs': array<int,int>,
-     *        'autobreak': bool,
-     *        'box': array<string, array{
-     *             'llx': float,
-     *             'lly': float,
-     *             'urx': float,
-     *             'ury': float,
-     *             'bci': array{
-     *                'color': string,
-     *                'width': float,
-     *                'style': string,
-     *                'dash': array<int>,
-     *             },
-     *        }>,
-     *        'columns': int,
-     *        'content': array<string>,
-     *        'content_mark': array<int>,
-     *        'ContentHeight': float,
-     *        'ContentWidth': float,
-     *        'FooterHeight': float,
-     *        'HeaderHeight': float,
-     *        'currentRegion': int,
-     *        'format': string,
-     *        'group': int,
-     *        'height': float,
-     *        'margin': array{
-     *            'CB': float,
-     *            'CT': float,
-     *            'FT': float,
-     *            'HB': float,
-     *            'PB': float,
-     *            'PL': float,
-     *            'PR': float,
-     *            'PT': float,
-     *        },
-     *        'n': int,
-     *        'num': int,
-     *        'orientation': string,
-     *        'pagenum': int,
-     *        'pheight': float,
-     *        'pid': int,
-     *        'pwidth': float,
-     *        'region': array<int, array{
-     *            'RB': float,
-     *            'RH': float,
-     *            'RL': float,
-     *            'RR': float,
-     *            'RT': float,
-     *            'RW': float,
-     *            'RX': float,
-     *            'RY': float,
-     *            'x' : float,
-     *            'y' : float,
-     *        }>,
-     *        'rotation': int,
-     *        'time': int,
-     *        'transition': array{'B': bool,
-     *            'D': int,
-     *            'Di': string|int,
-     *            'Dm': string,
-     *            'Dur': float,
-     *            'M': string,
-     *            'S': string,
-     *            'SS': float,
-     *        },
-     *        'width': float,
-     *        'zoom': float,
-     *    }>
+     * @var array<int, PageData>
      */
     protected array $page = [];
 
@@ -277,15 +216,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
      * Sanitize or set the page transitions.
      *
      * @param array{
-     *        'transition': array{'B': bool,
-     *            'D': int,
-     *            'Di': string|int,
-     *            'Dm': string,
-     *            'Dur': float,
-     *            'M': string,
-     *            'S': string,
-     *            'SS': float,
-     *        },
+     *        'transition': TransitionData,
      *    } $data Page data.
      */
     public function sanitizeTransitions(array &$data): void
@@ -366,16 +297,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
      *        'FooterHeight': float,
      *        'HeaderHeight': float,
      *        'height': float,
-     *        'margin'?: array{
-     *            'CB': float,
-     *            'CT': float,
-     *            'FT': float,
-     *            'HB': float,
-     *            'PB': float,
-     *            'PL': float,
-     *            'PR': float,
-     *            'PT': float,
-     *        },
+     *        'margin'?: MarginData,
      *        'orientation': string,
      *        'pheight': float,
      *        'pwidth': float,
@@ -431,28 +353,8 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
      *        'ContentHeight': float,
      *        'ContentWidth': float,
      *        'height': float,
-     *        'margin': array{
-     *            'CB': float,
-     *            'CT': float,
-     *            'FT': float,
-     *            'HB': float,
-     *            'PB': float,
-     *            'PL': float,
-     *            'PR': float,
-     *            'PT': float,
-     *        },
-     *        'region'?: array<int, array{
-     *            'RB': float,
-     *            'RH': float,
-     *            'RL': float,
-     *            'RR': float,
-     *            'RT': float,
-     *            'RW': float,
-     *            'RX': float,
-     *            'RY': float,
-     *            'x' : float,
-     *            'y' : float,
-     *        }>,
+     *        'margin': MarginData,
+     *        'region'?: array<int, RegionData>,
      *        'width': float,
      *    } $data Page data.
      */
@@ -523,18 +425,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
      * Sanitize or set the page boxes containing the page boundaries.
      *
      * @param array{
-     *        'box'?: array<string, array{
-     *             'llx': float,
-     *             'lly': float,
-     *             'urx': float,
-     *             'ury': float,
-     *             'bci'?: array{
-     *                'color': string,
-     *                'width': float,
-     *                'style': string,
-     *                'dash': array<int>,
-     *             },
-     *        }>,
+     *        'box'?: array<string, PageBox>,
      *        'format'?: string,
      *        'height': float,
      *        'orientation': string,
