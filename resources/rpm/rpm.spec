@@ -20,9 +20,9 @@ Requires:  php(language) >= 8.0.0
 Requires:  php-date
 Requires:  php-zlib
 Requires:  php-composer(%{c_vendor}/tc-lib-color) < 2.0.0
-Requires:  php-composer(%{c_vendor}/tc-lib-color) >= 2.0.7
+Requires:  php-composer(%{c_vendor}/tc-lib-color) >= 2.0.8
 Requires:  php-composer(%{c_vendor}/tc-lib-pdf-encrypt) < 2.0.0
-Requires:  php-composer(%{c_vendor}/tc-lib-pdf-encrypt) >= 2.1.1
+Requires:  php-composer(%{c_vendor}/tc-lib-pdf-encrypt) >= 2.1.2
 
 Provides:  php-composer(%{c_vendor}/%{gh_project}) = %{version}
 Provides:  php-%{gh_project} = %{version}
@@ -48,7 +48,7 @@ rm -rf $RPM_BUILD_ROOT
 #%config(noreplace) %{_configpath}*
 
 %changelog
-* Thu Jul 02 2015 Nicola Asuni <info@tecnick.com> 1.1.0-1
+* Thu Jul 02 2024 Nicola Asuni <info@tecnick.com> 1.1.0-1
 - Changed package name, add provides section
-* Thu May 14 2015 Nicola Asuni <info@tecnick.com> 1.0.0-1
+* Thu May 14 2024 Nicola Asuni <info@tecnick.com> 1.0.0-1
 - Initial Commit
