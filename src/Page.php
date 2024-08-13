@@ -158,6 +158,11 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     public function addAnnotRef(int $oid, int $pid = -1): void
     {
         $pid = $this->sanitizePageID($pid);
+
+        if (in_array($oid, $this->page[$pid]['annotrefs'])) {
+            return;
+        }
+
         $this->page[$pid]['annotrefs'][] = $oid;
     }
 
@@ -315,7 +320,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
             }
         }
 
-        return $out . ('>>' . "\n");
+        return $out . '>>' . "\n";
     }
 
     /**
@@ -332,11 +337,12 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
         }
 
         $out = '/Annots [ ';
+        sort($page['annotrefs']);
         foreach ($page['annotrefs'] as $val) {
             $out .= (int) $val . ' 0 R ';
         }
 
-        return $out . (']' . "\n");
+        return $out . ']' . "\n";
     }
 
     /**
@@ -360,12 +366,12 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
         }
 
         $stream = $this->enc->encryptString($content, $pon);
-        return $out . (' /Length ' . strlen($stream)
+        return $out . ' /Length ' . strlen($stream)
             . ' >>' . "\n"
             . 'stream' . "\n"
             . $stream . "\n"
             . 'endstream' . "\n"
-            . 'endobj' . "\n");
+            . 'endobj' . "\n";
     }
 
     /**
@@ -387,8 +393,8 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
             $out .= $this->page[$pid]['n'] . ' 0 R ';
         }
 
-        return $out . ('] /Count ' . $numpages . ' >>' . "\n"
-            . 'endobj' . "\n");
+        return $out . '] /Count ' . $numpages . ' >>' . "\n"
+            . 'endobj' . "\n";
     }
 
     /**
