@@ -206,6 +206,7 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
         return $this->page[$pid];
     }
 
+
     /**
      * Check if the specified page ID exist.
      *

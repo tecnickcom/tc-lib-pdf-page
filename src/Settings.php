@@ -116,6 +116,16 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
     protected int $rootoid = 0;
 
     /**
+     * Return the current page ID.
+     *
+     * @return int Page ID.
+     */
+    public function getPageID(): int
+    {
+        return $this->pid;
+    }
+
+    /**
      * Sanitize or set the page modification time.
      *
      * @param array{

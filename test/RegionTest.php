@@ -135,5 +135,8 @@ class RegionTest extends TestUtil
         $this->assertFalse($res);
         $res = $page->isXOutRegion(141);
         $this->assertTrue($res);
+
+        $pid = $page->getPageID();
+        $this->assertEquals(0, $pid);
     }
 }

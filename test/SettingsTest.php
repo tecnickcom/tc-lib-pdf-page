@@ -36,6 +36,14 @@ class SettingsTest extends TestUtil
         return new \Com\Tecnick\Pdf\Page\Page('mm', $pdf, $encrypt, false, false);
     }
 
+    public function testGetPageID(): void
+    {
+        $page = $this->getTestObject();
+
+        $pid = $page->getPageID();
+        $this->assertEquals(-1, $pid);
+    }
+
     public function testSanitizePageNumber(): void
     {
         $page = $this->getTestObject();

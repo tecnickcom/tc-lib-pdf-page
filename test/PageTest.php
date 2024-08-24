@@ -183,6 +183,9 @@ class PageTest extends TestUtil
             ],
         ];
         $this->bcAssertEqualsWithDelta($exp, $res);
+
+        $pid = $page->getPageID();
+        $this->assertEquals(3, $pid);
     }
 
     public function testGetNextPage(): void
