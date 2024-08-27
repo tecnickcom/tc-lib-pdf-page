@@ -41,36 +41,37 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
      * Add a new page.
      *
      * @param PageInputData $data Page data:
-     *     annotrefs   : array containing the annotation object references;
+     *     annotrefs   : array containing the annotation object references.
      *     autobreak   : true to automatically add a page when the content reaches the breaking point.
-     *     box         : array containing page box boundaries and settings (@see setBox);
-     *     columns     : number of equal vertical columns, if set it will automatically populate the region array
-     *     content     : string containing the raw page content;
-     *     format      : page format name, or alternatively you can set width and height as below;
-     *     group       : page group number;
-     *     height      : page height;
+     *     box         : array containing page box boundaries and settings (@see setBox).
+     *     columns     : number of equal vertical columns, if set it will automatically populate the region array.
+     *     content     : string containing the raw page content.
+     *     format      : page format name, or alternatively you can set width and height as below.
+     *     group       : page group number.
+     *     height      : page height.
      *     margin      : page margins:
-     *     num         : if set overwrites the page number;
-     *     orientation : page orientation ('P' or 'L');
+     *                   - booklet : true to enable booklet mode
+     *                   - PL : page left margin measured from the left page edge
+     *                   - PR : page right margin measured from the right page edge
+     *                   - PT : page top or header top measured distance from the top page edge
+     *                   - HB : header bottom measured from the top page edge
+     *                   - CT : content top measured from the top page edge
+     *                   - CB : content bottom (page breaking point) measured from the top page edge
+     *                   - FT : footer top measured from the bottom page edge
+     *                   - PB : page bottom (footer bottom) measured from the bottom page edge
+     *     num         : if set overwrites the page number.
+     *     orientation : page orientation ('P' or 'L').
      *     region      : array containing the ordered list of rectangular areas where it is allowed to write,
      *                   each region is defined by:
-     *                   RX : horizontal coordinate of top-left corner
-     *                   RY : vertical coordinate of top-left corner
-     *                   RW : region width
-     *                   RH : region height
-     *     rotation    : the number of degrees by which the page shall be rotated clockwise when displayed or printed;
-     *     time        : UTC page modification time in seconds;
-     *     transition  : array containing page transition data (@see getPageTransition);
-     *     width       : page width;
-     *     zoom        : preferred zoom (magnification) factor;
-     *                   PL : page left margin measured from the left page edge
-     *                   PR : page right margin measured from the right page edge
-     *                   PT : page top or header top measured distance from the top page edge
-     *                   HB : header bottom measured from the top page edge
-     *                   CT : content top measured from the top page edge
-     *                   CB : content bottom (page breaking point) measured from the top page edge
-     *                   FT : footer top measured from the bottom page edge
-     *                   PB : page bottom (footer bottom) measured from the bottom page edge
+     *                   - RX : horizontal coordinate of top-left corner
+     *                   - RY : vertical coordinate of top-left corner
+     *                   - RW : region width
+     *                   - RH : region height
+     *     rotation    : the number of degrees by which the page shall be rotated clockwise when displayed or printed.
+     *     time        : UTC page modification time in seconds.
+     *     transition  : array containing page transition data (@see getPageTransition).
+     *     width       : page width.
+     *     zoom        : preferred zoom (magnification) factor: 1.0 = 100%.
      *
      * NOTE: if $data is null, then the last page format will be cloned.
      *
