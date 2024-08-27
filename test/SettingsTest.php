@@ -362,6 +362,7 @@ class SettingsTest extends TestUtil
         $page->sanitizeMargins($data);
         $exp = [
             'margin' => [
+                'booklet' => false,
                 'PL' => 0,
                 'PR' => 0,
                 'PT' => 0,
@@ -383,6 +384,7 @@ class SettingsTest extends TestUtil
 
         $data = [
             'margin' => [
+                'booklet' => false,
                 'PL' => 11,
                 'PR' => 12,
                 'PT' => 13,
@@ -399,6 +401,7 @@ class SettingsTest extends TestUtil
         $page->sanitizeMargins($data);
         $exp = [
             'margin' => [
+                'booklet' => false,
                 'PL' => 11,
                 'PR' => 12,
                 'PT' => 13,

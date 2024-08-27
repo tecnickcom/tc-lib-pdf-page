@@ -145,6 +145,7 @@ use Com\Tecnick\Pdf\Page\Exception as PageException;
  *        'group'?: int,
  *        'height'?: float,
  *        'margin'?: array{
+ *            'booklet'?: bool,
  *            'CB'?: float,
  *            'CT'?: float,
  *            'FT'?: float,

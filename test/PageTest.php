@@ -88,6 +88,7 @@ class PageTest extends TestUtil
                 'ArtBox' => $box,
             ],
             'margin' => [
+                'booklet' => false,
                 'PL' => 0,
                 'PR' => 0,
                 'PT' => 0,

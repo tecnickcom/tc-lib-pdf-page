@@ -317,12 +317,16 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
     public function sanitizeMargins(array &$data): void
     {
         if (empty($data['margin'])) {
-            $data['margin'] = [];
+            $data['margin'] = ['booklet' => false];
             if (empty($data['width']) || empty($data['height'])) {
                 [$data['width'], $data['height'], $data['orientation']] = $this->getPageFormatSize('A4', 'P');
                 $data['width'] /= $this->kunit;
                 $data['height'] /= $this->kunit;
             }
+        }
+
+        if (!isset($data['margin']['booklet'])) {
+            $data['margin']['booklet'] = false;
         }
 
         $margins = [
@@ -339,6 +343,14 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
             $data['margin'][$type] = (
                 empty($data['margin'][$type])
             ) ? 0 : min(max(0, $data['margin'][$type]), $max);
+        }
+
+        if ($data['margin']['booklet'] && ($this->pid % 2 == 0)) {
+            // swap margins on odd pages
+            // NOTE: $this->pid is the previous page (0 indexed).
+            $mtmp = $data['margin']['PL'];
+            $data['margin']['PL'] = $data['margin']['PR'];
+            $data['margin']['PR'] = $mtmp;
         }
 
         $data['margin']['PR'] = min($data['margin']['PR'], ($data['width'] - $data['margin']['PL']));
