@@ -347,7 +347,7 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
      *            'bci': PageBci,
      *          }> $dims Array of page dimensions.
      *
-     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings("PHPMD.CyclomaticComplexity")
      */
     protected function getBoxColorInfo(array $dims): string
     {

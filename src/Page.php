@@ -38,7 +38,7 @@ use Com\Tecnick\Pdf\Page\Exception as PageException;
  * @phpstan-import-type TransitionData from \Com\Tecnick\Pdf\Page\Box
  * @phpstan-import-type PageData from \Com\Tecnick\Pdf\Page\Box
  *
- * @SuppressWarnings(PHPMD.TooManyPublicMethods)
+ * @SuppressWarnings("PHPMD.TooManyPublicMethods")
  */
 class Page extends \Com\Tecnick\Pdf\Page\Region
 {
@@ -408,7 +408,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
             "\n",
             str_replace(
                 [self::PAGE_TOT, self::PAGE_NUM],
-                [$this->group[$data['group']], $data['num']],
+                [(string) $this->group[$data['group']], (string) $data['num']],
                 $data['content']
             )
         );

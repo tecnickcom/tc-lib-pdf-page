@@ -90,7 +90,8 @@ class SettingsTest extends TestUtil
         $page = $this->getTestObject();
         $data = [];
         $page->sanitizeTime($data);
-        $this->assertNotEmpty($data['time']); /* @phpstan-ignore-line */
+        $this->assertArrayHasKey('time', $data);
+        $this->assertNotEmpty($data['time']); // @phpstan-ignore offsetAccess.notFound
 
         $data = [
             'time' => -1,
@@ -107,7 +108,8 @@ class SettingsTest extends TestUtil
             'time' => 0,
         ];
         $page->sanitizeTime($data);
-        $this->assertNotEmpty($data['time']);
+        $this->assertArrayHasKey('time', $data);
+        $this->assertNotEmpty($data['time']); // @phpstan-ignore offsetAccess.notFound
 
         $data = [
             'time' => 1,
@@ -182,7 +184,7 @@ class SettingsTest extends TestUtil
         $data = [
             'content' => 'test',
         ];
-        $page->sanitizeContent($data);
+        $page->sanitizeContent($data); // @phpstan-ignore argument.type
         $this->assertEquals(
             [
                 'content' => ['test'],

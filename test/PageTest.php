@@ -46,7 +46,7 @@ class PageTest extends TestUtil
     {
         $page = $this->getTestObject();
         $res = $page->enableSignatureApproval(true);
-        $this->assertNotNull($res);
+        $this->assertNotNull($res); // @phpstan-ignore method.alreadyNarrowedType
     }
 
     public function testAdd(): void

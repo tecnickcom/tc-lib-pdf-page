@@ -102,14 +102,16 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
         $data['currentRegion'] = 0;
         $data['pid'] = ++$this->pmaxid;
         $this->pid = $data['pid'];
-        $this->page[$this->pid] = $data;
-        if (isset($this->group[$data['group']])) {
-            ++$this->group[(int) $data['group']];
-        } else {
-            $this->group[(int) $data['group']] = 1;
+        $this->page[$this->pid] = $data; // @phpstan-ignore assign.propertyType
+        if (isset($data['group'])) {
+            if (isset($this->group[$data['group']])) {
+                ++$this->group[(int) $data['group']];
+            } else {
+                $this->group[(int) $data['group']] = 1;
+            }
         }
 
-        return $this->page[$this->pid];
+        return $this->page[$this->pid]; // @phpstan-ignore return.type
     }
 
     /**
