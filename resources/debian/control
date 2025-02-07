@@ -10,6 +10,6 @@ Vcs-Git: https://github.com/~#VENDOR#~/~#PROJECT#~.git
 Package: ~#PKGNAME#~
 Provides: php-~#PROJECT#~
 Architecture: all
-Depends: php (>= 8.1.0), php-date, php-zip, php-tecnickcom-tc-lib-color (<< 3.0.0), php-tecnickcom-tc-lib-color (>= 2.2.7), php-tecnickcom-tc-lib-pdf-encrypt (<< 3.0.0), php-tecnickcom-tc-lib-pdf-encrypt (>= 2.1.10), ${misc:Depends}
+Depends: php (>= 8.1.0), php-date, php-zip, php-tecnickcom-tc-lib-color (<< 3.0.0), php-tecnickcom-tc-lib-color (>= 2.2.8), php-tecnickcom-tc-lib-pdf-encrypt (<< 3.0.0), php-tecnickcom-tc-lib-pdf-encrypt (>= 2.1.11), ${misc:Depends}
 Description: PHP PDF Page Library
  PHP library containing PDF page formats and definitions.
