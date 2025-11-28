@@ -297,8 +297,20 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
      */
     public function sanitizeMargins(array &$data): void
     {
+        $defmargin = [
+            'booklet' => false,
+            'CB' => 0.0,
+            'CT' => 0.0,
+            'FT' => 0.0,
+            'HB' => 0.0,
+            'PB' => 0.0,
+            'PL' => 0.0,
+            'PR' => 0.0,
+            'PT' => 0.0,
+        ];
+
         if (empty($data['margin'])) {
-            $data['margin'] = ['booklet' => false];
+            $data['margin'] = $defmargin;
             if (empty($data['width']) || empty($data['height'])) {
                 [$data['width'], $data['height'], $data['orientation']] = $this->getPageFormatSize('A4', 'P');
                 $data['width'] /= $this->kunit;
@@ -324,55 +336,51 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
             'PB' => $dataHeight,
         ];
 
-        if (empty($data['margin'])) {
-            $data['margin'] = [];
-        }
-
         foreach ($margins as $type => $max) {
             $data['margin'][$type] = ( // @phpstan-ignore parameterByRef.type
                 empty($data['margin'][$type])
-            ) ? 0 : min(max(0, $data['margin'][$type]), $max);
+            ) ? 0.0 : min(max(0.0, $data['margin'][$type]), $max);
         }
 
         if ($data['margin']['booklet'] && ($this->pid % 2 == 0)) {
             // swap margins on odd pages
             // NOTE: $this->pid is the previous page (0 indexed).
-            $mtmp = $data['margin']['PL'];
-            $data['margin']['PL'] = $data['margin']['PR']; // @phpstan-ignore parameterByRef.type
+            $mtmp = $data['margin']['PL']; // @phpstan-ignore offsetAccess.notFound
+            $data['margin']['PL'] = $data['margin']['PR']; // @phpstan-ignore parameterByRef.type,offsetAccess.notFound
             $data['margin']['PR'] = $mtmp; // @phpstan-ignore parameterByRef.type
         }
 
         $data['margin']['PR'] = min( // @phpstan-ignore parameterByRef.type
-            $data['margin']['PR'],
-            ($dataWidth - $data['margin']['PL'])
+            $data['margin']['PR'], // @phpstan-ignore offsetAccess.notFound
+            ($dataWidth - ($data['margin']['PL'])), // @phpstan-ignore offsetAccess.notFound
         );
         $data['margin']['HB'] = max( // @phpstan-ignore parameterByRef.type
-            $data['margin']['HB'],
-            $data['margin']['PT']
+            $data['margin']['HB'], // @phpstan-ignore offsetAccess.notFound
+            $data['margin']['PT'], // @phpstan-ignore offsetAccess.notFound
         );
         $data['margin']['CT'] = max( // @phpstan-ignore parameterByRef.type
-            $data['margin']['CT'],
-            $data['margin']['HB']
+            $data['margin']['CT'], // @phpstan-ignore offsetAccess.notFound
+            $data['margin']['HB'], // @phpstan-ignore offsetAccess.notFound
         );
         $data['margin']['CB'] = min( // @phpstan-ignore parameterByRef.type
-            $data['margin']['CB'],
-            ($dataHeight - $data['margin']['CT'])
+            $data['margin']['CB'], // @phpstan-ignore offsetAccess.notFound
+            ($dataHeight - ($data['margin']['CT'])) // @phpstan-ignore offsetAccess.notFound
         );
         $data['margin']['FT'] = min( // @phpstan-ignore parameterByRef.type
-            $data['margin']['FT'],
-            $data['margin']['CB']
+            $data['margin']['FT'], // @phpstan-ignore offsetAccess.notFound
+            $data['margin']['CB'], // @phpstan-ignore offsetAccess.notFound
         );
         $data['margin']['PB'] = min( // @phpstan-ignore parameterByRef.type
-            $data['margin']['PB'],
-            $data['margin']['FT']
+            $data['margin']['PB'], // @phpstan-ignore offsetAccess.notFound
+            $data['margin']['FT'], // @phpstan-ignore offsetAccess.notFound
         );
 
         $data['ContentWidth'] = ( // @phpstan-ignore parameterByRef.type
-            $dataWidth - $data['margin']['PL'] - $data['margin']['PR']);
+            $dataWidth - $data['margin']['PL'] - $data['margin']['PR']); // @phpstan-ignore offsetAccess.notFound
         $data['ContentHeight'] = ( // @phpstan-ignore parameterByRef.type
             $dataHeight - $data['margin']['CT'] - $data['margin']['CB']);
         $data['HeaderHeight'] = ( // @phpstan-ignore parameterByRef.type
-            $data['margin']['HB'] - $data['margin']['PT']);
+            $data['margin']['HB'] - $data['margin']['PT']); // @phpstan-ignore offsetAccess.notFound
         $data['FooterHeight'] = ( // @phpstan-ignore parameterByRef.type
             $data['margin']['FT'] - $data['margin']['PB']);
     }

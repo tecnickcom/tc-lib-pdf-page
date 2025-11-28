@@ -213,6 +213,9 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     public function popContentToLastMark(int $pid = -1): void
     {
         $pid = $this->sanitizePageID($pid);
+        if (empty($this->page[$pid]['content'])) {
+            return;
+        }
         $mark = array_pop($this->page[$pid]['content_mark']);
         $this->page[$pid]['content'] = array_slice($this->page[$pid]['content'], 0, $mark, true);
     }
