@@ -102,7 +102,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
         $page = $this->page[$pid];
         --$this->group[$this->page[$pid]['group']];
         unset($this->page[$pid]);
-        $this->page = array_values($this->page); // reindex array
+        $this->page = \array_values($this->page); // reindex array
         --$this->pmaxid;
         return $page;
     }
@@ -129,12 +129,12 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
             throw new PageException('The new position must be lower than the starting position');
         }
 
-        $this->page = array_values(
+        $this->page = \array_values(
             [
-                ...array_slice($this->page, 0, $new),
+                ...\array_slice($this->page, 0, $new),
                 $this->page[$from],
-                ...array_slice($this->page, $new, ($from - $new)),
-                ...array_slice($this->page, ($from + 1)),
+                ...\array_slice($this->page, $new, ($from - $new)),
+                ...\array_slice($this->page, ($from + 1)),
             ]
         );
     }
@@ -159,7 +159,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     {
         $pid = $this->sanitizePageID($pid);
 
-        if (in_array($oid, $this->page[$pid]['annotrefs'])) {
+        if (\in_array($oid, $this->page[$pid]['annotrefs'])) {
             return;
         }
 
@@ -186,7 +186,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     public function popContent(int $pid = -1): string
     {
         $pid = $this->sanitizePageID($pid);
-        $page = array_pop($this->page[$pid]['content']);
+        $page = \array_pop($this->page[$pid]['content']);
         if ($page === null) {
             throw new PageException('Page content is empty');
         }
@@ -202,7 +202,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     public function addContentMark(int $pid = -1): void
     {
         $pid = $this->sanitizePageID($pid);
-        $this->page[$pid]['content_mark'][] = count($this->page[$pid]['content']);
+        $this->page[$pid]['content_mark'][] = \count($this->page[$pid]['content']);
     }
 
     /**
@@ -216,8 +216,8 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
         if (empty($this->page[$pid]['content'])) {
             return;
         }
-        $mark = array_pop($this->page[$pid]['content_mark']);
-        $this->page[$pid]['content'] = array_slice($this->page[$pid]['content'], 0, $mark, true);
+        $mark = \array_pop($this->page[$pid]['content_mark']);
+        $this->page[$pid]['content'] = \array_slice($this->page[$pid]['content'], 0, $mark, true);
     }
 
     /**
@@ -264,7 +264,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
                 . $this->getBoxColorInfo($page['box'])
                 . '/Contents ' . $contentobjid . ' 0 R' . "\n"
                 . '/Rotate ' . $page['rotation'] . "\n"
-                . '/PZ ' . sprintf('%F', $page['zoom']) . "\n"
+                . '/PZ ' . \sprintf('%F', $page['zoom']) . "\n"
                 . $this->getPageTransition($page)
                 . $this->getAnnotationRef($page)
                 . '>>' . "\n"
@@ -309,14 +309,14 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
 
         $entries = ['B', 'D', 'Di', 'Dm', 'M', 'S', 'SS'];
         $out = '';
-        $out .= '/Dur ' . sprintf('%F', $page['transition']['Dur']) . "\n";
+        $out .= '/Dur ' . \sprintf('%F', $page['transition']['Dur']) . "\n";
 
         $out .= '/Trans <<' . "\n"
             . '/Type /Trans' . "\n";
         foreach ($page['transition'] as $key => $val) {
-            if (in_array($key, $entries)) {
-                if (is_float($val)) {
-                    $val = sprintf('%F', $val);
+            if (\in_array($key, $entries)) {
+                if (\is_float($val)) {
+                    $val = \sprintf('%F', $val);
                 }
 
                 $out .= '/' . $key . ' /' . $val . "\n";
@@ -340,7 +340,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
         }
 
         $out = '/Annots [ ';
-        sort($page['annotrefs']);
+        \sort($page['annotrefs']);
         foreach ($page['annotrefs'] as $val) {
             $out .= (int) $val . ' 0 R ';
         }
@@ -362,14 +362,14 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
             . '<<';
         if ($this->compress) {
             $out .= ' /Filter /FlateDecode';
-            $cmpr = gzcompress($content);
+            $cmpr = \gzcompress($content);
             if ($cmpr !== false) {
                 $content = $cmpr;
             }
         }
 
         $stream = $this->enc->encryptString($content, $pon);
-        return $out . ' /Length ' . strlen($stream)
+        return $out . ' /Length ' . \strlen($stream)
             . ' >>' . "\n"
             . 'stream' . "\n"
             . $stream . "\n"
@@ -390,7 +390,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
         $this->rootoid = ++$pon;
         $out = $this->rootoid . ' 0 obj' . "\n";
         $out .= '<< /Type /Pages /Kids [ ';
-        $numpages = count($this->page);
+        $numpages = \count($this->page);
         for ($pid = 0; $pid < $numpages; ++$pid) {
             $this->page[$pid]['n'] = ++$pon;
             $out .= $this->page[$pid]['n'] . ' 0 R ';
@@ -407,9 +407,9 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      */
     protected function replacePageTemplates(array $data): string
     {
-        return implode(
+        return \implode(
             "\n",
-            str_replace(
+            \str_replace(
                 [self::PAGE_TOT, self::PAGE_NUM],
                 [(string) $this->group[$data['group']], (string) $data['num']],
                 $data['content']

@@ -173,7 +173,7 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
     public function selectRegion(int $idr, int $pid = -1): array
     {
         $pid = $this->sanitizePageID($pid);
-        $this->page[$pid]['currentRegion'] = min(max(0, $idr), $this->page[$pid]['columns']);
+        $this->page[$pid]['currentRegion'] = \min(\max(0, $idr), $this->page[$pid]['columns']);
         return $this->getRegion();
     }
 

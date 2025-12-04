@@ -71,7 +71,7 @@ abstract class Mode extends \Com\Tecnick\Pdf\Page\Format
      */
     public function getLayout(string $name = ''): string
     {
-        $name = strtolower($name);
+        $name = \strtolower($name);
         return self::LAYOUT[$name] ?? 'SinglePage';
     }
 
@@ -84,7 +84,7 @@ abstract class Mode extends \Com\Tecnick\Pdf\Page\Format
      */
     public function getDisplay(string $mode = ''): string
     {
-        $mode = strtolower($mode);
+        $mode = \strtolower($mode);
         return self::DISPLAY[$mode] ?? 'UseNone';
     }
 }

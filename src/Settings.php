@@ -135,7 +135,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
     public function sanitizePageNumber(array &$data): void
     {
         if (! empty($data['num'])) {
-            $data['num'] = max(0, (int) $data['num']);
+            $data['num'] = \max(0, (int) $data['num']);
         }
     }
 
@@ -146,7 +146,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
      */
     public function sanitizeTime(array &$data): void
     {
-        $data['time'] = empty($data['time']) ? time() : max(0, (int) $data['time']);
+        $data['time'] = empty($data['time']) ? \time() : \max(0, (int) $data['time']);
     }
 
     /**
@@ -156,7 +156,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
      */
     public function sanitizeGroup(array &$data): void
     {
-        $data['group'] = empty($data['group']) ? 0 : max(0, $data['group']);
+        $data['group'] = empty($data['group']) ? 0 : \max(0, $data['group']);
     }
 
     /**
@@ -171,7 +171,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
             return;
         }
 
-        if (is_string($data['content'])) {
+        if (\is_string($data['content'])) {
             $data['content'] = [(string) $data['content']]; // @phpstan-ignore parameterByRef.type
         }
     }
@@ -228,7 +228,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
         if (empty($data['transition']['Dur'])) {
             unset($data['transition']['Dur']);
         } else {
-            $data['transition']['Dur'] = max(0, $data['transition']['Dur']); // @phpstan-ignore parameterByRef.type
+            $data['transition']['Dur'] = \max(0, $data['transition']['Dur']); // @phpstan-ignore parameterByRef.type
         }
 
         // transition style
@@ -246,7 +246,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
             'Uncover',
             'Fade',
         ];
-        if (empty($data['transition']['S']) || ! in_array($data['transition']['S'], $styles)) {
+        if (empty($data['transition']['S']) || ! \in_array($data['transition']['S'], $styles)) {
             $data['transition']['S'] = 'R';  // @phpstan-ignore parameterByRef.type
         }
 
@@ -256,8 +256,8 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
         // dimension in which the specified transition effect shall occur
         if (
             empty($data['transition']['Dm'])
-            || ! in_array($data['transition']['S'], ['Split', 'Blinds'])
-            || ! in_array($data['transition']['Dm'], ['H', 'V'])
+            || ! \in_array($data['transition']['S'], ['Split', 'Blinds'])
+            || ! \in_array($data['transition']['Dm'], ['H', 'V'])
         ) {
             unset($data['transition']['Dm']); // @phpstan-ignore parameterByRef.type
         }
@@ -265,8 +265,8 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
         // direction of motion for the specified transition effect
         if (
             empty($data['transition']['M'])
-            || ! in_array($data['transition']['S'], ['Split', 'Box', 'Fly'])
-            || ! in_array($data['transition']['M'], ['I', 'O'])
+            || ! \in_array($data['transition']['S'], ['Split', 'Box', 'Fly'])
+            || ! \in_array($data['transition']['M'], ['I', 'O'])
         ) {
             unset($data['transition']['M']); // @phpstan-ignore parameterByRef.type
         }
@@ -274,9 +274,9 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
         // direction in which the specified transition effect shall moves
         if (
             empty($data['transition']['Di'])
-            || ! in_array($data['transition']['S'], ['Wipe', 'Glitter', 'Fly', 'Cover', 'Uncover', 'Push'])
-            || ! in_array($data['transition']['Di'], ['None', 0, 90, 180, 270, 315])
-            || (in_array($data['transition']['Di'], [90, 180]) && ($data['transition']['S'] != 'Wipe'))
+            || ! \in_array($data['transition']['S'], ['Wipe', 'Glitter', 'Fly', 'Cover', 'Uncover', 'Push'])
+            || ! \in_array($data['transition']['Di'], ['None', 0, 90, 180, 270, 315])
+            || (\in_array($data['transition']['Di'], [90, 180]) && ($data['transition']['S'] != 'Wipe'))
             || (($data['transition']['Di'] == 315) && ($data['transition']['S'] != 'Glitter'))
             || (($data['transition']['Di'] == 'None') && ($data['transition']['S'] != 'Fly'))
         ) {
@@ -339,7 +339,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
         foreach ($margins as $type => $max) {
             $data['margin'][$type] = ( // @phpstan-ignore parameterByRef.type
                 empty($data['margin'][$type])
-            ) ? 0.0 : min(max(0.0, $data['margin'][$type]), $max);
+            ) ? 0.0 : \min(\max(0.0, $data['margin'][$type]), $max);
         }
 
         if ($data['margin']['booklet'] && ($this->pid % 2 == 0)) {
@@ -350,27 +350,27 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
             $data['margin']['PR'] = $mtmp; // @phpstan-ignore parameterByRef.type
         }
 
-        $data['margin']['PR'] = min( // @phpstan-ignore parameterByRef.type
+        $data['margin']['PR'] = \min( // @phpstan-ignore parameterByRef.type
             $data['margin']['PR'], // @phpstan-ignore offsetAccess.notFound
             ($dataWidth - ($data['margin']['PL'])), // @phpstan-ignore offsetAccess.notFound
         );
-        $data['margin']['HB'] = max( // @phpstan-ignore parameterByRef.type
+        $data['margin']['HB'] = \max( // @phpstan-ignore parameterByRef.type
             $data['margin']['HB'], // @phpstan-ignore offsetAccess.notFound
             $data['margin']['PT'], // @phpstan-ignore offsetAccess.notFound
         );
-        $data['margin']['CT'] = max( // @phpstan-ignore parameterByRef.type
+        $data['margin']['CT'] = \max( // @phpstan-ignore parameterByRef.type
             $data['margin']['CT'], // @phpstan-ignore offsetAccess.notFound
             $data['margin']['HB'], // @phpstan-ignore offsetAccess.notFound
         );
-        $data['margin']['CB'] = min( // @phpstan-ignore parameterByRef.type
+        $data['margin']['CB'] = \min( // @phpstan-ignore parameterByRef.type
             $data['margin']['CB'], // @phpstan-ignore offsetAccess.notFound
             ($dataHeight - ($data['margin']['CT'])) // @phpstan-ignore offsetAccess.notFound
         );
-        $data['margin']['FT'] = min( // @phpstan-ignore parameterByRef.type
+        $data['margin']['FT'] = \min( // @phpstan-ignore parameterByRef.type
             $data['margin']['FT'], // @phpstan-ignore offsetAccess.notFound
             $data['margin']['CB'], // @phpstan-ignore offsetAccess.notFound
         );
-        $data['margin']['PB'] = min( // @phpstan-ignore parameterByRef.type
+        $data['margin']['PB'] = \min( // @phpstan-ignore parameterByRef.type
             $data['margin']['PB'], // @phpstan-ignore offsetAccess.notFound
             $data['margin']['FT'], // @phpstan-ignore offsetAccess.notFound
         );
@@ -419,16 +419,16 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
         $data['columns'] = 0; // @phpstan-ignore parameterByRef.type
         foreach ($data['region'] as $key => $val) {
             // region width
-            $data['region'][$key]['RW'] = min( // @phpstan-ignore parameterByRef.type
-                max(
+            $data['region'][$key]['RW'] = \min( // @phpstan-ignore parameterByRef.type
+                \max(
                     0,
                     ($val['RW'] ?? 0),
                 ),
                 ($data['ContentWidth'] ?? 0)
             );
             // horizontal coordinate of the top-left corner
-            $data['region'][$key]['RX'] = min( // @phpstan-ignore parameterByRef.type
-                max(0, ($val['RX'] ?? 0)),
+            $data['region'][$key]['RX'] = \min( // @phpstan-ignore parameterByRef.type
+                \max(0, ($val['RX'] ?? 0)),
                 (($data['width'] ?? 0) - ($data['margin']['PR'] ?? 0) - ($val['RW'] ?? 0))
             );
             // distance of the region right side from the left page edge
@@ -438,16 +438,16 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
             $data['region'][$key]['RR'] = ( // @phpstan-ignore parameterByRef.type
                 ($data['width'] ?? 0) - ($val['RX'] ?? 0) - ($val['RW'] ?? 0));
             // region height
-            $data['region'][$key]['RH'] = min( // @phpstan-ignore parameterByRef.type
-                max(
+            $data['region'][$key]['RH'] = \min( // @phpstan-ignore parameterByRef.type
+                \max(
                     0,
                     ($val['RH'] ?? 0)
                 ),
                 ($data['ContentHeight'] ?? 0)
             );
             // vertical coordinate of the top-left corner
-            $data['region'][$key]['RY'] = min( // @phpstan-ignore parameterByRef.type
-                max(0, ($val['RY'] ?? 0)),
+            $data['region'][$key]['RY'] = \min( // @phpstan-ignore parameterByRef.type
+                \max(0, ($val['RY'] ?? 0)),
                 (($data['height'] ?? 0) - ($data['margin']['CB'] ?? 0) - ($val['RH'] ?? 0))
             );
             // distance of the region bottom side from the top page edge
@@ -488,10 +488,10 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
         } else {
             if (isset($data['format']) && $data['format'] !== '' && ($data['format'] == 'MediaBox')) {
                 $data['format'] = '';
-                $data['width'] = abs(
+                $data['width'] = \abs(
                     ($data['box']['MediaBox']['urx'] ?? 0) - ($data['box']['MediaBox']['llx'] ?? 0)
                 ) / $this->kunit;
-                $data['height'] = abs(
+                $data['height'] = \abs(
                     ($data['box']['MediaBox']['ury'] ?? 0) - ($data['box']['MediaBox']['lly'] ?? 0)
                 ) / $this->kunit;
                 $this->sanitizePageFormat($data);
@@ -557,10 +557,10 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
         }
 
         $orientation = $this->getPageOrientation(
-            abs(
+            \abs(
                 ($data['box']['MediaBox']['urx'] ?? 0) - ($data['box']['MediaBox']['llx'] ?? 0)
             ),
-            abs(
+            \abs(
                 ($data['box']['MediaBox']['ury'] ?? 0) - ($data['box']['MediaBox']['lly'] ?? 0)
             )
         );

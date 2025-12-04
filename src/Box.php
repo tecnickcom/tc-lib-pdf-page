@@ -266,7 +266,7 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
             $dims = [];
         }
 
-        if (! in_array($type, self::BOX)) {
+        if (! \in_array($type, self::BOX)) {
             throw new PageException('unknown page box type: ' . $type);
         }
 
@@ -328,7 +328,7 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
                 // @codeCoverageIgnoreEnd
             }
 
-            $out .= '/' . $box . ' [' . sprintf(
+            $out .= '/' . $box . ' [' . \sprintf(
                 '%F %F %F %F',
                 $dims[$box]['llx'],
                 $dims[$box]['lly'],
@@ -363,11 +363,11 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
             }
 
             if (! empty($dims[$box]['bci']['width'])) {
-                $out .= '/W ' . sprintf('%F', ($dims[$box]['bci']['width'] * $this->kunit)) . "\n";
+                $out .= '/W ' . \sprintf('%F', ($dims[$box]['bci']['width'] * $this->kunit)) . "\n";
             }
 
             if (! empty($dims[$box]['bci']['style'])) {
-                $mode = strtoupper($dims[$box]['bci']['style'][0]);
+                $mode = \strtoupper($dims[$box]['bci']['style'][0]);
                 if ($mode !== 'D') {
                     $mode = 'S';
                 }
@@ -378,7 +378,7 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
             if (! empty($dims[$box]['bci']['dash'])) {
                 $out .= '/D [';
                 foreach ($dims[$box]['bci']['dash'] as $dash) {
-                    $out .= sprintf(' %F', ((float) $dash * $this->kunit));
+                    $out .= \sprintf(' %F', ((float) $dash * $this->kunit));
                 }
 
                 $out .= ' ]' . "\n";
