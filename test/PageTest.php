@@ -348,4 +348,15 @@ class PageTest extends TestUtil
         $this->assertEquals(13, $page['annotrefs'][0]);
         $this->assertEquals(17, $page['annotrefs'][1]);
     }
+
+    public function testSetPagePHeight(): void
+    {
+        $testObj = $this->getTestObject();
+        $testObj->add();
+        $page = $testObj->getPage();
+        $this->assertEquals(841, (int)$page['pheight']);
+        $testObj->setPagePHeight(123.4);
+        $page = $testObj->getPage();
+        $this->assertEquals(123.4, $page['pheight']);
+    }
 }

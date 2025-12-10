@@ -141,6 +141,22 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
         return $this->page[$pid];
     }
 
+    /**
+     * Overrides the page height and returns the current value in points.
+     *
+     * @param float $pheight new page height in internal points.
+     * @param int $pid page index. Omit or set it to -1 for the current page ID.
+     *
+     * @return float original page height in points.
+     */
+    public function setPagePHeight(float $pheight, int $pid = -1): float
+    {
+        $pid = $this->sanitizePageID($pid);
+        $ret = $this->page[$pid]['pheight'];
+        $this->page[$pid]['pheight'] = $pheight;
+        $this->page[$pid]['height'] = ($pheight / $this->kunit); // @phpstan-ignore assign.propertyType
+        return $ret;
+    }
 
     /**
      * Check if the specified page ID exist.
