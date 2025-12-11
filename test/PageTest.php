@@ -359,4 +359,14 @@ class PageTest extends TestUtil
         $page = $testObj->getPage();
         $this->assertEquals(123.4, $page['pheight']);
     }
+    public function testSetPagePWidth(): void
+    {
+        $testObj = $this->getTestObject();
+        $testObj->add();
+        $page = $testObj->getPage();
+        $this->assertEquals(595, (int)$page['pwidth']);
+        $testObj->setPagePWidth(123.4);
+        $page = $testObj->getPage();
+        $this->assertEquals(123.4, $page['pwidth']);
+    }
 }

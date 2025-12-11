@@ -159,6 +159,23 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
     }
 
     /**
+     * Overrides the page width and returns the current value in points.
+     *
+     * @param float $pwidth new page width in internal points.
+     * @param int $pid page index. Omit or set it to -1 for the current page ID.
+     *
+     * @return float original page width in points.
+     */
+    public function setPagePWidth(float $pwidth, int $pid = -1): float
+    {
+        $pid = $this->sanitizePageID($pid);
+        $ret = $this->page[$pid]['pwidth'];
+        $this->page[$pid]['pwidth'] = $pwidth;
+        $this->page[$pid]['width'] = ($pwidth / $this->kunit); // @phpstan-ignore assign.propertyType
+        return $ret;
+    }
+
+    /**
      * Check if the specified page ID exist.
      *
      * @param int $pid page index. Omit or set it to -1 for the current page ID.
