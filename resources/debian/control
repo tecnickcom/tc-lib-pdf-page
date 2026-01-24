@@ -1,5 +1,5 @@
 Source: ~#PKGNAME#~
-Maintainer:2026 Nicola Asuni <info@tecnick.com>
+Maintainer: Nicola Asuni <info@tecnick.com>
 Section: php
 Priority: optional
 Build-Depends: debhelper (>= 9)
@@ -10,6 +10,6 @@ Vcs-Git: https://github.com/~#VENDOR#~/~#PROJECT#~.git
 Package: ~#PKGNAME#~
 Provides: php-~#PROJECT#~
 Architecture: all
-Depends: php (>= 8.1.0), php-date, php-zip, php-tecnickcom-tc-lib-color (<< 3.0.0), php-tecnickcom-tc-lib-color (>= 2.3.3), php-tecnickcom-tc-lib-pdf-encrypt (<< 3.0.0), php-tecnickcom-tc-lib-pdf-encrypt (>= 2.1.27), ${misc:Depends}
+Depends: php (>= 8.1.0), php-date, php-zip, php-tecnickcom-tc-lib-color (<< 3.0.0), php-tecnickcom-tc-lib-color (>= 2.3.4), php-tecnickcom-tc-lib-pdf-encrypt (<< 3.0.0), php-tecnickcom-tc-lib-pdf-encrypt (>= 2.1.28), ${misc:Depends}
 Description: PHP PDF Page Library
  PHP library containing PDF page formats and definitions.
