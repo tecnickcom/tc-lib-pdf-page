@@ -1,109 +1,115 @@
 # tc-lib-pdf-page
-*PHP library containing PDF page formats and definitions*
+
+> Page geometry, boxes, and format definitions for PDF documents.
 
 [![Latest Stable Version](https://poser.pugx.org/tecnickcom/tc-lib-pdf-page/version)](https://packagist.org/packages/tecnickcom/tc-lib-pdf-page)
-![Build](https://github.com/tecnickcom/tc-lib-pdf-page/actions/workflows/check.yml/badge.svg)
+[![Build](https://github.com/tecnickcom/tc-lib-pdf-page/actions/workflows/check.yml/badge.svg)](https://github.com/tecnickcom/tc-lib-pdf-page/actions/workflows/check.yml)
 [![Coverage](https://codecov.io/gh/tecnickcom/tc-lib-pdf-page/graph/badge.svg?token=F6CPFHI3ED)](https://codecov.io/gh/tecnickcom/tc-lib-pdf-page)
 [![License](https://poser.pugx.org/tecnickcom/tc-lib-pdf-page/license)](https://packagist.org/packages/tecnickcom/tc-lib-pdf-page)
 [![Downloads](https://poser.pugx.org/tecnickcom/tc-lib-pdf-page/downloads)](https://packagist.org/packages/tecnickcom/tc-lib-pdf-page)
 
 [![Donate via PayPal](https://img.shields.io/badge/donate-paypal-87ceeb.svg)](https://www.paypal.com/donate/?hosted_button_id=NZUEC5XS8MFBJ)
-*Please consider supporting this project by making a donation via [PayPal](https://www.paypal.com/donate/?hosted_button_id=NZUEC5XS8MFBJ)*
 
-* **category**    Library
-* **package**     \Com\Tecnick\Pdf\Page
-* **author**      Nicola Asuni <info@tecnick.com>
-* **copyright**   2011-2026 Nicola Asuni - Tecnick.com LTD
-* **license**     https://www.gnu.org/copyleft/lesser.html GNU-LGPL v3 (see LICENSE.TXT)
-* **link**        https://github.com/tecnickcom/tc-lib-pdf-page
-* **SRC DOC**     https://tcpdf.org/docs/srcdoc/tc-lib-pdf-page
+If this library helps your layout engine, please consider [supporting development via PayPal](https://www.paypal.com/donate/?hosted_button_id=NZUEC5XS8MFBJ).
 
-## Description
+---
 
-PHP library containing PDF page formats and definitions.
+## Overview
 
-The initial source code has been derived from [TCPDF](<http://www.tcpdf.org>).
+`tc-lib-pdf-page` manages page sizing, orientation, box definitions, and related geometry metadata.
 
+| | |
+|---|---|
+| **Namespace** | `\Com\Tecnick\Pdf\Page` |
+| **Author** | Nicola Asuni <info@tecnick.com> |
+| **License** | [GNU LGPL v3](https://www.gnu.org/copyleft/lesser.html) - see [LICENSE](LICENSE) |
+| **API docs** | <https://tcpdf.org/docs/srcdoc/tc-lib-pdf-page> |
+| **Packagist** | <https://packagist.org/packages/tecnickcom/tc-lib-pdf-page> |
 
-## Getting started
+---
 
-First, you need to install all development dependencies using [Composer](https://getcomposer.org/):
+## Features
 
-```bash
-$ curl -sS https://getcomposer.org/installer | php
-$ mv composer.phar /usr/local/bin/composer
-```
+### Page Model
+- Standard and custom page size handling
+- Orientation and unit conversion helpers
+- Region and box definitions (CropBox, TrimBox, and related metadata)
 
-This project include a Makefile that allows you to test and build the project with simple commands.
-To see all available options:
+### Integration
+- Supports PDF composition stacks that need deterministic page geometry
+- Pairs with color/encryption libraries for complete page objects
+- Typed exceptions for invalid layout parameters
 
-```bash
-make help
-```
+---
 
-To install all the development dependencies:
+## Requirements
 
-```bash
-make deps
-```
+- PHP 8.1 or later
+- Extensions: `date`, `zlib`
+- Composer
 
-## Running all tests
-
-Before committing the code, please check if it passes all tests using
-
-```bash
-make qa
-```
-
-All artifacts are generated in the target directory.
-
-
-## Example
-
-Examples are located in the `example` directory.
-
-Start a development server (requires PHP 8.0+) using the command:
-
-```
-make server
-```
-
-and point your browser to <http://localhost:8000/index.php>
-
+---
 
 ## Installation
 
-Create a composer.json in your projects root-directory:
-
-```json
-{
-    "require": {
-        "tecnickcom/tc-lib-pdf-page": "^4.0"
-    }
-}
+```bash
+composer require tecnickcom/tc-lib-pdf-page
 ```
 
-Or add to an existing project with: 
+---
+
+## Quick Start
+
+```php
+<?php
+
+require_once __DIR__ . '/vendor/autoload.php';
+
+$page = new \Com\Tecnick\Pdf\Page\Page(
+    'mm',
+    new \Com\Tecnick\Color\Pdf(),
+    new \Com\Tecnick\Pdf\Encrypt\Encrypt(false),
+    false,
+    false
+);
+
+$dims = $page->setBox([], 'CropBox', 0, 0, 210, 297);
+var_dump($dims['CropBox']);
+```
+
+---
+
+## Development
 
 ```bash
-composer require tecnickcom/tc-lib-pdf-page ^4.0
+make deps
+make help
+make qa
 ```
 
+---
 
 ## Packaging
 
-This library is mainly intended to be used and included in other PHP projects using Composer.
-However, since some production environments dictates the installation of any application as RPM or DEB packages,
-this library includes make targets for building these packages (`make rpm` and `make deb`).
-The packages are generated under the `target` directory.
-
-When this library is installed using an RPM or DEB package, you can use it your code by including the autoloader:
-```
-require_once ('/usr/share/php/Com/Tecnick/Pdf/Page/autoload.php');
+```bash
+make rpm
+make deb
 ```
 
+For system packages, bootstrap with:
 
+```php
+require_once '/usr/share/php/Com/Tecnick/Pdf/Page/autoload.php';
+```
 
-## Developer(s) Contact
+---
 
-*2026 Nicola Asuni <info@tecnick.com>
+## Contributing
+
+Contributions are welcome. Please review [CONTRIBUTING.md](CONTRIBUTING.md), [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md), and [SECURITY.md](SECURITY.md).
+
+---
+
+## Contact
+
+Nicola Asuni - <info@tecnick.com>
