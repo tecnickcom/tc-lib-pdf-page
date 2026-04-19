@@ -369,4 +369,35 @@ class PageTest extends TestUtil
         $page = $testObj->getPage();
         $this->assertEquals(123.4, $page['pwidth']);
     }
+
+    public function testAddAnnotRefDuplicate(): void
+    {
+        $testObj = $this->getTestObject();
+        $testObj->add();
+        $testObj->addAnnotRef(42);
+        $testObj->addAnnotRef(42);
+
+        $page = $testObj->getPage();
+        $this->assertCount(1, $page['annotrefs']);
+        $this->assertEquals(42, $page['annotrefs'][0]);
+    }
+
+    public function testPopContentEmptyEx(): void
+    {
+        $this->bcExpectException('\\' . \Com\Tecnick\Pdf\Page\Exception::class);
+        $testObj = $this->getTestObject();
+        $testObj->add();
+        $testObj->popContent();
+        $testObj->popContent();
+    }
+
+    public function testPopContentToLastMarkEmpty(): void
+    {
+        $testObj = $this->getTestObject();
+        $testObj->add();
+        $testObj->popContent();
+        $testObj->popContentToLastMark();
+        $page = $testObj->getPage();
+        $this->assertEmpty($page['content']);
+    }
 }

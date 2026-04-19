@@ -776,4 +776,86 @@ class SettingsTest extends TestUtil
         ];
         $this->bcAssertEqualsWithDelta($exp, $data);
     }
+
+    public function testSanitizeMarginsWithoutBookletKey(): void
+    {
+        $page = $this->getTestObject();
+        $data = [
+            'margin' => [
+                'PL' => 10,
+                'PR' => 5,
+                'PT' => 0,
+                'HB' => 0,
+                'CT' => 0,
+                'CB' => 0,
+                'FT' => 0,
+                'PB' => 0,
+            ],
+            'width' => 210,
+            'height' => 297,
+        ];
+        $page->sanitizeMargins($data);
+        $exp = [
+            'margin' => [
+                'booklet' => false,
+                'PL' => 10,
+                'PR' => 5,
+                'PT' => 0,
+                'HB' => 0,
+                'CT' => 0,
+                'CB' => 0,
+                'FT' => 0,
+                'PB' => 0,
+            ],
+            'width' => 210,
+            'height' => 297,
+            'ContentWidth' => 195,
+            'ContentHeight' => 297,
+            'HeaderHeight' => 0,
+            'FooterHeight' => 0,
+        ];
+        $this->bcAssertEqualsWithDelta($exp, $data);
+    }
+
+    public function testSanitizeMarginsBookletSwap(): void
+    {
+        $page = $this->getTestObject();
+        $page->add();
+        $data = [
+            'margin' => [
+                'booklet' => true,
+                'PL' => 10,
+                'PR' => 5,
+                'PT' => 0,
+                'HB' => 0,
+                'CT' => 0,
+                'CB' => 0,
+                'FT' => 0,
+                'PB' => 0,
+            ],
+            'width' => 210,
+            'height' => 297,
+        ];
+        $page->sanitizeMargins($data);
+        $exp = [
+            'margin' => [
+                'booklet' => true,
+                'PL' => 5,
+                'PR' => 10,
+                'PT' => 0,
+                'HB' => 0,
+                'CT' => 0,
+                'CB' => 0,
+                'FT' => 0,
+                'PB' => 0,
+            ],
+            'width' => 210,
+            'height' => 297,
+            'ContentWidth' => 195,
+            'ContentHeight' => 297,
+            'HeaderHeight' => 0,
+            'FooterHeight' => 0,
+        ];
+        $this->bcAssertEqualsWithDelta($exp, $data);
+    }
 }
