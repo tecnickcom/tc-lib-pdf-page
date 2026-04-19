@@ -353,10 +353,6 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
     {
         $out = '/BoxColorInfo <<' . "\n";
         foreach (self::BOX as $box) {
-            if (empty($dims[$box])) {
-                continue;
-            }
-
             $out .= '/' . $box . ' <<' . "\n";
             if (! empty($dims[$box]['bci']['color'])) {
                 $out .= '/C [' . $this->col->getPdfRgbComponents($dims[$box]['bci']['color']) . ']' . "\n";
