@@ -18,6 +18,8 @@ If this library helps your layout engine, please consider [supporting developmen
 
 `tc-lib-pdf-page` manages page sizing, orientation, box definitions, and related geometry metadata.
 
+It provides the structural model that document builders use to define media boxes, orientation changes, and page-level defaults consistently. Centralizing these rules improves correctness in multi-page layouts and simplifies downstream rendering code.
+
 | | |
 |---|---|
 | **Namespace** | `\Com\Tecnick\Pdf\Page` |
