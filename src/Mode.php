@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Mode.php
  *
@@ -35,16 +37,16 @@ abstract class Mode extends \Com\Tecnick\Pdf\Page\Format
      * @var array<string, string>
      */
     protected const LAYOUT = [
-        'singlepage' => 'SinglePage',     // Display one page at a time
+        'singlepage' => 'SinglePage', // Display one page at a time
         'default' => 'SinglePage',
         'single' => 'SinglePage',
-        'onecolumn' => 'OneColumn',      // Display the pages in one column
+        'onecolumn' => 'OneColumn', // Display the pages in one column
         'continuous' => 'OneColumn',
-        'twocolumnleft' => 'TwoColumnLeft',  // Display the pages in two columns, with odd-numbered pages on the left
+        'twocolumnleft' => 'TwoColumnLeft', // Display the pages in two columns, with odd-numbered pages on the left
         'two' => 'TwoColumnLeft',
         'twocolumnright' => 'TwoColumnRight', // Display the pages in two columns, with odd-numbered pages on the right
-        'twopageleft' => 'TwoPageLeft',    // Display the pages two at a time, with odd-numbered pages on the left
-        'twopageright' => 'TwoPageRight',    // Display the pages two at a time, with odd-numbered pages on the right
+        'twopageleft' => 'TwoPageLeft', // Display the pages two at a time, with odd-numbered pages on the left
+        'twopageright' => 'TwoPageRight', // Display the pages two at a time, with odd-numbered pages on the right
     ];
 
     /**
@@ -53,13 +55,13 @@ abstract class Mode extends \Com\Tecnick\Pdf\Page\Format
      * @var array<string, string>
      */
     protected const DISPLAY = [
-        'usenone' => 'UseNone',        // Neither document outline nor thumbnail images visible
-        'useoutlines' => 'UseOutlines',    // Document outline visible
-        'usethumbs' => 'UseThumbs',      // Thumbnail images visible
-        'fullscreen' => 'FullScreen',     // Full-screen mode, with no menu bar or window controls
-        'useoc' => 'UseOC',          // (PDF 1.5) Optional content group panel visible
+        'usenone' => 'UseNone', // Neither document outline nor thumbnail images visible
+        'useoutlines' => 'UseOutlines', // Document outline visible
+        'usethumbs' => 'UseThumbs', // Thumbnail images visible
+        'fullscreen' => 'FullScreen', // Full-screen mode, with no menu bar or window controls
+        'useoc' => 'UseOC', // (PDF 1.5) Optional content group panel visible
         'useattachments' => 'UseAttachments', // (PDF 1.6) Attachments panel visible
-        '' => 'UseAttachments',  // (PDF 1.6) Attachments panel visible
+        '' => 'UseAttachments', // (PDF 1.6) Attachments panel visible
     ];
 
     /**

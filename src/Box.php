@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Box.php
  *
@@ -69,7 +71,7 @@ use Com\Tecnick\Pdf\Page\Exception as PageException;
  *            'y' : float,
  *        }
  *
-
+ *
  * @phpstan-type TransitionData array{
  *            'B': bool,
  *            'D': int,
@@ -134,7 +136,7 @@ use Com\Tecnick\Pdf\Page\Exception as PageException;
  *             },
  *        }>,
  *        'columns'?: int,
- *        'content'?: array<string>,
+ *        'content'?: array<string>|string,
  *        'content_mark'?: array<int>,
  *        'ContentHeight'?: float,
  *        'ContentWidth'?: float,
@@ -226,14 +228,19 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
     {
         foreach (self::BOX as $type) {
             // swap X and Y coordinates
-            if (isset($dims[$type])) {
-                $tmp = $dims[$type]['llx'];
-                $dims[$type]['llx'] = $dims[$type]['lly'];
-                $dims[$type]['lly'] = $tmp;
-                $tmp = $dims[$type]['urx'];
-                $dims[$type]['urx'] = $dims[$type]['ury'];
-                $dims[$type]['ury'] = $tmp;
+            if (!array_key_exists($type, $dims)) {
+                continue;
             }
+
+            $llx = $dims[$type]['llx'] ?? 0.0;
+            $lly = $dims[$type]['lly'] ?? 0.0;
+            $urx = $dims[$type]['urx'] ?? 0.0;
+            $ury = $dims[$type]['ury'] ?? 0.0;
+
+            $dims[$type]['llx'] = $lly;
+            $dims[$type]['lly'] = $llx;
+            $dims[$type]['urx'] = $ury;
+            $dims[$type]['ury'] = $urx;
         }
 
         return $dims;
@@ -251,6 +258,8 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
      * @param PageBci                $bci  BoxColorInfo: guideline style (color, width, style, dash).
      *
      * @return array<string, PageBox> Page dimensions.
+     *
+     * @throws PageException
      */
     public function setBox(
         array $dims,
@@ -266,7 +275,7 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
             $dims = [];
         }
 
-        if (! \in_array($type, self::BOX)) {
+        if (!\in_array($type, self::BOX, true)) {
             throw new PageException('unknown page box type: ' . $type);
         }
 
@@ -279,7 +288,7 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
             // set default values
             $bci = [
                 'color' => '#000000',
-                'width' => (1.0 / $this->kunit),
+                'width' => 1.0 / $this->kunit,
                 'style' => 'S', // S = solid; D = dash
                 'dash' => [3],
             ];
@@ -297,6 +306,8 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
      * @param float $height Page height in points.
      *
      * @return array<string, PageBox> Page boxes.
+     *
+     * @throws PageException
      */
     public function setPageBoxes(float $width, float $height): array
     {
@@ -325,16 +336,18 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
             if (empty($dims[$box])) {
                 // @codeCoverageIgnoreStart
                 continue;
+
                 // @codeCoverageIgnoreEnd
             }
 
-            $out .= '/' . $box . ' [' . \sprintf(
-                '%F %F %F %F',
+            $out .= \sprintf(
+                '/%s [%F %F %F %F]' . "\n",
+                $box,
                 $dims[$box]['llx'],
                 $dims[$box]['lly'],
                 $dims[$box]['urx'],
-                $dims[$box]['ury']
-            ) . ']' . "\n";
+                $dims[$box]['ury'],
+            );
         }
 
         return $out;
@@ -354,15 +367,15 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
         $out = '/BoxColorInfo <<' . "\n";
         foreach (self::BOX as $box) {
             $out .= '/' . $box . ' <<' . "\n";
-            if (! empty($dims[$box]['bci']['color'])) {
+            if (!empty($dims[$box]['bci']['color'])) {
                 $out .= '/C [' . $this->col->getPdfRgbComponents($dims[$box]['bci']['color']) . ']' . "\n";
             }
 
-            if (! empty($dims[$box]['bci']['width'])) {
-                $out .= '/W ' . \sprintf('%F', ($dims[$box]['bci']['width'] * $this->kunit)) . "\n";
+            if (!empty($dims[$box]['bci']['width'])) {
+                $out .= \sprintf('/W %F' . "\n", $dims[$box]['bci']['width'] * $this->kunit);
             }
 
-            if (! empty($dims[$box]['bci']['style'])) {
+            if (!empty($dims[$box]['bci']['style'])) {
                 $mode = \strtoupper($dims[$box]['bci']['style'][0]);
                 if ($mode !== 'D') {
                     $mode = 'S';
@@ -371,10 +384,10 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
                 $out .= '/S /' . $mode . "\n";
             }
 
-            if (! empty($dims[$box]['bci']['dash'])) {
+            if (!empty($dims[$box]['bci']['dash'])) {
                 $out .= '/D [';
                 foreach ($dims[$box]['bci']['dash'] as $dash) {
-                    $out .= \sprintf(' %F', ((float) $dash * $this->kunit));
+                    $out .= \sprintf(' %F', (float) $dash * $this->kunit);
                 }
 
                 $out .= ' ]' . "\n";

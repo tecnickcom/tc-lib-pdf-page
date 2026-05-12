@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Format.php
  *
@@ -38,14 +40,14 @@ abstract class Format
      * @var array<string, float>
      */
     public const UNITRATIO = [
-        '' => 1.0,                // default to points
+        '' => 1.0, // default to points
         'px' => 1.0,
         'pt' => 1.0,
         'points' => 1.0,
-        'millimeters' => 2.83464566929134, // (72 / 25.4)
-        'mm' => 2.83464566929134, // (72 / 25.4)
-        'centimeters' => 28.3464566929134, // (72 / 2.54)
-        'cm' => 28.3464566929134, // (72 / 2.54)
+        'millimeters' => 2.834_645_669_291_34, // (72 / 25.4)
+        'mm' => 2.834_645_669_291_34, // (72 / 25.4)
+        'centimeters' => 28.346_456_692_913_4, // (72 / 2.54)
+        'cm' => 28.346_456_692_913_4, // (72 / 2.54)
         'inches' => 72.0,
         'in' => 72.0,
     ];
@@ -324,10 +326,10 @@ abstract class Format
         '6SHEET' => [3401.575, 5102.362], // = ( 1200 x 1800 ) mm  = ( 47.24 x 70.87 ) in
         '12SHEET' => [8640.000, 4320.000], // = ( 3048 x 1524 ) mm  = (120.00 x 60.00 ) in
         '16SHEET' => [5760.000, 8640.000], // = ( 2032 x 3048 ) mm  = ( 80.00 x 120.00) in
-        '32SHEET' => [11520.000, 8640.000], // = ( 4064 x 3048 ) mm  = (160.00 x 120.00) in
-        '48SHEET' => [17280.000, 8640.000], // = ( 6096 x 3048 ) mm  = (240.00 x 120.00) in
-        '64SHEET' => [23040.000, 8640.000], // = ( 8128 x 3048 ) mm  = (320.00 x 120.00) in
-        '96SHEET' => [34560.000, 8640.000], // = (12192 x 3048 ) mm  = (480.00 x 120.00) in
+        '32SHEET' => [11_520.000, 8640.000], // = ( 4064 x 3048 ) mm  = (160.00 x 120.00) in
+        '48SHEET' => [17_280.000, 8640.000], // = ( 6096 x 3048 ) mm  = (240.00 x 120.00) in
+        '64SHEET' => [23_040.000, 8640.000], // = ( 8128 x 3048 ) mm  = (320.00 x 120.00) in
+        '96SHEET' => [34_560.000, 8640.000], // = (12192 x 3048 ) mm  = (480.00 x 120.00) in
         // -- Old European Sizes
         // - Old Imperial English Sizes
         'EN_EMPEROR' => [3456.000, 5184.000], // = ( 1219 x 1829 ) mm  = ( 48.00 x 72.00 ) in
@@ -484,21 +486,20 @@ abstract class Format
      * @param int    $dec         Number of decimals to return.
      *
      * @return array{0:float, 1:float, 2:string} Page width, height and orientation in specified unit.
+     *
+     * @throws PageException
      */
-    public function getPageFormatSize(
-        string $format,
-        string $orientation = '',
-        string $unit = '',
-        int $dec = 6
-    ): array {
-        if (! isset(self::FORMAT[$format])) {
+    public function getPageFormatSize(string $format, string $orientation = '', string $unit = '', int $dec = 6): array
+    {
+        $formatSize = self::FORMAT[$format] ?? null;
+        if ($formatSize === null) {
             throw new PageException('unknown page format: ' . $format);
         }
 
         return $this->getPageOrientedSize(
-            $this->convertPoints(self::FORMAT[$format][0], $unit, $dec),
-            $this->convertPoints(self::FORMAT[$format][1], $unit, $dec),
-            $orientation
+            $this->convertPoints($formatSize[0], $unit, $dec),
+            $this->convertPoints($formatSize[1], $unit, $dec),
+            $orientation,
         );
     }
 
@@ -511,16 +512,13 @@ abstract class Format
      *
      * @return array{0:float, 1:float, 2:string} Page width, height in points and orientation.
      */
-    public function getPageOrientedSize(
-        float $width,
-        float $height,
-        string $orientation = ''
-    ): array {
-        if ($orientation == 'P') {
+    public function getPageOrientedSize(float $width, float $height, string $orientation = ''): array
+    {
+        if ($orientation === 'P') {
             return [\min($width, $height), \max($width, $height), 'P'];
         }
 
-        if ($orientation == 'L') {
+        if ($orientation === 'L') {
             return [\max($width, $height), \min($width, $height), 'L'];
         }
 
@@ -549,15 +547,18 @@ abstract class Format
      * Get the unit ratio for the specified unit of measure.
      *
      * @param string $unit Name of the unit of measure.
+     *
+     * @throws PageException
      */
     public function getUnitRatio(string $unit): float
     {
         $unit = \strtolower($unit);
-        if (! isset(self::UNITRATIO[$unit])) {
+        $ratio = self::UNITRATIO[$unit] ?? null;
+        if (!is_float($ratio)) {
             throw new PageException('unknown unit: ' . $unit);
         }
 
-        return self::UNITRATIO[$unit];
+        return $ratio;
     }
 
     /**
@@ -566,9 +567,11 @@ abstract class Format
      * @param float  $points Value to convert.
      * @param string $unit   Name of the unit to convert to.
      * @param int    $dec    Number of decimals to return.
+     *
+     * @throws PageException
      */
     public function convertPoints(float $points, string $unit, int $dec = 6): float
     {
-        return \round(($points / $this->getUnitRatio($unit)), $dec);
+        return \round($points / $this->getUnitRatio($unit), $dec);
     }
 }

@@ -17,7 +17,6 @@
 namespace Test;
 
 use Com\Tecnick\Color\Pdf;
-use Com\Tecnick\Pdf\Encrypt\Encrypt;
 use Com\Tecnick\Pdf\Page\Page;
 
 /**
@@ -33,21 +32,25 @@ use Com\Tecnick\Pdf\Page\Page;
  */
 class RegionTest extends TestUtil
 {
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     protected function getTestObject(): \Com\Tecnick\Pdf\Page\Page
     {
         $pdf = new Pdf();
-        $encrypt = new Encrypt(false);
+        $encrypt = $this->getEncryptObject();
         return new Page('mm', $pdf, $encrypt, false, false);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testRegion(): void
     {
         $page = $this->getTestObject();
-        $page->add(
-            [
-                'columns' => 3,
-            ]
-        );
+        $page->add([
+            'columns' => 3,
+        ]);
 
         $res = $page->selectRegion(1);
         $exp = [
@@ -88,14 +91,15 @@ class RegionTest extends TestUtil
         $this->bcAssertEqualsWithDelta(17, $page->getY());
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testRegionBoundaries(): void
     {
         $page = $this->getTestObject();
-        $page->add(
-            [
-                'columns' => 3,
-            ]
-        );
+        $page->add([
+            'columns' => 3,
+        ]);
 
         $region = $page->getRegion();
 

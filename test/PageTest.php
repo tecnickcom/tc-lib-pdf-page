@@ -29,19 +29,28 @@ namespace Test;
  */
 class PageTest extends TestUtil
 {
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     protected function getTestObject(): \Com\Tecnick\Pdf\Page\Page
     {
         $pdf = new \Com\Tecnick\Color\Pdf();
-        $encrypt = new \Com\Tecnick\Pdf\Encrypt\Encrypt(false);
+        $encrypt = $this->getEncryptObject();
         return new \Com\Tecnick\Pdf\Page\Page('mm', $pdf, $encrypt, false, true, false);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testGetKUnit(): void
     {
         $page = $this->getTestObject();
         $this->bcAssertEqualsWithDelta(2.83464566929134, $page->getKUnit(), 0.001);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testEnableSignatureApproval(): void
     {
         $page = $this->getTestObject();
@@ -49,6 +58,9 @@ class PageTest extends TestUtil
         $this->assertNotNull($res); // @phpstan-ignore method.alreadyNarrowedType
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testAdd(): void
     {
         $page = $this->getTestObject();
@@ -137,22 +149,18 @@ class PageTest extends TestUtil
         $this->bcAssertEqualsWithDelta($exp, $res);
 
         // 3
-        $res = $page->add(
-            [
-                'group' => 1,
-            ]
-        );
+        $res = $page->add([
+            'group' => 1,
+        ]);
         unset($res['time']);
         $exp['pid'] = 2;
         $exp['group'] = 1;
         $this->bcAssertEqualsWithDelta($exp, $res);
 
         // 3
-        $res = $page->add(
-            [
-                'columns' => 2,
-            ]
-        );
+        $res = $page->add([
+            'columns' => 2,
+        ]);
         unset($res['time']);
         $exp['pid'] = 3;
         $exp['group'] = 0;
@@ -189,6 +197,9 @@ class PageTest extends TestUtil
         $this->assertEquals(3, $pid);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testGetNextPage(): void
     {
         $page = $this->getTestObject();
@@ -208,6 +219,9 @@ class PageTest extends TestUtil
         $this->assertCount(6, $page->getPages());
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testDelete(): void
     {
         $page = $this->getTestObject();
@@ -220,13 +234,19 @@ class PageTest extends TestUtil
         $this->assertArrayHasKey('time', $res);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testDeleteEx(): void
     {
-        $this->bcExpectException('\\' . \Com\Tecnick\Pdf\Page\Exception::class);
+        $this->bcExpectException(\Com\Tecnick\Pdf\Page\Exception::class);
         $page = $this->getTestObject();
         $page->delete(2);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testPop(): void
     {
         $page = $this->getTestObject();
@@ -239,25 +259,22 @@ class PageTest extends TestUtil
         $this->assertArrayHasKey('time', $res);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testMove(): void
     {
         $page = $this->getTestObject();
         $page->add();
-        $page->add(
-            [
-                'group' => 1,
-            ]
-        );
-        $page->add(
-            [
-                'group' => 2,
-            ]
-        );
-        $page->add(
-            [
-                'group' => 3,
-            ]
-        );
+        $page->add([
+            'group' => 1,
+        ]);
+        $page->add([
+            'group' => 2,
+        ]);
+        $page->add([
+            'group' => 3,
+        ]);
 
         $this->assertEquals($page->getPage(3), $page->getPage());
 
@@ -268,20 +285,29 @@ class PageTest extends TestUtil
         $this->assertEquals(3, $res['group']);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testMoveEx(): void
     {
-        $this->bcExpectException('\\' . \Com\Tecnick\Pdf\Page\Exception::class);
+        $this->bcExpectException(\Com\Tecnick\Pdf\Page\Exception::class);
         $page = $this->getTestObject();
         $page->move(1, 2);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testGetPageEx(): void
     {
-        $this->bcExpectException('\\' . \Com\Tecnick\Pdf\Page\Exception::class);
+        $this->bcExpectException(\Com\Tecnick\Pdf\Page\Exception::class);
         $page = $this->getTestObject();
         $page->getPage(2);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testContent(): void
     {
         $testObj = $this->getTestObject();
@@ -305,6 +331,10 @@ class PageTest extends TestUtil
         $this->assertEquals(['', 'Lorem', 'ipsum'], $page['content']);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     * @throws \Com\Tecnick\Pdf\Encrypt\Exception
+     */
     public function testGetPdfPages(): void
     {
         $page = $this->getTestObject();
@@ -312,31 +342,32 @@ class PageTest extends TestUtil
         $page->addContent('TEST1');
         $page->add();
         $page->addContent('TEST2');
-        $page->add(
-            [
-                'group' => 1,
-                'transition' => [
-                    'Dur' => 2,
-                    'D' => 3,
-                    'Dm' => 'V',
-                    'S' => 'Glitter',
-                    'M' => 'O',
-                    'Di' => 315,
-                    'SS' => 1.3,
-                    'B' => true,
-                ],
-                'annotrefs' => [10, 20],
-            ]
-        );
+        $page->add([
+            'group' => 1,
+            'transition' => [
+                'Dur' => 2,
+                'D' => 3,
+                'Dm' => 'V',
+                'S' => 'Glitter',
+                'M' => 'O',
+                'Di' => 315,
+                'SS' => 1.3,
+                'B' => true,
+            ],
+            'annotrefs' => [10, 20],
+        ]);
         $page->addContent('TEST2');
 
         $pon = 0;
         $out = $page->getPdfPages($pon);
         $this->assertEquals(1, $page->getResourceDictObjID());
         $this->assertEquals(2, $page->getRootObjID());
-        $this->bcAssertStringContainsString('<< /Type /Pages /Kids [ 3 0 R 4 0 R 5 0 R ] /Count 3 >>', $out);
+        $this->assertStringContainsString('<< /Type /Pages /Kids [ 3 0 R 4 0 R 5 0 R ] /Count 3 >>', $out);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testaddAnnotRef(): void
     {
         $testObj = $this->getTestObject();
@@ -345,31 +376,41 @@ class PageTest extends TestUtil
         $testObj->addAnnotRef(17);
 
         $page = $testObj->getPage();
-        $this->assertEquals(13, $page['annotrefs'][0]);
-        $this->assertEquals(17, $page['annotrefs'][1]);
+        $this->assertEquals(13, $page['annotrefs'][0] ?? null);
+        $this->assertEquals(17, $page['annotrefs'][1] ?? null);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testSetPagePHeight(): void
     {
         $testObj = $this->getTestObject();
         $testObj->add();
         $page = $testObj->getPage();
-        $this->assertEquals(841, (int)$page['pheight']);
+        $this->assertEquals(841, (int) $page['pheight']);
         $testObj->setPagePHeight(123.4);
         $page = $testObj->getPage();
         $this->assertEquals(123.4, $page['pheight']);
     }
+
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testSetPagePWidth(): void
     {
         $testObj = $this->getTestObject();
         $testObj->add();
         $page = $testObj->getPage();
-        $this->assertEquals(595, (int)$page['pwidth']);
+        $this->assertEquals(595, (int) $page['pwidth']);
         $testObj->setPagePWidth(123.4);
         $page = $testObj->getPage();
         $this->assertEquals(123.4, $page['pwidth']);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testAddAnnotRefDuplicate(): void
     {
         $testObj = $this->getTestObject();
@@ -379,18 +420,24 @@ class PageTest extends TestUtil
 
         $page = $testObj->getPage();
         $this->assertCount(1, $page['annotrefs']);
-        $this->assertEquals(42, $page['annotrefs'][0]);
+        $this->assertEquals(42, $page['annotrefs'][0] ?? null);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testPopContentEmptyEx(): void
     {
-        $this->bcExpectException('\\' . \Com\Tecnick\Pdf\Page\Exception::class);
+        $this->bcExpectException(\Com\Tecnick\Pdf\Page\Exception::class);
         $testObj = $this->getTestObject();
         $testObj->add();
         $testObj->popContent();
         $testObj->popContent();
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testPopContentToLastMarkEmpty(): void
     {
         $testObj = $this->getTestObject();

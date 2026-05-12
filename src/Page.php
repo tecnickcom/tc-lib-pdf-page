@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Page.php
  *
@@ -18,6 +20,7 @@ namespace Com\Tecnick\Pdf\Page;
 
 use Com\Tecnick\Color\Pdf as Color;
 use Com\Tecnick\Pdf\Encrypt\Encrypt;
+use Com\Tecnick\Pdf\Encrypt\Exception as EncryptException;
 use Com\Tecnick\Pdf\Page\Exception as PageException;
 
 /**
@@ -51,6 +54,8 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      * @param bool    $pdfa     True if we are in PDF/A mode.
      * @param bool    $compress Set to false to disable stream compression.
      * @param bool    $sigapp   True if the signature approval is enabled (for incremental updates).
+     *
+     * @throws PageException
      */
     public function __construct(
         string $unit,
@@ -58,7 +63,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
         Encrypt $encrypt,
         bool $pdfa = false,
         bool $compress = true,
-        bool $sigapp = false
+        bool $sigapp = false,
     ) {
         $this->kunit = $this->getUnitRatio($unit);
         $this->col = $color;
@@ -95,12 +100,19 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      * @param int $pid page index. Omit or set it to -1 for the current page ID.
      *
      * @return PageData Removed page.
+     *
+     * @throws PageException
      */
     public function delete(int $pid = -1): array
     {
         $pid = $this->sanitizePageID($pid);
-        $page = $this->page[$pid];
-        --$this->group[$this->page[$pid]['group']];
+        $page = $this->getPage($pid);
+        $group = $page['group'];
+        $groupCount = $this->group[$group] ?? 0;
+        if ($groupCount > 0) {
+            $this->group[$group] = $groupCount - 1;
+        }
+
         unset($this->page[$pid]);
         $this->page = \array_values($this->page); // reindex array
         --$this->pmaxid;
@@ -111,6 +123,8 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      * Remove and return last page.
      *
      * @return PageData Removed page.
+     *
+     * @throws PageException
      */
     public function pop(): array
     {
@@ -122,21 +136,23 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      *
      * @param int $from Index of the page to move.
      * @param int $new  Destination index.
+     *
+     * @throws PageException
      */
     public function move(int $from, int $new): void
     {
-        if (($from <= $new) || ($from > $this->pmaxid)) {
+        $page = $this->page[$from] ?? null;
+        if ($from <= $new || $from > $this->pmaxid || !is_array($page)) {
             throw new PageException('The new position must be lower than the starting position');
         }
 
-        $this->page = \array_values(
-            [
-                ...\array_slice($this->page, 0, $new),
-                $this->page[$from],
-                ...\array_slice($this->page, $new, ($from - $new)),
-                ...\array_slice($this->page, ($from + 1)),
-            ]
-        );
+        $pages = $this->page;
+        unset($pages[$from]);
+        $pages = \array_values($pages);
+        \array_splice($pages, $new, 0, [$page]);
+
+        /** @var array<int, PageData> $pages */
+        $this->page = $pages;
     }
 
     /**
@@ -154,16 +170,20 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      *
      * @param int $oid Annotation object IDs.
      * @param int $pid page index. Omit or set it to -1 for the current page ID.
+     *
+     * @throws PageException
      */
     public function addAnnotRef(int $oid, int $pid = -1): void
     {
         $pid = $this->sanitizePageID($pid);
+        $annotrefs = $this->page[$pid]['annotrefs'] ?? [];
 
-        if (\in_array($oid, $this->page[$pid]['annotrefs'])) {
+        if (\in_array($oid, $annotrefs, strict: true)) {
             return;
         }
 
-        $this->page[$pid]['annotrefs'][] = $oid;
+        $annotrefs[] = $oid;
+        $this->page[$pid]['annotrefs'] = $annotrefs;
     }
 
     /**
@@ -171,25 +191,40 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      *
      * @param string $content Page content.
      * @param int    $pid     Page index. Omit or set it to -1 for the current page ID.
+     *
+     * @throws PageException
      */
     public function addContent(string $content, int $pid = -1): void
     {
         $pid = $this->sanitizePageID($pid);
-        $this->page[$pid]['content'][] = $content;
+
+        $pageContent = $this->page[$pid]['content'] ?? [''];
+        $pageContent[] = $content;
+        $this->page[$pid]['content'] = $pageContent;
     }
 
     /**
      * Remove and return last page content.
      *
      * @param int $pid page index. Omit or set it to -1 for the current page ID.
+     *
+     * @throws PageException
      */
     public function popContent(int $pid = -1): string
     {
         $pid = $this->sanitizePageID($pid);
-        $page = \array_pop($this->page[$pid]['content']);
+
+        $pageContent = $this->page[$pid]['content'] ?? null;
+        if ($pageContent === null) {
+            throw new PageException('Page content is empty');
+        }
+
+        $page = \array_pop($pageContent);
         if ($page === null) {
             throw new PageException('Page content is empty');
         }
+
+        $this->page[$pid]['content'] = $pageContent;
 
         return $page;
     }
@@ -198,26 +233,43 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      * Add page content mark.
      *
      * @param int $pid page index. Omit or set it to -1 for the current page ID.
+     *
+     * @throws PageException
      */
     public function addContentMark(int $pid = -1): void
     {
         $pid = $this->sanitizePageID($pid);
-        $this->page[$pid]['content_mark'][] = \count($this->page[$pid]['content']);
+
+        $pageContent = $this->page[$pid]['content'] ?? [''];
+        $contentMark = $this->page[$pid]['content_mark'] ?? [0];
+
+        $contentMark[] = \count($pageContent);
+
+        $this->page[$pid]['content'] = $pageContent;
+        $this->page[$pid]['content_mark'] = $contentMark;
     }
 
     /**
      * Remove the last marked page content.
      *
      * @param int $pid page index. Omit or set it to -1 for the current page ID.
+     *
+     * @throws PageException
      */
     public function popContentToLastMark(int $pid = -1): void
     {
         $pid = $this->sanitizePageID($pid);
-        if (empty($this->page[$pid]['content'])) {
+
+        $pageContent = $this->page[$pid]['content'] ?? null;
+        if (empty($pageContent)) {
             return;
         }
-        $mark = \array_pop($this->page[$pid]['content_mark']);
-        $this->page[$pid]['content'] = \array_slice($this->page[$pid]['content'], 0, $mark, true);
+
+        $contentMark = $this->page[$pid]['content_mark'] ?? [0];
+
+        $mark = \array_pop($contentMark);
+        $this->page[$pid]['content_mark'] = $contentMark;
+        $this->page[$pid]['content'] = \array_slice($pageContent, 0, (int) ($mark ?? 0), true);
     }
 
     /**
@@ -226,19 +278,15 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      * @param int $pon Current PDF object number.
      *
      * @return string PDF command.
+     *
+     * @throws EncryptException
      */
     public function getPdfPages(int &$pon): string
     {
         $out = $this->getPageRootObj($pon);
         foreach ($this->page as $num => $page) {
-            if (! isset($page['num'])) {
-                if ($num > 0) {
-                    $page['num'] = (
-                        $page['group'] == $this->page[($num - 1)]['group']
-                    ) ? (1 + $this->page[($num - 1)]['num']) : 1;
-                } else {
-                    $page['num'] = (1 + $num);
-                }
+            if (!array_key_exists('num', $page)) {
+                $page['num'] = $this->getPageNumInGroup($num, $page);
             }
 
             $this->page[$num]['num'] = $page['num'];
@@ -247,31 +295,93 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
             $out .= $this->getPageContentObj($pon, $content);
             $contentobjid = $pon;
 
-            $out .= $page['n'] . ' 0 obj' . "\n"
-                . '<<' . "\n"
-                . '/Type /Page' . "\n"
-                . '/Parent ' . $this->rootoid . ' 0 R' . "\n";
-            if (! $this->pdfa) {
+            $out .=
+                $page['n']
+                . ' 0 obj'
+                . "\n"
+                . '<<'
+                . "\n"
+                . '/Type /Page'
+                . "\n"
+                . '/Parent '
+                . $this->rootoid
+                . ' 0 R'
+                . "\n";
+            if (!$this->pdfa) {
                 $out .= '/Group << /Type /Group /S /Transparency /CS /DeviceRGB >>' . "\n";
             }
 
-            if (! $this->sigapp) {
+            if (!$this->sigapp) {
                 $out .= '/LastModified ' . $this->enc->getFormattedDate($page['time'], $pon) . "\n";
             }
 
-            $out .= '/Resources ' . $this->rdoid . ' 0 R' . "\n"
-                . $this->getBox($page['box'])
-                . $this->getBoxColorInfo($page['box'])
-                . '/Contents ' . $contentobjid . ' 0 R' . "\n"
-                . '/Rotate ' . $page['rotation'] . "\n"
-                . '/PZ ' . \sprintf('%F', $page['zoom']) . "\n"
-                . $this->getPageTransition($page)
-                . $this->getAnnotationRef($page)
-                . '>>' . "\n"
-                . 'endobj' . "\n";
+            [$boxdims, $boxinfo] = $this->getPageBoxData($page);
+
+            $out .=
+                '/Resources '
+                . $this->rdoid
+                . ' 0 R'
+                . "\n"
+                . $this->getBox($boxdims)
+                . $this->getBoxColorInfo($boxinfo)
+                . '/Contents '
+                . $contentobjid
+                . ' 0 R'
+                . "\n"
+                . '/Rotate '
+                . $page['rotation']
+                . "\n";
+
+            $out .= \sprintf('/PZ %F' . "\n", $page['zoom']);
+
+            $out .= $this->getPageTransition($page) . $this->getAnnotationRef($page) . '>>' . "\n" . 'endobj' . "\n";
         }
 
         return $out;
+    }
+
+    /**
+     * @param int $num Page index.
+     * @param PageData $page
+     */
+    protected function getPageNumInGroup(int $num, array $page): int
+    {
+        $pnum = 1 + $num;
+        if ($num <= 0) {
+            return $pnum;
+        }
+
+        $prevPage = $this->page[$num - 1] ?? null;
+        if (!is_array($prevPage)) {
+            return $pnum;
+        }
+
+        return $prevPage['group'] === $page['group'] ? 1 + $prevPage['num'] : 1;
+    }
+
+    /**
+     * @param PageData $page
+     *
+     * @return array{0: array<string, array{llx: float, lly: float, urx: float, ury: float}>, 1: array<string, array{bci: PageBci}>}
+     */
+    protected function getPageBoxData(array $page): array
+    {
+        $boxdims = [];
+        $boxinfo = [];
+        foreach ($page['box'] as $name => $box) {
+            $boxdims[$name] = [
+                'llx' => $box['llx'],
+                'lly' => $box['lly'],
+                'urx' => $box['urx'],
+                'ury' => $box['ury'],
+            ];
+
+            $boxinfo[$name] = [
+                'bci' => $box['bci'],
+            ];
+        }
+
+        return [$boxdims, $boxinfo];
     }
 
     /**
@@ -297,30 +407,39 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     /**
      * Returns the PDF command to output the page content.
      *
-     * @param PageData $page Page data.
+     * @param array<string, mixed> $page Page data.
      *
      * @return string PDF command.
      */
     protected function getPageTransition(array $page): string
     {
-        if (empty($page['transition'])) {
+        if (!array_key_exists('transition', $page) || !is_array($page['transition']) || $page['transition'] === []) {
             return '';
         }
 
+        $transition = $page['transition'];
+        /** @var array<string, bool|int|float|string> $transition */
+
         $entries = ['B', 'D', 'Di', 'Dm', 'M', 'S', 'SS'];
         $out = '';
-        $out .= '/Dur ' . \sprintf('%F', $page['transition']['Dur']) . "\n";
+        $out .= \sprintf('/Dur %F' . "\n", (float) ($transition['Dur'] ?? 0.0));
 
-        $out .= '/Trans <<' . "\n"
-            . '/Type /Trans' . "\n";
-        foreach ($page['transition'] as $key => $val) {
-            if (\in_array($key, $entries)) {
-                if (\is_float($val)) {
-                    $val = \sprintf('%F', $val);
-                }
-
-                $out .= '/' . $key . ' /' . $val . "\n";
+        $out .= '/Trans <<' . "\n" . '/Type /Trans' . "\n";
+        foreach ($transition as $key => $val) {
+            if (!\in_array($key, $entries, strict: true)) {
+                continue;
             }
+
+            if (\is_float($val)) {
+                $val = \sprintf('%F', $val);
+            }
+
+            if (\is_bool($val)) {
+                $out .= '/' . $key . ' ' . ($val ? 'true' : 'false') . "\n";
+                continue;
+            }
+
+            $out .= '/' . $key . ' /' . (string) $val . "\n";
         }
 
         return $out . '>>' . "\n";
@@ -355,11 +474,12 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      * @param string $content Page content.
      *
      * @return string PDF command.
+     *
+     * @throws EncryptException
      */
     protected function getPageContentObj(int &$pon, string $content = ''): string
     {
-        $out = ++$pon . ' 0 obj' . "\n"
-            . '<<';
+        $out = ++$pon . ' 0 obj' . "\n" . '<<';
         if ($this->compress) {
             $out .= ' /Filter /FlateDecode';
             $cmpr = \gzcompress($content);
@@ -369,12 +489,21 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
         }
 
         $stream = $this->enc->encryptString($content, $pon);
-        return $out . ' /Length ' . \strlen($stream)
-            . ' >>' . "\n"
-            . 'stream' . "\n"
-            . $stream . "\n"
-            . 'endstream' . "\n"
-            . 'endobj' . "\n";
+        return (
+            $out
+            . ' /Length '
+            . \strlen($stream)
+            . ' >>'
+            . "\n"
+            . 'stream'
+            . "\n"
+            . $stream
+            . "\n"
+            . 'endstream'
+            . "\n"
+            . 'endobj'
+            . "\n"
+        );
     }
 
     /**
@@ -396,8 +525,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
             $out .= $this->page[$pid]['n'] . ' 0 R ';
         }
 
-        return $out . '] /Count ' . $numpages . ' >>' . "\n"
-            . 'endobj' . "\n";
+        return $out . '] /Count ' . $numpages . ' >>' . "\n" . 'endobj' . "\n";
     }
 
     /**
@@ -407,13 +535,10 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      */
     protected function replacePageTemplates(array $data): string
     {
-        return \implode(
-            "\n",
-            \str_replace(
-                [self::PAGE_TOT, self::PAGE_NUM],
-                [(string) $this->group[$data['group']], (string) $data['num']],
-                $data['content']
-            )
-        );
+        return \implode("\n", \str_replace(
+            [self::PAGE_TOT, self::PAGE_NUM],
+            [(string) ($this->group[$data['group']] ?? 0), (string) $data['num']],
+            $data['content'],
+        ));
     }
 }

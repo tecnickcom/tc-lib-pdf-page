@@ -29,13 +29,19 @@ namespace Test;
  */
 class SettingsTest extends TestUtil
 {
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     protected function getTestObject(): \Com\Tecnick\Pdf\Page\Page
     {
         $pdf = new \Com\Tecnick\Color\Pdf();
-        $encrypt = new \Com\Tecnick\Pdf\Encrypt\Encrypt(false);
+        $encrypt = $this->getEncryptObject();
         return new \Com\Tecnick\Pdf\Page\Page('mm', $pdf, $encrypt, false, false);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testGetPageID(): void
     {
         $page = $this->getTestObject();
@@ -44,6 +50,9 @@ class SettingsTest extends TestUtil
         $this->assertEquals(-1, $pid);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testSanitizePageNumber(): void
     {
         $page = $this->getTestObject();
@@ -59,7 +68,7 @@ class SettingsTest extends TestUtil
             [
                 'num' => 0,
             ],
-            $data
+            $data,
         );
 
         $data = [
@@ -70,7 +79,7 @@ class SettingsTest extends TestUtil
             [
                 'num' => 0,
             ],
-            $data
+            $data,
         );
 
         $data = [
@@ -81,17 +90,20 @@ class SettingsTest extends TestUtil
             [
                 'num' => 1,
             ],
-            $data
+            $data,
         );
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testSanitizeTime(): void
     {
         $page = $this->getTestObject();
         $data = [];
         $page->sanitizeTime($data);
         $this->assertArrayHasKey('time', $data);
-        $this->assertNotEmpty($data['time']); // @phpstan-ignore offsetAccess.notFound
+        $this->assertNotEmpty($data['time'] ?? null);
 
         $data = [
             'time' => -1,
@@ -101,7 +113,7 @@ class SettingsTest extends TestUtil
             [
                 'time' => 0,
             ],
-            $data
+            $data,
         );
 
         $data = [
@@ -109,7 +121,7 @@ class SettingsTest extends TestUtil
         ];
         $page->sanitizeTime($data);
         $this->assertArrayHasKey('time', $data);
-        $this->assertNotEmpty($data['time']); // @phpstan-ignore offsetAccess.notFound
+        $this->assertNotEmpty($data['time'] ?? null);
 
         $data = [
             'time' => 1,
@@ -119,10 +131,13 @@ class SettingsTest extends TestUtil
             [
                 'time' => 1,
             ],
-            $data
+            $data,
         );
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testSanitizeGroup(): void
     {
         $page = $this->getTestObject();
@@ -132,7 +147,7 @@ class SettingsTest extends TestUtil
             [
                 'group' => 0,
             ],
-            $data
+            $data,
         );
 
         $data = [
@@ -143,7 +158,7 @@ class SettingsTest extends TestUtil
             [
                 'group' => 0,
             ],
-            $data
+            $data,
         );
 
         $data = [
@@ -154,7 +169,7 @@ class SettingsTest extends TestUtil
             [
                 'group' => 0,
             ],
-            $data
+            $data,
         );
 
         $data = [
@@ -165,10 +180,13 @@ class SettingsTest extends TestUtil
             [
                 'group' => 1,
             ],
-            $data
+            $data,
         );
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testSanitizeContent(): void
     {
         $page = $this->getTestObject();
@@ -178,7 +196,7 @@ class SettingsTest extends TestUtil
             [
                 'content' => [''],
             ],
-            $data
+            $data,
         );
 
         $data = [
@@ -189,10 +207,13 @@ class SettingsTest extends TestUtil
             [
                 'content' => ['test'],
             ],
-            $data
+            $data,
         );
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testSanitizeAnnotRefs(): void
     {
         $page = $this->getTestObject();
@@ -202,10 +223,13 @@ class SettingsTest extends TestUtil
             [
                 'annotrefs' => [],
             ],
-            $data
+            $data,
         );
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testSanitizeRotation(): void
     {
         $page = $this->getTestObject();
@@ -215,7 +239,7 @@ class SettingsTest extends TestUtil
             [
                 'rotation' => 0,
             ],
-            $data
+            $data,
         );
 
         $data = [
@@ -226,7 +250,7 @@ class SettingsTest extends TestUtil
             [
                 'rotation' => 0,
             ],
-            $data
+            $data,
         );
 
         $data = [
@@ -237,7 +261,7 @@ class SettingsTest extends TestUtil
             [
                 'rotation' => 0,
             ],
-            $data
+            $data,
         );
 
         $data = [
@@ -248,7 +272,7 @@ class SettingsTest extends TestUtil
             [
                 'rotation' => 90,
             ],
-            $data
+            $data,
         );
 
         $data = [
@@ -259,7 +283,7 @@ class SettingsTest extends TestUtil
             [
                 'rotation' => 180,
             ],
-            $data
+            $data,
         );
 
         $data = [
@@ -270,7 +294,7 @@ class SettingsTest extends TestUtil
             [
                 'rotation' => 270,
             ],
-            $data
+            $data,
         );
 
         $data = [
@@ -281,10 +305,13 @@ class SettingsTest extends TestUtil
             [
                 'rotation' => 360,
             ],
-            $data
+            $data,
         );
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testSanitizeZoom(): void
     {
         $page = $this->getTestObject();
@@ -294,7 +321,7 @@ class SettingsTest extends TestUtil
             [
                 'zoom' => 1,
             ],
-            $data
+            $data,
         );
 
         $data = [
@@ -305,10 +332,13 @@ class SettingsTest extends TestUtil
             [
                 'zoom' => 1.2,
             ],
-            $data
+            $data,
         );
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testSanitizeTransitions(): void
     {
         $page = $this->getTestObject();
@@ -357,6 +387,9 @@ class SettingsTest extends TestUtil
         $this->assertEquals($exp, $data);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testSanitizeMargins(): void
     {
         $page = $this->getTestObject();
@@ -424,6 +457,9 @@ class SettingsTest extends TestUtil
         $this->bcAssertEqualsWithDelta($exp, $data);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testSanitizeBoxData(): void
     {
         $page = $this->getTestObject();
@@ -716,6 +752,9 @@ class SettingsTest extends TestUtil
         $this->bcAssertEqualsWithDelta($exp, $data);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testSanitizePageFormat(): void
     {
         $page = $this->getTestObject();
@@ -777,6 +816,9 @@ class SettingsTest extends TestUtil
         $this->bcAssertEqualsWithDelta($exp, $data);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testSanitizeMarginsWithoutBookletKey(): void
     {
         $page = $this->getTestObject();
@@ -817,6 +859,9 @@ class SettingsTest extends TestUtil
         $this->bcAssertEqualsWithDelta($exp, $data);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testSanitizeMarginsBookletSwap(): void
     {
         $page = $this->getTestObject();

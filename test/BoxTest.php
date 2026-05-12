@@ -29,75 +29,73 @@ namespace Test;
  */
 class BoxTest extends TestUtil
 {
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     protected function getTestObject(): \Com\Tecnick\Pdf\Page\Page
     {
         $pdf = new \Com\Tecnick\Color\Pdf();
-        $encrypt = new \Com\Tecnick\Pdf\Encrypt\Encrypt(false);
+        $encrypt = $this->getEncryptObject();
         return new \Com\Tecnick\Pdf\Page\Page('mm', $pdf, $encrypt, false, false);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testSetBox(): void
     {
         $page = $this->getTestObject();
         $dims = $page->setBox([], 'CropBox', 2, 4, 6, 8);
-        $this->bcAssertEqualsWithDelta(
-            [
-                'CropBox' => [
-                    'llx' => 2,
-                    'lly' => 4,
-                    'urx' => 6,
-                    'ury' => 8,
-                    'bci' => [
-                        'color' => '#000000',
-                        'width' => 0.353,
-                        'style' => 'S',
-                        'dash' => [3],
-                    ],
+        $this->bcAssertEqualsWithDelta([
+            'CropBox' => [
+                'llx' => 2,
+                'lly' => 4,
+                'urx' => 6,
+                'ury' => 8,
+                'bci' => [
+                    'color' => '#000000',
+                    'width' => 0.353,
+                    'style' => 'S',
+                    'dash' => [3],
                 ],
             ],
-            $dims
-        );
+        ], $dims);
 
-        $dims = $page->setBox(
-            [],
-            'TrimBox',
-            3,
-            5,
-            7,
-            11,
-            [
-                'color' => 'aquamarine',
-                'width' => 2,
-                'style' => 'D',
-                'dash' => [2, 3, 5, 7],
-            ]
-        );
-        $this->bcAssertEqualsWithDelta(
-            [
-                'TrimBox' => [
-                    'llx' => 3,
-                    'lly' => 5,
-                    'urx' => 7,
-                    'ury' => 11,
-                    'bci' => [
-                        'color' => 'aquamarine',
-                        'width' => 2,
-                        'style' => 'D',
-                        'dash' => [2, 3, 5, 7],
-                    ],
+        $dims = $page->setBox([], 'TrimBox', 3, 5, 7, 11, [
+            'color' => 'aquamarine',
+            'width' => 2,
+            'style' => 'D',
+            'dash' => [2, 3, 5, 7],
+        ]);
+        $this->bcAssertEqualsWithDelta([
+            'TrimBox' => [
+                'llx' => 3,
+                'lly' => 5,
+                'urx' => 7,
+                'ury' => 11,
+                'bci' => [
+                    'color' => 'aquamarine',
+                    'width' => 2,
+                    'style' => 'D',
+                    'dash' => [2, 3, 5, 7],
                 ],
             ],
-            $dims
-        );
+        ], $dims);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testSetBoxEx(): void
     {
-        $this->bcExpectException('\\' . \Com\Tecnick\Pdf\Page\Exception::class);
+        $this->bcExpectException(\Com\Tecnick\Pdf\Page\Exception::class);
         $page = $this->getTestObject();
         $page->setBox([], 'ERROR', 1, 2, 3, 4);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testSwapCoordinates(): void
     {
         $page = $this->getTestObject();
@@ -119,10 +117,13 @@ class BoxTest extends TestUtil
                     'ury' => 6,
                 ],
             ],
-            $newpagedim
+            $newpagedim,
         );
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testSetPageBoxes(): void
     {
         $page = $this->getTestObject();
@@ -139,15 +140,12 @@ class BoxTest extends TestUtil
                 'dash' => [3],
             ],
         ];
-        $this->bcAssertEqualsWithDelta(
-            [
-                'MediaBox' => $exp,
-                'CropBox' => $exp,
-                'BleedBox' => $exp,
-                'TrimBox' => $exp,
-                'ArtBox' => $exp,
-            ],
-            $dims
-        );
+        $this->bcAssertEqualsWithDelta([
+            'MediaBox' => $exp,
+            'CropBox' => $exp,
+            'BleedBox' => $exp,
+            'TrimBox' => $exp,
+            'ArtBox' => $exp,
+        ], $dims);
     }
 }

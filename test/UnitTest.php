@@ -29,13 +29,19 @@ namespace Test;
  */
 class UnitTest extends TestUtil
 {
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     protected function getTestObject(): \Com\Tecnick\Pdf\Page\Page
     {
         $pdf = new \Com\Tecnick\Color\Pdf();
-        $encrypt = new \Com\Tecnick\Pdf\Encrypt\Encrypt(false);
+        $encrypt = $this->getEncryptObject();
         return new \Com\Tecnick\Pdf\Page\Page('mm', $pdf, $encrypt, false, false);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testGetPageSize(): void
     {
         $page = $this->getTestObject();
@@ -46,9 +52,12 @@ class UnitTest extends TestUtil
         $this->assertEquals(25.4, $val);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testGetPageSizeEx(): void
     {
-        $this->bcExpectException('\\' . \Com\Tecnick\Pdf\Page\Exception::class);
+        $this->bcExpectException(\Com\Tecnick\Pdf\Page\Exception::class);
         $page = $this->getTestObject();
         $page->convertPoints(1, '*ERROR*', 2);
     }

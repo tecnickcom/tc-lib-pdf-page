@@ -29,13 +29,19 @@ namespace Test;
  */
 class ModeTest extends TestUtil
 {
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     protected function getTestObject(): \Com\Tecnick\Pdf\Page\Page
     {
         $pdf = new \Com\Tecnick\Color\Pdf();
-        $encrypt = new \Com\Tecnick\Pdf\Encrypt\Encrypt(false);
+        $encrypt = $this->getEncryptObject();
         return new \Com\Tecnick\Pdf\Page\Page('mm', $pdf, $encrypt, false, false);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testGetLayout(): void
     {
         $page = $this->getTestObject();
@@ -44,6 +50,9 @@ class ModeTest extends TestUtil
         $this->assertEquals('SinglePage', $page->getLayout());
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testGetDisplay(): void
     {
         $page = $this->getTestObject();

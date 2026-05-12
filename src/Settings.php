@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * Settings.php
  *
@@ -134,7 +136,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
      */
     public function sanitizePageNumber(array &$data): void
     {
-        if (! empty($data['num'])) {
+        if (!empty($data['num'])) {
             $data['num'] = \max(0, (int) $data['num']);
         }
     }
@@ -166,14 +168,17 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
      */
     public function sanitizeContent(array &$data): void
     {
-        if (empty($data['content'])) {
+        if (!\array_key_exists('content', $data) || $data['content'] === []) {
             $data['content'] = [''];
             return;
         }
 
         if (\is_string($data['content'])) {
-            $data['content'] = [(string) $data['content']]; // @phpstan-ignore parameterByRef.type
+            $data['content'] = [$data['content']];
+            return;
         }
+
+        $data['content'] = \array_values($data['content']);
     }
 
     /**
@@ -197,7 +202,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
      */
     public function sanitizeRotation(array &$data): void
     {
-        $data['rotation'] = empty($data['rotation']) || ($data['rotation'] % 90 != 0) ? 0 : (int) $data['rotation'];
+        $data['rotation'] = empty($data['rotation']) || ($data['rotation'] % 90) !== 0 ? 0 : (int) $data['rotation'];
     }
 
     /**
@@ -224,11 +229,15 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
             return;
         }
 
+        $transition = $data['transition'];
+
         // display duration before advancing page
-        if (empty($data['transition']['Dur'])) {
-            unset($data['transition']['Dur']);
-        } else {
-            $data['transition']['Dur'] = \max(0, $data['transition']['Dur']); // @phpstan-ignore parameterByRef.type
+        if (empty($transition['Dur'])) {
+            unset($transition['Dur']);
+        }
+
+        if (!empty($transition['Dur'])) {
+            $transition['Dur'] = \max(0, $transition['Dur']);
         }
 
         // transition style
@@ -246,59 +255,93 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
             'Uncover',
             'Fade',
         ];
-        if (empty($data['transition']['S']) || ! \in_array($data['transition']['S'], $styles)) {
-            $data['transition']['S'] = 'R';  // @phpstan-ignore parameterByRef.type
+        if (empty($transition['S']) || !\in_array($transition['S'], $styles, true)) {
+            $transition['S'] = 'R';
         }
 
         // duration of the transition effect, in seconds
-        $data['transition']['D'] ??= 1; // @phpstan-ignore parameterByRef.type
+        $transition['D'] ??= 1;
 
         // dimension in which the specified transition effect shall occur
         if (
-            empty($data['transition']['Dm'])
-            || ! \in_array($data['transition']['S'], ['Split', 'Blinds'])
-            || ! \in_array($data['transition']['Dm'], ['H', 'V'])
+            empty($transition['Dm'])
+            || !\in_array($transition['S'] ?? '', ['Split', 'Blinds'], true)
+            || !\in_array($transition['Dm'], ['H', 'V'], true)
         ) {
-            unset($data['transition']['Dm']); // @phpstan-ignore parameterByRef.type
+            unset($transition['Dm']);
         }
 
         // direction of motion for the specified transition effect
         if (
-            empty($data['transition']['M'])
-            || ! \in_array($data['transition']['S'], ['Split', 'Box', 'Fly'])
-            || ! \in_array($data['transition']['M'], ['I', 'O'])
+            empty($transition['M'])
+            || !\in_array($transition['S'] ?? '', ['Split', 'Box', 'Fly'], true)
+            || !\in_array($transition['M'], ['I', 'O'], true)
         ) {
-            unset($data['transition']['M']); // @phpstan-ignore parameterByRef.type
+            unset($transition['M']);
         }
 
         // direction in which the specified transition effect shall moves
         if (
-            empty($data['transition']['Di'])
-            || ! \in_array($data['transition']['S'], ['Wipe', 'Glitter', 'Fly', 'Cover', 'Uncover', 'Push'])
-            || ! \in_array($data['transition']['Di'], ['None', 0, 90, 180, 270, 315])
-            || (\in_array($data['transition']['Di'], [90, 180]) && ($data['transition']['S'] != 'Wipe'))
-            || (($data['transition']['Di'] == 315) && ($data['transition']['S'] != 'Glitter'))
-            || (($data['transition']['Di'] == 'None') && ($data['transition']['S'] != 'Fly'))
+            empty($transition['Di'])
+            || !\in_array($transition['S'] ?? '', ['Wipe', 'Glitter', 'Fly', 'Cover', 'Uncover', 'Push'], true)
+            || !\in_array($transition['Di'], ['None', 0, 90, 180, 270, 315], true)
+            || \in_array($transition['Di'], [90, 180], true) && ($transition['S'] ?? '') !== 'Wipe'
+            || $transition['Di'] === 315 && ($transition['S'] ?? '') !== 'Glitter'
+            || $transition['Di'] === 'None' && ($transition['S'] ?? '') !== 'Fly'
         ) {
-            unset($data['transition']['Di']); // @phpstan-ignore parameterByRef.type
+            unset($transition['Di']);
         }
 
         // If true, the area that shall be flown in is rectangular and opaque
-        $data['transition']['B'] = ! empty($data['transition']['B']); // @phpstan-ignore parameterByRef.type
+        $transition['B'] = !empty($transition['B']);
+        $data['transition'] = $transition;
     }
 
     /**
      * Sanitize or set the page margins.
      *
      * @param PageInputData $data Page data.
+     * @param-out PageInputData $data
      *
      * @SuppressWarnings("PHPMD.CyclomaticComplexity")
      * @SuppressWarnings("PHPMD.NPathComplexity")
+     *
+     * @throws Exception
      */
     public function sanitizeMargins(array &$data): void
     {
-        $defmargin = [
-            'booklet' => false,
+        $defmargin = $this->getDefaultMargins();
+        $marginData = is_array($data['margin'] ?? null) ? $data['margin'] : [];
+
+        $dataWidth = $data['width'] ?? 0.0;
+        $dataHeight = $data['height'] ?? 0.0;
+        $booklet = !empty($marginData['booklet']);
+        if (empty($data['margin'])) {
+            if (empty($data['width']) || empty($data['height'])) {
+                [$data['width'], $data['height'], $data['orientation']] = $this->getPageFormatSize('A4', 'P');
+                $data['width'] /= $this->kunit;
+                $data['height'] /= $this->kunit;
+                $dataWidth = $data['width'];
+                $dataHeight = $data['height'];
+            }
+        }
+
+        $margin = $this->normalizeMargins($marginData, $defmargin, $dataWidth, $dataHeight, $booklet);
+
+        $data['margin'] = ['booklet' => $booklet] + $margin;
+
+        $data['ContentWidth'] = $dataWidth - $margin['PL'] - $margin['PR'];
+        $data['ContentHeight'] = $dataHeight - $margin['CT'] - $margin['CB'];
+        $data['HeaderHeight'] = $margin['HB'] - $margin['PT'];
+        $data['FooterHeight'] = $margin['FT'] - $margin['PB'];
+    }
+
+    /**
+     * @return MarginData
+     */
+    protected function getDefaultMargins(): array
+    {
+        return [
             'CB' => 0.0,
             'CT' => 0.0,
             'FT' => 0.0,
@@ -308,24 +351,33 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
             'PR' => 0.0,
             'PT' => 0.0,
         ];
+    }
 
-        if (empty($data['margin'])) {
-            $data['margin'] = $defmargin;
-            if (empty($data['width']) || empty($data['height'])) {
-                [$data['width'], $data['height'], $data['orientation']] = $this->getPageFormatSize('A4', 'P');
-                $data['width'] /= $this->kunit;
-                $data['height'] /= $this->kunit;
+    /**
+     * @param array<string, scalar|null> $marginData
+     * @param MarginData $defaultMargins
+     *
+     * @return MarginData
+     */
+    protected function normalizeMargins(
+        array $marginData,
+        array $defaultMargins,
+        float $dataWidth,
+        float $dataHeight,
+        bool $booklet,
+    ): array {
+        $margin = $defaultMargins;
+        foreach ($defaultMargins as $key => $default) {
+            $marginValue = $marginData[$key] ?? null;
+            if (is_scalar($marginValue)) {
+                $margin[$key] = (float) $marginValue;
+                continue;
             }
+
+            $margin[$key] = $default;
         }
 
-        if (!isset($data['margin']['booklet'])) {
-            $data['margin']['booklet'] = false;
-        }
-
-        $dataWidth = $data['width'] ?? 0;
-        $dataHeight = $data['height'] ?? 0;
-
-        $margins = [
+        $marginBounds = [
             'PL' => $dataWidth,
             'PR' => $dataWidth,
             'PT' => $dataHeight,
@@ -336,53 +388,26 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
             'PB' => $dataHeight,
         ];
 
-        foreach ($margins as $type => $max) {
-            $data['margin'][$type] = ( // @phpstan-ignore parameterByRef.type
-                empty($data['margin'][$type])
-            ) ? 0.0 : \min(\max(0.0, $data['margin'][$type]), $max);
+        foreach ($marginBounds as $type => $max) {
+            $margin[$type] = empty($margin[$type]) ? 0.0 : \min(\max(0.0, $margin[$type]), $max);
         }
 
-        if ($data['margin']['booklet'] && ($this->pid % 2 == 0)) {
+        if ($booklet && ($this->pid % 2) === 0) {
             // swap margins on odd pages
             // NOTE: $this->pid is the previous page (0 indexed).
-            $mtmp = $data['margin']['PL']; // @phpstan-ignore offsetAccess.notFound
-            $data['margin']['PL'] = $data['margin']['PR']; // @phpstan-ignore parameterByRef.type,offsetAccess.notFound
-            $data['margin']['PR'] = $mtmp; // @phpstan-ignore parameterByRef.type
+            $tmp = $margin['PL'];
+            $margin['PL'] = $margin['PR'];
+            $margin['PR'] = $tmp;
         }
 
-        $data['margin']['PR'] = \min( // @phpstan-ignore parameterByRef.type
-            $data['margin']['PR'], // @phpstan-ignore offsetAccess.notFound
-            ($dataWidth - ($data['margin']['PL'])), // @phpstan-ignore offsetAccess.notFound
-        );
-        $data['margin']['HB'] = \max( // @phpstan-ignore parameterByRef.type
-            $data['margin']['HB'], // @phpstan-ignore offsetAccess.notFound
-            $data['margin']['PT'], // @phpstan-ignore offsetAccess.notFound
-        );
-        $data['margin']['CT'] = \max( // @phpstan-ignore parameterByRef.type
-            $data['margin']['CT'], // @phpstan-ignore offsetAccess.notFound
-            $data['margin']['HB'], // @phpstan-ignore offsetAccess.notFound
-        );
-        $data['margin']['CB'] = \min( // @phpstan-ignore parameterByRef.type
-            $data['margin']['CB'], // @phpstan-ignore offsetAccess.notFound
-            ($dataHeight - ($data['margin']['CT'])) // @phpstan-ignore offsetAccess.notFound
-        );
-        $data['margin']['FT'] = \min( // @phpstan-ignore parameterByRef.type
-            $data['margin']['FT'], // @phpstan-ignore offsetAccess.notFound
-            $data['margin']['CB'], // @phpstan-ignore offsetAccess.notFound
-        );
-        $data['margin']['PB'] = \min( // @phpstan-ignore parameterByRef.type
-            $data['margin']['PB'], // @phpstan-ignore offsetAccess.notFound
-            $data['margin']['FT'], // @phpstan-ignore offsetAccess.notFound
-        );
+        $margin['PR'] = \min($margin['PR'], $dataWidth - $margin['PL']);
+        $margin['HB'] = \max($margin['HB'], $margin['PT']);
+        $margin['CT'] = \max($margin['CT'], $margin['HB']);
+        $margin['CB'] = \min($margin['CB'], $dataHeight - $margin['CT']);
+        $margin['FT'] = \min($margin['FT'], $margin['CB']);
+        $margin['PB'] = \min($margin['PB'], $margin['FT']);
 
-        $data['ContentWidth'] = ( // @phpstan-ignore parameterByRef.type
-            $dataWidth - $data['margin']['PL'] - $data['margin']['PR']); // @phpstan-ignore offsetAccess.notFound
-        $data['ContentHeight'] = ( // @phpstan-ignore parameterByRef.type
-            $dataHeight - $data['margin']['CT'] - $data['margin']['CB']);
-        $data['HeaderHeight'] = ( // @phpstan-ignore parameterByRef.type
-            $data['margin']['HB'] - $data['margin']['PT']); // @phpstan-ignore offsetAccess.notFound
-        $data['FooterHeight'] = ( // @phpstan-ignore parameterByRef.type
-            $data['margin']['FT'] - $data['margin']['PB']);
+        return $margin;
     }
 
     /**
@@ -392,16 +417,26 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
      */
     public function sanitizeRegions(array &$data): void
     {
-        if (! empty($data['columns'])) {
+        $contentWidth = (float) ($data['ContentWidth'] ?? 0);
+        $contentHeight = (float) ($data['ContentHeight'] ?? 0);
+        $pageWidth = (float) ($data['width'] ?? 0);
+        $pageHeight = (float) ($data['height'] ?? 0);
+        $marginLeft = (float) ($data['margin']['PL'] ?? 0);
+        $marginTop = (float) ($data['margin']['CT'] ?? 0);
+        $marginRight = (float) ($data['margin']['PR'] ?? 0);
+        $marginBottom = (float) ($data['margin']['CB'] ?? 0);
+
+        if (!empty($data['columns'])) {
             // set eaual columns
             $data['region'] = [];
-            $width = (($data['ContentWidth'] ?? 0) / ($data['columns'] ?? 1));
-            for ($idx = 0; $idx < $data['columns']; ++$idx) {
+            $numColumns = (int) $data['columns'];
+            $width = $contentWidth / $numColumns;
+            for ($idx = 0; $idx < $numColumns; ++$idx) {
                 $data['region'][] = [ // @phpstan-ignore parameterByRef.type
-                    'RX' => (($data['margin']['PL'] ?? 0) + ($idx * $width)),
-                    'RY' => ($data['margin']['CT'] ?? 0),
+                    'RX' => $marginLeft + ($idx * $width),
+                    'RY' => $marginTop,
                     'RW' => $width,
-                    'RH' => ($data['ContentHeight'] ?? 0),
+                    'RH' => $contentHeight,
                 ];
             }
         }
@@ -409,64 +444,76 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
         if (empty($data['region'])) {
             // default single region
             $data['region'] = [[ // @phpstan-ignore parameterByRef.type
-                'RX' => ($data['margin']['PL'] ?? 0),
-                'RY' => ($data['margin']['CT'] ?? 0),
-                'RW' => ($data['ContentWidth'] ?? 0),
-                'RH' => ($data['ContentHeight'] ?? 0),
+                'RX' => $marginLeft,
+                'RY' => $marginTop,
+                'RW' => $contentWidth,
+                'RH' => $contentHeight,
             ]];
         }
 
-        $data['columns'] = 0; // @phpstan-ignore parameterByRef.type
-        foreach ($data['region'] as $key => $val) {
-            // region width
-            $data['region'][$key]['RW'] = \min( // @phpstan-ignore parameterByRef.type
-                \max(
-                    0,
-                    ($val['RW'] ?? 0),
-                ),
-                ($data['ContentWidth'] ?? 0)
+        $regions = $data['region'] ?? [];
+        $columnCount = 0;
+        foreach ($regions as $key => $val) {
+            $regions[$key] = $this->normalizeRegionData(
+                $val,
+                $contentWidth,
+                $contentHeight,
+                $pageWidth,
+                $pageHeight,
+                $marginRight,
+                $marginBottom,
             );
-            // horizontal coordinate of the top-left corner
-            $data['region'][$key]['RX'] = \min( // @phpstan-ignore parameterByRef.type
-                \max(0, ($val['RX'] ?? 0)),
-                (($data['width'] ?? 0) - ($data['margin']['PR'] ?? 0) - ($val['RW'] ?? 0))
-            );
-            // distance of the region right side from the left page edge
-            $data['region'][$key]['RL'] = ( // @phpstan-ignore parameterByRef.type
-                ($val['RX'] ?? 0) + ($val['RW'] ?? 0));
-            // distance of the region right side from the right page edge
-            $data['region'][$key]['RR'] = ( // @phpstan-ignore parameterByRef.type
-                ($data['width'] ?? 0) - ($val['RX'] ?? 0) - ($val['RW'] ?? 0));
-            // region height
-            $data['region'][$key]['RH'] = \min( // @phpstan-ignore parameterByRef.type
-                \max(
-                    0,
-                    ($val['RH'] ?? 0)
-                ),
-                ($data['ContentHeight'] ?? 0)
-            );
-            // vertical coordinate of the top-left corner
-            $data['region'][$key]['RY'] = \min( // @phpstan-ignore parameterByRef.type
-                \max(0, ($val['RY'] ?? 0)),
-                (($data['height'] ?? 0) - ($data['margin']['CB'] ?? 0) - ($val['RH'] ?? 0))
-            );
-            // distance of the region bottom side from the top page edge
-            $data['region'][$key]['RT'] = ( // @phpstan-ignore parameterByRef.type
-                ($val['RY'] ?? 0) + ($val['RH'] ?? 0));
-            // distance of the region bottom side from the bottom page edge
-            $data['region'][$key]['RB'] = ( // @phpstan-ignore parameterByRef.type
-                ($data['height'] ?? 0) - ($val['RY'] ?? 0) - ($val['RH'] ?? 0));
-
-            // initialize cursor position inside the region
-            $data['region'][$key]['x'] = $data['region'][$key]['RX']; // @phpstan-ignore parameterByRef.type
-            $data['region'][$key]['y'] = $data['region'][$key]['RY']; // @phpstan-ignore parameterByRef.type
-
-            ++$data['columns']; // @phpstan-ignore parameterByRef.type
+            ++$columnCount;
         }
 
-        if (! isset($data['autobreak'])) {
+        $data['region'] = $regions; // @phpstan-ignore parameterByRef.type
+        $data['columns'] = $columnCount; // @phpstan-ignore parameterByRef.type
+
+        if (!\array_key_exists('autobreak', $data)) {
             $data['autobreak'] = true; // @phpstan-ignore parameterByRef.type
         }
+    }
+
+    /**
+     * @param array<string, float|int> $region
+     *
+     * @return RegionData
+     */
+    protected function normalizeRegionData(
+        array $region,
+        float $contentWidth,
+        float $contentHeight,
+        float $pageWidth,
+        float $pageHeight,
+        float $marginRight,
+        float $marginBottom,
+    ): array {
+        $regionWidth = (float) ($region['RW'] ?? 0);
+        $regionHeight = (float) ($region['RH'] ?? 0);
+        $regionX = (float) ($region['RX'] ?? 0);
+        $regionY = (float) ($region['RY'] ?? 0);
+
+        $rw = \min(\max(0.0, $regionWidth), $contentWidth);
+        $rx = \min(\max(0.0, $regionX), $pageWidth - $marginRight - $regionWidth);
+        $rl = $regionX + $regionWidth;
+        $rr = $pageWidth - $regionX - $regionWidth;
+        $rh = \min(\max(0.0, $regionHeight), $contentHeight);
+        $ry = \min(\max(0.0, $regionY), $pageHeight - $marginBottom - $regionHeight);
+        $rt = $regionY + $regionHeight;
+        $rb = $pageHeight - $regionY - $regionHeight;
+
+        return [
+            'RW' => $rw,
+            'RX' => $rx,
+            'RL' => $rl,
+            'RR' => $rr,
+            'RH' => $rh,
+            'RY' => $ry,
+            'RT' => $rt,
+            'RB' => $rb,
+            'x' => $rx,
+            'y' => $ry,
+        ];
     }
 
     /**
@@ -476,138 +523,147 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
      *
      * @SuppressWarnings("PHPMD.CyclomaticComplexity")
      * @SuppressWarnings("PHPMD.NPathComplexity")
+     *
+     * @throws Exception
      */
     public function sanitizeBoxData(array &$data): void
     {
-        if (empty($data['box'])) {
+        /** @var array<string, PageBox> $box */
+        $box = $data['box'] ?? [];
+
+        if (empty($box)) {
             if (empty($data['pwidth']) || empty($data['pheight'])) {
                 [$data['pwidth'], $data['pheight'], $data['orientation']] = $this->getPageFormatSize('A4', 'P');
             }
 
-            $data['box'] = $this->setPageBoxes(($data['pwidth'] ?? 0), ($data['pheight'] ?? 0));
-        } else {
-            if (isset($data['format']) && $data['format'] !== '' && ($data['format'] == 'MediaBox')) {
+            $box = $this->setPageBoxes($data['pwidth'] ?? 0, $data['pheight'] ?? 0);
+        }
+
+        if (!empty($box)) {
+            if (\array_key_exists('format', $data) && $data['format'] !== '' && $data['format'] === 'MediaBox') {
                 $data['format'] = '';
-                $data['width'] = \abs(
-                    ($data['box']['MediaBox']['urx'] ?? 0) - ($data['box']['MediaBox']['llx'] ?? 0)
-                ) / $this->kunit;
-                $data['height'] = \abs(
-                    ($data['box']['MediaBox']['ury'] ?? 0) - ($data['box']['MediaBox']['lly'] ?? 0)
-                ) / $this->kunit;
+                $data['width'] = \abs(($box['MediaBox']['urx'] ?? 0) - ($box['MediaBox']['llx'] ?? 0)) / $this->kunit;
+                $data['height'] = \abs(($box['MediaBox']['ury'] ?? 0) - ($box['MediaBox']['lly'] ?? 0)) / $this->kunit;
                 $this->sanitizePageFormat($data);
             }
 
-            if (empty($data['box']['MediaBox'])) {
-                $data['box'] = $this->setBox(
-                    $data['box'] ?? $this->setPageBoxes( // @phpstan-ignore argument.type
-                        ($data['pwidth'] ?? 0),
-                        ($data['pheight'] ?? 0)
-                    ),
-                    'MediaBox',
-                    0,
-                    0,
-                    ($data['pwidth'] ?? 0),
-                    ($data['pheight'] ?? 0),
-                );
+            if (empty($box['MediaBox'])) {
+                $box = $this->setBox($box, 'MediaBox', 0, 0, $data['pwidth'] ?? 0, $data['pheight'] ?? 0);
             }
 
-            if (empty($data['box']['CropBox'])) {
-                $data['box'] = $this->setBox(
-                    $data['box'], // @phpstan-ignore argument.type
-                    'CropBox',
-                    ($data['box']['MediaBox']['llx'] ?? 0),
-                    ($data['box']['MediaBox']['lly'] ?? 0),
-                    ($data['box']['MediaBox']['urx'] ?? 0),
-                    ($data['box']['MediaBox']['ury'] ?? 0),
-                );
-            }
-
-            if (empty($data['box']['BleedBox'])) {
-                $data['box'] = $this->setBox(
-                    $data['box'], // @phpstan-ignore argument.type
-                    'BleedBox',
-                    ($data['box']['CropBox']['llx'] ?? 0),
-                    ($data['box']['CropBox']['lly'] ?? 0),
-                    ($data['box']['CropBox']['urx'] ?? 0),
-                    ($data['box']['CropBox']['ury'] ?? 0),
-                );
-            }
-
-            if (empty($data['box']['TrimBox'])) {
-                $data['box'] = $this->setBox(
-                    $data['box'], // @phpstan-ignore argument.type
-                    'TrimBox',
-                    ($data['box']['CropBox']['llx'] ?? 0),
-                    ($data['box']['CropBox']['lly'] ?? 0),
-                    ($data['box']['CropBox']['urx'] ?? 0),
-                    ($data['box']['CropBox']['ury'] ?? 0),
-                );
-            }
-
-            if (empty($data['box']['ArtBox'])) {
-                $data['box'] = $this->setBox(
-                    $data['box'], // @phpstan-ignore argument.type
-                    'ArtBox',
-                    ($data['box']['CropBox']['llx'] ?? 0),
-                    ($data['box']['CropBox']['lly'] ?? 0),
-                    ($data['box']['CropBox']['urx'] ?? 0),
-                    ($data['box']['CropBox']['ury'] ?? 0),
-                );
-            }
+            $box = $this->inheritMissingBox($box, 'CropBox', 'MediaBox');
+            $box = $this->inheritMissingBox($box, 'BleedBox', 'CropBox');
+            $box = $this->inheritMissingBox($box, 'TrimBox', 'CropBox');
+            $box = $this->inheritMissingBox($box, 'ArtBox', 'CropBox');
         }
 
+        $data['box'] = $box;
+
         $orientation = $this->getPageOrientation(
-            \abs(
-                ($data['box']['MediaBox']['urx'] ?? 0) - ($data['box']['MediaBox']['llx'] ?? 0)
-            ),
-            \abs(
-                ($data['box']['MediaBox']['ury'] ?? 0) - ($data['box']['MediaBox']['lly'] ?? 0)
-            )
+            \abs(($box['MediaBox']['urx'] ?? 0) - ($box['MediaBox']['llx'] ?? 0)),
+            \abs(($box['MediaBox']['ury'] ?? 0) - ($box['MediaBox']['lly'] ?? 0)),
         );
         if (empty($data['orientation'])) {
             $data['orientation'] = $orientation;
-        } elseif ($data['orientation'] != $orientation) {
-            $data['box'] = $this->swapCoordinates($data['box']); // @phpstan-ignore argument.type
         }
+
+        if (($data['orientation'] ?? '') !== $orientation) {
+            $data['box'] = $this->swapCoordinates($box);
+        }
+    }
+
+    /**
+     * @param array<string, PageBox> $box
+     *
+     * @return array<string, PageBox>
+     *
+     * @throws Exception
+     */
+    protected function inheritMissingBox(array $box, string $targetBox, string $sourceBox): array
+    {
+        if (!empty($box[$targetBox])) {
+            return $box;
+        }
+
+        return $this->setBox(
+            $box,
+            $targetBox,
+            $box[$sourceBox]['llx'] ?? 0,
+            $box[$sourceBox]['lly'] ?? 0,
+            $box[$sourceBox]['urx'] ?? 0,
+            $box[$sourceBox]['ury'] ?? 0,
+        );
     }
 
     /**
      * Sanitize or set the page format.
      *
      * @param PageInputData $data Page data.
+     *
+     * @throws Exception
      */
     public function sanitizePageFormat(array &$data): void
+    {
+        $this->ensurePageOrientation($data);
+
+        if (!empty($data['format'])) {
+            $this->applyNamedPageFormat($data);
+        }
+
+        if (empty($data['format'])) {
+            $this->applyCustomPageFormat($data);
+        }
+
+        // convert values in points
+        $data['pwidth'] = ($data['width'] ?? 0.0) * $this->kunit;
+        $data['pheight'] = ($data['height'] ?? 0.0) * $this->kunit;
+    }
+
+    /**
+     * @param PageInputData $data
+     */
+    protected function ensurePageOrientation(array &$data): void
     {
         if (empty($data['orientation'])) {
             $data['orientation'] = '';
         }
+    }
 
-        if (! empty($data['format'])) {
-            [$data['pwidth'], $data['pheight'], $data['orientation']] = $this->getPageFormatSize(
-                $data['format'],
-                $data['orientation']
-            );
-            $data['width'] = ($data['pwidth'] / $this->kunit);
-            $data['height'] = ($data['pheight'] / $this->kunit);
-        } else {
-            $data['format'] = 'CUSTOM';
-            if (empty($data['width']) || empty($data['height'])) {
-                // default page format
-                $data['format'] = 'A4';
-                $data['orientation'] = 'P';
-                $this->sanitizePageFormat($data);
-                return;
-            }
+    /**
+     * @param PageInputData $data
+     *
+     * @throws Exception
+     */
+    protected function applyNamedPageFormat(array &$data): void
+    {
+        [$data['pwidth'], $data['pheight'], $data['orientation']] = $this->getPageFormatSize(
+            $data['format'] ?? '',
+            $data['orientation'] ?? '',
+        );
+        $data['width'] = $data['pwidth'] / $this->kunit;
+        $data['height'] = $data['pheight'] / $this->kunit;
+    }
 
-            [$data['width'], $data['height'], $data['orientation']] = $this->getPageOrientedSize(
-                $data['width'],
-                $data['height'],
-                $data['orientation']
-            );
+    /**
+     * @param PageInputData $data
+     *
+     * @throws Exception
+     */
+    protected function applyCustomPageFormat(array &$data): void
+    {
+        $data['format'] = 'CUSTOM';
+        if (empty($data['width']) || empty($data['height'])) {
+            // default page format
+            $data['format'] = 'A4';
+            $data['orientation'] = 'P';
+            $this->sanitizePageFormat($data);
+            return;
         }
 
-        // convert values in points
-        $data['pwidth'] = ($data['width'] * $this->kunit);
-        $data['pheight'] = ($data['height'] * $this->kunit);
+        [$data['width'], $data['height'], $data['orientation']] = $this->getPageOrientedSize(
+            $data['width'],
+            $data['height'],
+            $data['orientation'] ?? 'P',
+        );
     }
 }

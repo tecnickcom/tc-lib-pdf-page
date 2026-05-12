@@ -29,13 +29,19 @@ namespace Test;
  */
 class FormatTest extends TestUtil
 {
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     protected function getTestObject(): \Com\Tecnick\Pdf\Page\Page
     {
         $pdf = new \Com\Tecnick\Color\Pdf();
-        $encrypt = new \Com\Tecnick\Pdf\Encrypt\Encrypt(false);
+        $encrypt = $this->getEncryptObject();
         return new \Com\Tecnick\Pdf\Page\Page('mm', $pdf, $encrypt, false, false);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testGetPageSize(): void
     {
         $page = $this->getTestObject();
@@ -55,13 +61,19 @@ class FormatTest extends TestUtil
         $this->assertEquals([356, 216, 'L'], $dims);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testGetPageSizeEx(): void
     {
-        $this->bcExpectException('\\' . \Com\Tecnick\Pdf\Page\Exception::class);
+        $this->bcExpectException(\Com\Tecnick\Pdf\Page\Exception::class);
         $page = $this->getTestObject();
         $page->getPageFormatSize('*ERROR*');
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testGetPageOrientedSize(): void
     {
         $page = $this->getTestObject();
@@ -84,6 +96,9 @@ class FormatTest extends TestUtil
         $this->assertEquals([20, 10, 'L'], $dims);
     }
 
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testGetPageOrientation(): void
     {
         $page = $this->getTestObject();
