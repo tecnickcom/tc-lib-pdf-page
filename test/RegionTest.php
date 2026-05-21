@@ -143,4 +143,92 @@ class RegionTest extends TestUtil
         $pid = $page->getPageID();
         $this->assertEquals(0, $pid);
     }
+
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testDefensiveChecksOnMissingPageAfterForcedSanitizeId(): void
+    {
+        $pdf = new Pdf();
+        $encrypt = $this->getEncryptObject();
+        $page = new class('mm', $pdf, $encrypt, false, false) extends Page {
+            public bool $forceSanitizePageId = false;
+            public int $forcedPid = 0;
+
+            protected function sanitizePageID(int $pid = -1): int
+            {
+                if ($this->forceSanitizePageId) {
+                    return $this->forcedPid;
+                }
+
+                return parent::sanitizePageID($pid);
+            }
+        };
+        $page->add();
+        $page->forceSanitizePageId = true;
+        $page->forcedPid = 99;
+
+        try {
+            $page->getPage(99);
+            $this->fail('Expected exception was not thrown.');
+        } catch (\Com\Tecnick\Pdf\Page\Exception $e) {
+            $this->assertStringContainsString('index 99', $e->getMessage());
+        }
+
+        try {
+            $page->setPagePHeight(10, 99);
+            $this->fail('Expected exception was not thrown.');
+        } catch (\Com\Tecnick\Pdf\Page\Exception $e) {
+            $this->assertStringContainsString('index 99', $e->getMessage());
+        }
+
+        try {
+            $page->setPagePWidth(10, 99);
+            $this->fail('Expected exception was not thrown.');
+        } catch (\Com\Tecnick\Pdf\Page\Exception $e) {
+            $this->assertStringContainsString('index 99', $e->getMessage());
+        }
+
+        try {
+            $page->selectRegion(0, 99);
+            $this->fail('Expected exception was not thrown.');
+        } catch (\Com\Tecnick\Pdf\Page\Exception $e) {
+            $this->assertStringContainsString('index 99', $e->getMessage());
+        }
+
+        try {
+            $page->getNextRegion(99);
+            $this->fail('Expected exception was not thrown.');
+        } catch (\Com\Tecnick\Pdf\Page\Exception $e) {
+            $this->assertStringContainsString('index 99', $e->getMessage());
+        }
+
+        try {
+            $page->isAutoPageBreakEnabled(99);
+            $this->fail('Expected exception was not thrown.');
+        } catch (\Com\Tecnick\Pdf\Page\Exception $e) {
+            $this->assertStringContainsString('index 99', $e->getMessage());
+        }
+
+        try {
+            $page->enableAutoPageBreak(true, 99);
+            $this->fail('Expected exception was not thrown.');
+        } catch (\Com\Tecnick\Pdf\Page\Exception $e) {
+            $this->assertStringContainsString('index 99', $e->getMessage());
+        }
+
+        try {
+            $page->setX(1, 99);
+            $this->fail('Expected exception was not thrown.');
+        } catch (\Com\Tecnick\Pdf\Page\Exception $e) {
+            $this->assertStringContainsString('index 99', $e->getMessage());
+        }
+
+        try {
+            $page->setY(1, 99);
+            $this->fail('Expected exception was not thrown.');
+        } catch (\Com\Tecnick\Pdf\Page\Exception $e) {
+            $this->assertStringContainsString('index 99', $e->getMessage());
+        }
+    }
 }

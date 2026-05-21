@@ -209,6 +209,20 @@ class SettingsTest extends TestUtil
             ],
             $data,
         );
+
+        $data = [
+            'content' => [
+                2 => 'a',
+                5 => 'b',
+            ],
+        ];
+        $page->sanitizeContent($data);
+        $this->assertEquals(
+            [
+                'content' => ['a', 'b'],
+            ],
+            $data,
+        );
     }
 
     /**
