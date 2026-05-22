@@ -28,7 +28,7 @@
         "ext-date": "*",
         "ext-zlib": "*",
         "tecnickcom/tc-lib-color": "^2.7",
-        "tecnickcom/tc-lib-pdf-encrypt": "^2.4"
+        "tecnickcom/tc-lib-pdf-encrypt": "^2.5"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,

@@ -20,7 +20,7 @@ Requires:  php-zlib
 Requires:  php-composer(%{c_vendor}/tc-lib-color) < 3.0.0
 Requires:  php-composer(%{c_vendor}/tc-lib-color) >= 2.7.0
 Requires:  php-composer(%{c_vendor}/tc-lib-pdf-encrypt) < 3.0.0
-Requires:  php-composer(%{c_vendor}/tc-lib-pdf-encrypt) >= 2.4.0
+Requires:  php-composer(%{c_vendor}/tc-lib-pdf-encrypt) >= 2.5.0
 
 Provides:  php-composer(%{c_vendor}/%{gh_project}) = %{version}
 Provides:  php-%{gh_project} = %{version}
