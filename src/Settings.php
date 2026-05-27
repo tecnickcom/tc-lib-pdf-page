@@ -366,6 +366,25 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
         float $dataHeight,
         bool $booklet,
     ): array {
+        $hasCT = \array_key_exists('CT', $marginData);
+        $hasCB = \array_key_exists('CB', $marginData);
+
+        $margin = $this->getNormalizedMarginInput($marginData, $defaultMargins);
+        $margin = $this->applyMarginBounds($margin, $dataWidth, $dataHeight);
+        $margin = $this->applyBookletMarginSwap($margin, $booklet);
+        $margin = $this->applyImplicitCtCb($margin, $hasCT, $hasCB);
+
+        return $this->applyMarginConstraints($margin, $dataWidth, $dataHeight);
+    }
+
+    /**
+     * @param array<string, scalar|null> $marginData
+     * @param MarginData $defaultMargins
+     *
+     * @return MarginData
+     */
+    protected function getNormalizedMarginInput(array $marginData, array $defaultMargins): array
+    {
         $margin = $defaultMargins;
         foreach ($defaultMargins as $key => $default) {
             $marginValue = $marginData[$key] ?? null;
@@ -377,6 +396,16 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
             $margin[$key] = $default;
         }
 
+        return $margin;
+    }
+
+    /**
+     * @param MarginData $margin
+     *
+     * @return MarginData
+     */
+    protected function applyMarginBounds(array $margin, float $dataWidth, float $dataHeight): array
+    {
         $marginBounds = [
             'PL' => $dataWidth,
             'PR' => $dataWidth,
@@ -392,6 +421,16 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
             $margin[$type] = empty($margin[$type]) ? 0.0 : \min(\max(0.0, $margin[$type]), $max);
         }
 
+        return $margin;
+    }
+
+    /**
+     * @param MarginData $margin
+     *
+     * @return MarginData
+     */
+    protected function applyBookletMarginSwap(array $margin, bool $booklet): array
+    {
         if ($booklet && ($this->pid % 2) === 0) {
             // swap margins on odd pages
             // NOTE: $this->pid is the previous page (0 indexed).
@@ -400,6 +439,34 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
             $margin['PR'] = $tmp;
         }
 
+        return $margin;
+    }
+
+    /**
+     * @param MarginData $margin
+     *
+     * @return MarginData
+     */
+    protected function applyImplicitCtCb(array $margin, bool $hasCT, bool $hasCB): array
+    {
+        if (!$hasCT) {
+            $margin['CT'] = \max($margin['PT'], $margin['HB']);
+        }
+
+        if (!$hasCB && ($margin['PB'] > 0.0 || $margin['FT'] > 0.0)) {
+            $margin['CB'] = \max($margin['PB'], $margin['FT']);
+        }
+
+        return $margin;
+    }
+
+    /**
+     * @param MarginData $margin
+     *
+     * @return MarginData
+     */
+    protected function applyMarginConstraints(array $margin, float $dataWidth, float $dataHeight): array
+    {
         $margin['PR'] = \min($margin['PR'], $dataWidth - $margin['PL']);
         $margin['HB'] = \max($margin['HB'], $margin['PT']);
         $margin['CT'] = \max($margin['CT'], $margin['HB']);

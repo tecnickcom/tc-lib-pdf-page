@@ -917,4 +917,99 @@ class SettingsTest extends TestUtil
         ];
         $this->bcAssertEqualsWithDelta($exp, $data);
     }
+
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testSanitizeMarginsPartialInputPreservesBottomMargins(): void
+    {
+        $page = $this->getTestObject();
+        $data = [
+            'margin' => [
+                'PL' => 10,
+                'PR' => 12,
+                'PT' => 13,
+                'HB' => 14,
+                'FT' => 13,
+                'PB' => 11,
+            ],
+            'width' => 210,
+            'height' => 297,
+        ];
+
+        $page->sanitizeMargins($data);
+        $margin = is_array($data['margin'] ?? null) ? $data['margin'] : [];
+
+        $this->assertSame(14.0, $margin['CT'] ?? null);
+        $this->assertSame(13.0, $margin['CB'] ?? null);
+        $this->assertSame(13.0, $margin['FT'] ?? null);
+        $this->assertSame(11.0, $margin['PB'] ?? null);
+        $this->assertSame(2.0, $data['FooterHeight'] ?? null);
+    }
+
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testSanitizeMarginsExplicitCtCbRemainAuthoritative(): void
+    {
+        $page = $this->getTestObject();
+        $data = [
+            'margin' => [
+                'PL' => 10,
+                'PR' => 12,
+                'PT' => 13,
+                'HB' => 14,
+                'CT' => 15,
+                'CB' => 16,
+                'FT' => 13,
+                'PB' => 11,
+            ],
+            'width' => 210,
+            'height' => 297,
+        ];
+
+        $page->sanitizeMargins($data);
+        $margin = is_array($data['margin'] ?? null) ? $data['margin'] : [];
+
+        $this->assertSame(15.0, $margin['CT'] ?? null);
+        $this->assertSame(16.0, $margin['CB'] ?? null);
+        $this->assertSame(13.0, $margin['FT'] ?? null);
+        $this->assertSame(11.0, $margin['PB'] ?? null);
+        $this->assertSame(266.0, $data['ContentHeight'] ?? null);
+    }
+
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testSanitizeMarginsPathologicalValuesAreClampedSafely(): void
+    {
+        $page = $this->getTestObject();
+        $data = [
+            'margin' => [
+                'PL' => -3,
+                'PR' => 500,
+                'PT' => -5,
+                'HB' => 350,
+                'FT' => 500,
+                'PB' => -4,
+            ],
+            'width' => 210,
+            'height' => 297,
+        ];
+
+        $page->sanitizeMargins($data);
+        $margin = is_array($data['margin'] ?? null) ? $data['margin'] : [];
+
+        $this->assertSame(0.0, $margin['PL'] ?? null);
+        $this->assertSame(210.0, $margin['PR'] ?? null);
+        $this->assertSame(0.0, $margin['PT'] ?? null);
+        $this->assertSame(297.0, $margin['HB'] ?? null);
+        $this->assertSame(297.0, $margin['CT'] ?? null);
+        $this->assertSame(0.0, $margin['CB'] ?? null);
+        $this->assertSame(0.0, $margin['FT'] ?? null);
+        $this->assertSame(0.0, $margin['PB'] ?? null);
+        $this->assertSame(0.0, $data['ContentWidth'] ?? null);
+        $this->assertSame(0.0, $data['ContentHeight'] ?? null);
+        $this->assertGreaterThanOrEqual(0, $data['FooterHeight'] ?? 0.0);
+    }
 }
