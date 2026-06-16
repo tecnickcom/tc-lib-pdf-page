@@ -34,11 +34,20 @@ use Com\Tecnick\Pdf\Page\Exception as PageException;
  * @phpstan-import-type RegionData from \Com\Tecnick\Pdf\Page\Box
  * @phpstan-import-type PageData from \Com\Tecnick\Pdf\Page\Box
  * @phpstan-import-type PageInputData from \Com\Tecnick\Pdf\Page\Box
+ * @phpstan-import-type NoWriteArea from \Com\Tecnick\Pdf\Page\Box
  *
  * A page region defines the writable area of the page.
  */
 abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
 {
+    /**
+     * Stored no-write areas per page, used to (re)build the writable regions.
+     * Keyed by page ID.
+     *
+     * @var array<int, array{band: float, areas: array<int, NoWriteArea>}>
+     */
+    protected array $nowrite = [];
+
     /**
      * Add a new page.
      *
@@ -88,6 +97,13 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
             // clone last page data
             $data = $this->getPage($this->pmaxid);
             unset($data['time'], $data['content'], $data['annotrefs'], $data['pagenum']);
+            if (!empty($this->nowrite[$this->pmaxid]['areas'])) {
+                // No-write regions are page-specific: a cloned page (e.g. created when the text
+                // flow reaches the bottom of a no-write page with automatic page break enabled)
+                // starts with the default full-content region instead of inheriting the bands.
+                unset($data['region'], $data['columns']);
+                $this->sanitizeRegions($data);
+            }
         }
 
         if (!$cloneLastPage) {
@@ -530,5 +546,407 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
 
         $this->page[$pid]['region'][$currentRegion]['y'] = $ypos;
         return $this;
+    }
+
+    /**
+     * Build the ordered list of writable rectangular regions that avoid the given no-write areas.
+     *
+     * This approximates the legacy TCPDF no-write page regions: the content area is sliced into
+     * horizontal bands of height $bandHeight, and for each band the widest rectangle that does
+     * not overlap any no-write area is returned. Vertically-contiguous bands that share the same
+     * horizontal extent are merged, so the area above and below an obstacle collapses to a single
+     * tall region and only the obstacle span is finely banded. The result is a stack of
+     * axis-aligned rectangles ordered top-to-bottom, suitable as the 'region' value of add() or
+     * as the input of setNoWriteRegions().
+     *
+     * Each no-write area can be defined in one of two ways (page coordinates, user units):
+     *  - side-anchored segment (legacy form), where the obstacle spans from a page side to a
+     *    vertical, possibly slanted, segment:
+     *      'xt','yt' : segment top point, 'xb','yb' : segment bottom point,
+     *      'side'    : 'L' to block from the left page edge to the segment, 'R' for the right.
+     *  - free rectangle (floating obstacle, e.g. an image):
+     *      'x','y' : top-left corner, 'w' : width, 'h' : height.
+     *
+     * NOTE: the text engine fills one region before moving to the next, so when a floating area
+     * splits a band into two writable columns only the widest one is kept; text does not wrap on
+     * both sides of a floating obstacle.
+     *
+     * @param array<int, NoWriteArea> $noWriteAreas No-write areas (page coordinates, user units).
+     * @param float                   $bandHeight   Height of each horizontal slice (must be > 0).
+     * @param int                     $pid          Page index. Omit or set it to -1 for the current page.
+     *
+     * @return array<int, array{RX: float, RY: float, RW: float, RH: float}> Ordered writable regions.
+     *
+     * @throws PageException
+     */
+    public function buildWritableRegions(array $noWriteAreas, float $bandHeight, int $pid = -1): array
+    {
+        if ($bandHeight <= self::EPS) {
+            throw new PageException('The band height must be a positive value.');
+        }
+
+        $page = $this->getPage($pid);
+
+        $cx0 = $page['margin']['PL'];
+        $cy0 = $page['margin']['CT'];
+        $cx1 = $cx0 + $page['ContentWidth'];
+        $cy1 = $cy0 + $page['ContentHeight'];
+
+        $norm = $this->normalizeNoWriteAreas($noWriteAreas, $cx0, $cx1);
+
+        return $this->bandWritableRegions($norm, $cx0, $cy0, $cx1, $cy1, $bandHeight);
+    }
+
+    /**
+     * Set the no-write page regions, replacing any previously stored areas for the page.
+     * The writable regions are (re)built and assigned to the page. Mirrors the legacy
+     * setPageRegions() behaviour using rectangular regions.
+     *
+     * @param array<int, NoWriteArea> $noWriteAreas No-write areas (page coordinates, user units).
+     * @param float                   $bandHeight   Height of each horizontal slice (must be > 0).
+     * @param int                     $pid          Page index. Omit or set it to -1 for the current page.
+     *
+     * @return PageData Page data.
+     *
+     * @throws PageException
+     */
+    public function setNoWriteRegions(array $noWriteAreas, float $bandHeight, int $pid = -1): array
+    {
+        if ($bandHeight <= self::EPS) {
+            throw new PageException('The band height must be a positive value.');
+        }
+
+        $pid = $this->sanitizePageID($pid);
+        $this->nowrite[$pid] = [
+            'band' => $bandHeight,
+            'areas' => \array_values($noWriteAreas),
+        ];
+
+        return $this->applyNoWriteRegions($pid);
+    }
+
+    /**
+     * Append a single no-write area to the page and rebuild the writable regions.
+     * setNoWriteRegions() must have been called first to set the band height.
+     *
+     * @param NoWriteArea $noWriteArea No-write area (page coordinates, user units).
+     * @param int         $pid         Page index. Omit or set it to -1 for the current page.
+     *
+     * @return PageData Page data.
+     *
+     * @throws PageException
+     */
+    public function addNoWriteRegion(array $noWriteArea, int $pid = -1): array
+    {
+        $pid = $this->sanitizePageID($pid);
+        if (!isset($this->nowrite[$pid]) || $this->nowrite[$pid]['band'] <= self::EPS) {
+            throw new PageException('Call setNoWriteRegions() to set the band height before adding a region.');
+        }
+
+        $this->nowrite[$pid]['areas'][] = $noWriteArea;
+        return $this->applyNoWriteRegions($pid);
+    }
+
+    /**
+     * Return the no-write areas currently stored for the page.
+     *
+     * @param int $pid Page index. Omit or set it to -1 for the current page.
+     *
+     * @return array<int, NoWriteArea> No-write areas.
+     *
+     * @throws PageException
+     */
+    public function getNoWriteRegions(int $pid = -1): array
+    {
+        $pid = $this->sanitizePageID($pid);
+        return $this->nowrite[$pid]['areas'] ?? [];
+    }
+
+    /**
+     * Remove the no-write area with the given index and rebuild the writable regions.
+     *
+     * @param int $index Index of the no-write area to remove.
+     * @param int $pid   Page index. Omit or set it to -1 for the current page.
+     *
+     * @return PageData Page data.
+     *
+     * @throws PageException
+     */
+    public function removeNoWriteRegion(int $index, int $pid = -1): array
+    {
+        $pid = $this->sanitizePageID($pid);
+        if (!isset($this->nowrite[$pid]['areas'][$index])) {
+            throw new PageException('The no-write region with index ' . $index . ' do not exist.');
+        }
+
+        unset($this->nowrite[$pid]['areas'][$index]);
+        $this->nowrite[$pid]['areas'] = \array_values($this->nowrite[$pid]['areas']);
+        return $this->applyNoWriteRegions($pid);
+    }
+
+    /**
+     * (Re)build the writable regions for the page from its stored no-write areas and assign them.
+     *
+     * @param int $pid Page index (already sanitized).
+     *
+     * @return PageData Page data.
+     *
+     * @throws PageException
+     */
+    private function applyNoWriteRegions(int $pid): array
+    {
+        $store = $this->nowrite[$pid] ?? ['band' => 0.0, 'areas' => []];
+        $page = $this->getPage($pid);
+
+        $raw = $this->buildWritableRegions($store['areas'], $store['band'], $pid);
+
+        if ($raw === []) {
+            // Everything is blocked: fall back to the full content region so text can still flow.
+            $raw = [[
+                'RX' => $page['margin']['PL'],
+                'RY' => $page['margin']['CT'],
+                'RW' => $page['ContentWidth'],
+                'RH' => $page['ContentHeight'],
+            ]];
+        }
+
+        $regions = [];
+        foreach ($raw as $reg) {
+            $regions[] = $this->normalizeRegionData(
+                $reg,
+                $page['ContentWidth'],
+                $page['ContentHeight'],
+                $page['width'],
+                $page['height'],
+                $page['margin']['PR'],
+                $page['margin']['CB'],
+            );
+        }
+
+        $this->page[$pid]['region'] = $regions;
+        $this->page[$pid]['columns'] = \count($regions);
+        $this->page[$pid]['currentRegion'] = 0;
+
+        return $this->getPage($pid);
+    }
+
+    /**
+     * Convert the public no-write area definitions into internal occupied-edge records.
+     * Each record stores the occupied X interval as two linear functions of Y over [y0, y1]:
+     * a left edge (lt -> lb) and a right edge (rt -> rb).
+     *
+     * @param array<int, NoWriteArea> $areas No-write areas.
+     * @param float                   $cx0   Left edge of the content area.
+     * @param float                   $cx1   Right edge of the content area.
+     *
+     * @return array<int, array{y0: float, y1: float, lt: float, lb: float, rt: float, rb: float}>
+     */
+    private function normalizeNoWriteAreas(array $areas, float $cx0, float $cx1): array
+    {
+        $norm = [];
+        foreach ($areas as $area) {
+            if (isset($area['side'])) {
+                $yt = (float) ($area['yt'] ?? 0);
+                $yb = (float) ($area['yb'] ?? 0);
+                $xt = (float) ($area['xt'] ?? 0);
+                $xb = (float) ($area['xb'] ?? 0);
+                if ($yb < $yt) {
+                    [$yt, $yb] = [$yb, $yt];
+                    [$xt, $xb] = [$xb, $xt];
+                }
+
+                if (\strtoupper($area['side']) === 'L') {
+                    // Obstacle on the left: it occupies from the left content edge to the segment.
+                    $norm[] = ['y0' => $yt, 'y1' => $yb, 'lt' => $cx0, 'lb' => $cx0, 'rt' => $xt, 'rb' => $xb];
+                } else {
+                    // Obstacle on the right: it occupies from the segment to the right content edge.
+                    $norm[] = ['y0' => $yt, 'y1' => $yb, 'lt' => $xt, 'lb' => $xb, 'rt' => $cx1, 'rb' => $cx1];
+                }
+
+                continue;
+            }
+
+            $xpos = (float) ($area['x'] ?? 0);
+            $ypos = (float) ($area['y'] ?? 0);
+            $width = (float) ($area['w'] ?? 0);
+            $height = (float) ($area['h'] ?? 0);
+            $norm[] = [
+                'y0' => $ypos,
+                'y1' => $ypos + $height,
+                'lt' => $xpos,
+                'lb' => $xpos,
+                'rt' => $xpos + $width,
+                'rb' => $xpos + $width,
+            ];
+        }
+
+        return $norm;
+    }
+
+    /**
+     * Slice the content height into bands and compute the widest writable rectangle per band,
+     * merging vertically-contiguous bands that share the same horizontal extent.
+     *
+     * @param array<int, array{y0: float, y1: float, lt: float, lb: float, rt: float, rb: float}> $norm
+     * @param float $cx0        Left edge of the content area.
+     * @param float $cy0        Top edge of the content area.
+     * @param float $cx1        Right edge of the content area.
+     * @param float $cy1        Bottom edge of the content area.
+     * @param float $bandHeight Height of each horizontal slice.
+     *
+     * @return array<int, array{RX: float, RY: float, RW: float, RH: float}>
+     */
+    private function bandWritableRegions(
+        array $norm,
+        float $cx0,
+        float $cy0,
+        float $cx1,
+        float $cy1,
+        float $bandHeight,
+    ): array {
+        $regions = [];
+        /** @var array{RX: float, RY: float, RW: float, RH: float}|null $pending */
+        $pending = null;
+        $ypos = $cy0;
+        while ($ypos < ($cy1 - self::EPS)) {
+            $yTop = $ypos;
+            $yBot = \min($ypos + $bandHeight, $cy1);
+            $ypos = $yBot;
+
+            $best = $this->widestBandInterval($norm, $cx0, $cx1, $yTop, $yBot);
+            if ($best === null) {
+                // Fully blocked band: leaves a gap and breaks the vertical merge.
+                if ($pending !== null) {
+                    $regions[] = $pending;
+                    $pending = null;
+                }
+
+                continue;
+            }
+
+            $rposx = $best[0];
+            $rwidth = $best[1] - $best[0];
+            if (
+                $pending !== null
+                && \abs($pending['RX'] - $rposx) <= self::EPS
+                && \abs($pending['RW'] - $rwidth) <= self::EPS
+                && \abs($pending['RY'] + $pending['RH'] - $yTop) <= self::EPS
+            ) {
+                // Same horizontal extent and vertically contiguous: extend the pending region.
+                $pending['RH'] += $yBot - $yTop;
+                continue;
+            }
+
+            if ($pending !== null) {
+                $regions[] = $pending;
+            }
+
+            $pending = ['RX' => $rposx, 'RY' => $yTop, 'RW' => $rwidth, 'RH' => $yBot - $yTop];
+        }
+
+        if ($pending !== null) {
+            $regions[] = $pending;
+        }
+
+        return $regions;
+    }
+
+    /**
+     * Return the widest writable X interval [left, right] for a single band, or null if the band
+     * is fully blocked. The occupied span of each overlapping area is taken at its widest within
+     * the band so that no text can overlap a slanted edge.
+     *
+     * @param array<int, array{y0: float, y1: float, lt: float, lb: float, rt: float, rb: float}> $norm
+     * @param float $cx0  Left edge of the content area.
+     * @param float $cx1  Right edge of the content area.
+     * @param float $yTop Top of the band.
+     * @param float $yBot Bottom of the band.
+     *
+     * @return array{0: float, 1: float}|null
+     */
+    private function widestBandInterval(array $norm, float $cx0, float $cx1, float $yTop, float $yBot): ?array
+    {
+        $free = [[$cx0, $cx1]];
+        foreach ($norm as $nwa) {
+            $ovlTop = \max($yTop, $nwa['y0']);
+            $ovlBot = \min($yBot, $nwa['y1']);
+            if ($ovlBot <= ($ovlTop + self::EPS)) {
+                continue;
+            }
+
+            $occl = \max($cx0, \min(
+                $this->lerpEdge($nwa['lt'], $nwa['lb'], $nwa['y0'], $nwa['y1'], $ovlTop),
+                $this->lerpEdge($nwa['lt'], $nwa['lb'], $nwa['y0'], $nwa['y1'], $ovlBot),
+            ));
+            $occr = \min($cx1, \max(
+                $this->lerpEdge($nwa['rt'], $nwa['rb'], $nwa['y0'], $nwa['y1'], $ovlTop),
+                $this->lerpEdge($nwa['rt'], $nwa['rb'], $nwa['y0'], $nwa['y1'], $ovlBot),
+            ));
+            if ($occr <= ($occl + self::EPS)) {
+                continue;
+            }
+
+            $free = $this->subtractInterval($free, $occl, $occr);
+        }
+
+        $best = null;
+        foreach ($free as $interval) {
+            $fwidth = $interval[1] - $interval[0];
+            if ($fwidth <= self::EPS) {
+                continue;
+            }
+
+            if ($best === null || $fwidth > ($best[1] - $best[0])) {
+                $best = $interval;
+            }
+        }
+
+        return $best;
+    }
+
+    /**
+     * Linearly interpolate an edge X value at the vertical position $yy between (y0 -> vt) and
+     * (y1 -> vb).
+     */
+    private function lerpEdge(float $vt, float $vb, float $y0, float $y1, float $yy): float
+    {
+        $span = $y1 - $y0;
+        if ($span <= self::EPS) {
+            return $vt;
+        }
+
+        return $vt + (($vb - $vt) * (($yy - $y0) / $span));
+    }
+
+    /**
+     * Subtract the occupied interval [occl, occr] from a set of disjoint free intervals.
+     *
+     * @param array<int, array{0: float, 1: float}> $free Free intervals.
+     * @param float                                 $occl Left edge of the occupied interval.
+     * @param float                                 $occr Right edge of the occupied interval.
+     *
+     * @return array<int, array{0: float, 1: float}> Remaining free intervals.
+     */
+    private function subtractInterval(array $free, float $occl, float $occr): array
+    {
+        $out = [];
+        foreach ($free as $interval) {
+            $fleft = $interval[0];
+            $fright = $interval[1];
+            if ($occr <= ($fleft + self::EPS) || $occl >= ($fright - self::EPS)) {
+                $out[] = [$fleft, $fright];
+                continue;
+            }
+
+            if ($occl > ($fleft + self::EPS)) {
+                $out[] = [$fleft, $occl];
+            }
+
+            if ($occr < ($fright - self::EPS)) {
+                $out[] = [$occr, $fright];
+            }
+        }
+
+        return $out;
     }
 }

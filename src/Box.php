@@ -71,6 +71,18 @@ use Com\Tecnick\Pdf\Page\Exception as PageException;
  *            'y' : float,
  *        }
  *
+ * @phpstan-type NoWriteArea array{
+ *            'side'?: string,
+ *            'xt'?: float,
+ *            'yt'?: float,
+ *            'xb'?: float,
+ *            'yb'?: float,
+ *            'x'?: float,
+ *            'y'?: float,
+ *            'w'?: float,
+ *            'h'?: float,
+ *        }
+ *
  *
  * @phpstan-type TransitionData array{
  *            'B': bool,
