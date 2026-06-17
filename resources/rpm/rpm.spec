@@ -18,7 +18,7 @@ Requires:  php(language) >= 8.2.0
 Requires:  php-date
 Requires:  php-zlib
 Requires:  php-composer(%{c_vendor}/tc-lib-color) < 3.0.0
-Requires:  php-composer(%{c_vendor}/tc-lib-color) >= 2.10.0
+Requires:  php-composer(%{c_vendor}/tc-lib-color) >= 2.11.0
 Requires:  php-composer(%{c_vendor}/tc-lib-pdf-encrypt) < 3.0.0
 Requires:  php-composer(%{c_vendor}/tc-lib-pdf-encrypt) >= 2.7.0
 
