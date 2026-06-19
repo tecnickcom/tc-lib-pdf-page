@@ -110,6 +110,26 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
     protected bool $sigapp = false;
 
     /**
+     * Per-page flag indicating whether the page actually uses transparency.
+     *
+     * Maps a page index to true/false. When a page is flagged false the
+     * per-page transparency /Group is omitted (a fully-opaque page does not
+     * need it, and the group would otherwise force conforming interpreters onto
+     * the slower transparency-compositing path). Unset pages default to emitting
+     * the group, preserving backward-compatible output.
+     *
+     * @var array<int, bool>
+     */
+    protected array $pagetransparency = [];
+
+    /**
+     * Policy for emitting the per-page transparency /Group on standard pages:
+     * 'auto' (only on pages flagged as using transparency, default), 'always'
+     * (every standard page) or 'never'.
+     */
+    protected string $transparencygroupmode = 'auto';
+
+    /**
      * Reserved Object ID for the resource dictionary.
      */
     protected int $rdoid = 1;
@@ -496,7 +516,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
         if (!empty($data['columns'])) {
             // set eaual columns
             $data['region'] = [];
-            $numColumns = (int) $data['columns'];
+            $numColumns = \max(1, (int) $data['columns']);
             $width = $contentWidth / $numColumns;
             for ($idx = 0; $idx < $numColumns; ++$idx) {
                 $data['region'][] = [ // @phpstan-ignore parameterByRef.type

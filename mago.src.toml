@@ -31,6 +31,7 @@ no-boolean-flag-parameter = { enabled = false }
 no-else-clause = { enabled = false }
 no-empty = { enabled = false }
 too-many-methods = { enabled = false }
+too-many-properties = { enabled = true, threshold = 15 }
 no-isset = { enabled = true, allow-array-checks = true }
 
 [analyzer]

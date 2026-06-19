@@ -95,6 +95,64 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     }
 
     /**
+     * Record whether the given page actually uses transparency.
+     *
+     * When a page is flagged false, the per-page transparency /Group is omitted
+     * for that page in getPdfPages(). This lets the document assembler flatten
+     * fully-opaque pages (friendlier to conservative print interpreters) without
+     * affecting pages that genuinely blend. Pages never flagged keep emitting
+     * the group, preserving backward-compatible output.
+     *
+     * @param bool $hasTransparency True if the page uses actual transparency.
+     * @param int  $pid             Page index. Omit or set it to -1 for the current page ID.
+     *
+     * @throws PageException
+     */
+    public function setPageTransparency(bool $hasTransparency = true, int $pid = -1): static
+    {
+        $pid = $this->sanitizePageID($pid);
+        $this->pagetransparency[$pid] = $hasTransparency;
+        return $this;
+    }
+
+    /**
+     * Set the policy for emitting the per-page transparency /Group on standard
+     * (non PDF/A) pages.
+     *
+     * - 'auto'   : opt-out policy (default). The group is emitted on every
+     *              standard page except those explicitly flagged as opaque via
+     *              setPageTransparency(false, $pid). There is no automatic
+     *              transparency detection, so pages that are never flagged keep
+     *              emitting the group, preserving backward-compatible output.
+     * - 'always' : emit the group on every standard page (legacy behaviour).
+     * - 'never'  : never emit the group.
+     *
+     * The mode is matched case-insensitively and unknown values are treated as 'auto'.
+     *
+     * @param string $mode One of 'auto', 'always', 'never'.
+     */
+    public function setPageTransparencyGroupMode(string $mode): static
+    {
+        $this->transparencygroupmode = \strtolower($mode);
+        return $this;
+    }
+
+    /**
+     * Whether the per-page transparency /Group must be emitted for a page,
+     * according to the configured mode and the page's recorded transparency.
+     *
+     * @param int $pid Page index.
+     */
+    protected function emitPageTransparencyGroup(int $pid): bool
+    {
+        return match ($this->transparencygroupmode) {
+            'always' => true,
+            'never' => false,
+            default => $this->pagetransparency[$pid] ?? true,
+        };
+    }
+
+    /**
      * Remove the specified page.
      *
      * @param int $pid page index. Omit or set it to -1 for the current page ID.
@@ -115,7 +173,42 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
 
         unset($this->page[$pid]);
         $this->page = \array_values($this->page); // reindex array
+
+        // Keep the per-page side maps aligned with the reindexed page stack:
+        // drop the deleted entry and shift the entries above it down by one.
+        $transparency = [];
+        foreach ($this->pagetransparency as $idx => $flag) {
+            if ($idx === $pid) {
+                continue;
+            }
+
+            $transparency[$idx > $pid ? $idx - 1 : $idx] = $flag;
+        }
+
+        $this->pagetransparency = $transparency;
+
+        $nowrite = [];
+        foreach ($this->nowrite as $idx => $area) {
+            if ($idx === $pid) {
+                continue;
+            }
+
+            $nowrite[$idx > $pid ? $idx - 1 : $idx] = $area;
+        }
+
+        $this->nowrite = $nowrite;
+
         --$this->pmaxid;
+
+        // Keep the current-page pointer valid and tracking the same page where possible.
+        if ($this->pid > $pid) {
+            --$this->pid;
+        }
+
+        if ($this->pid > $this->pmaxid) {
+            $this->pid = $this->pmaxid;
+        }
+
         return $page;
     }
 
@@ -142,7 +235,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     public function move(int $from, int $new): void
     {
         $page = $this->page[$from] ?? null;
-        if ($from <= $new || $from > $this->pmaxid || !is_array($page)) {
+        if ($from <= $new || $new < 0 || $from > $this->pmaxid || !is_array($page)) {
             throw new PageException('The new position must be lower than the starting position');
         }
 
@@ -153,6 +246,46 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
 
         /** @var array<int, PageData> $pages */
         $this->page = $pages;
+
+        // Keep the per-page side maps and the current-page pointer aligned with
+        // the reordered page stack.
+        $transparency = [];
+        foreach ($this->pagetransparency as $idx => $flag) {
+            $transparency[$this->movedIndex($idx, $from, $new)] = $flag;
+        }
+
+        $this->pagetransparency = $transparency;
+
+        $nowrite = [];
+        foreach ($this->nowrite as $idx => $area) {
+            $nowrite[$this->movedIndex($idx, $from, $new)] = $area;
+        }
+
+        $this->nowrite = $nowrite;
+
+        $this->pid = $this->movedIndex($this->pid, $from, $new);
+    }
+
+    /**
+     * Compute the new index of a page after move($from, $new) is applied.
+     *
+     * @param int $idx  Original page index.
+     * @param int $from Index of the moved page.
+     * @param int $new  Destination index.
+     *
+     * @return int The index the page occupies after the move.
+     */
+    private function movedIndex(int $idx, int $from, int $new): int
+    {
+        if ($idx === $from) {
+            return $new;
+        }
+
+        if ($idx >= $new && $idx < $from) {
+            return $idx + 1;
+        }
+
+        return $idx;
     }
 
     /**
@@ -307,7 +440,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
                 . $this->rootoid
                 . ' 0 R'
                 . "\n";
-            if (!$this->pdfa) {
+            if (!$this->pdfa && $this->emitPageTransparencyGroup($num)) {
                 $out .= '/Group << /Type /Group /S /Transparency /CS /DeviceRGB >>' . "\n";
             }
 

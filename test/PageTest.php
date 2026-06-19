@@ -30,6 +30,11 @@ namespace Test;
 class PageTest extends TestUtil
 {
     /**
+     * PDF marker for the per-page transparency group.
+     */
+    private const TRANSPARENCY_GROUP = '/Group << /Type /Group /S /Transparency /CS /DeviceRGB >>';
+
+    /**
      * @throws \Com\Tecnick\Pdf\Page\Exception
      */
     protected function getTestObject(): \Com\Tecnick\Pdf\Page\Page
@@ -37,6 +42,16 @@ class PageTest extends TestUtil
         $pdf = new \Com\Tecnick\Color\Pdf();
         $encrypt = $this->getEncryptObject();
         return new \Com\Tecnick\Pdf\Page\Page('mm', $pdf, $encrypt, false, true, false);
+    }
+
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    protected function getPdfaTestObject(): \Com\Tecnick\Pdf\Page\Page
+    {
+        $pdf = new \Com\Tecnick\Color\Pdf();
+        $encrypt = $this->getEncryptObject();
+        return new \Com\Tecnick\Pdf\Page\Page('mm', $pdf, $encrypt, true, true, false);
     }
 
     /**
@@ -446,5 +461,243 @@ class PageTest extends TestUtil
         $testObj->popContentToLastMark();
         $page = $testObj->getPage();
         $this->assertEmpty($page['content']);
+    }
+
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testSetPageTransparencyReturnsStatic(): void
+    {
+        $page = $this->getTestObject();
+        $page->add();
+        $this->assertSame($page, $page->setPageTransparency(true, 0));
+        $this->assertSame($page, $page->setPageTransparency(false, 0));
+        // -1 targets the current page, mirroring the rest of the page API.
+        $this->assertSame($page, $page->setPageTransparency(false, -1));
+    }
+
+    /**
+     * setPageTransparency() validates the page index like every other
+     * page-targeting method.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testSetPageTransparencyInvalidPageThrows(): void
+    {
+        $this->bcExpectException(\Com\Tecnick\Pdf\Page\Exception::class);
+        $page = $this->getTestObject();
+        $page->add();
+        $page->setPageTransparency(false, 99);
+    }
+
+    /**
+     * The transparency mode is matched case-insensitively.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     * @throws \Com\Tecnick\Pdf\Encrypt\Exception
+     */
+    public function testSetPageTransparencyGroupModeIsCaseInsensitive(): void
+    {
+        $page = $this->getTestObject();
+        $page->add();
+        $page->add();
+        $page->setPageTransparency(true, 0);
+        $page->setPageTransparencyGroupMode('NEVER');
+
+        $pon = 0;
+        $out = $page->getPdfPages($pon);
+        $this->assertStringNotContainsString(self::TRANSPARENCY_GROUP, $out);
+    }
+
+    /**
+     * Per-page transparency flags stay aligned with the page they were set on
+     * after a page is deleted and the stack is reindexed.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     * @throws \Com\Tecnick\Pdf\Encrypt\Exception
+     */
+    public function testSetPageTransparencyFollowsPageAfterDelete(): void
+    {
+        $page = $this->getTestObject();
+        $page->add(); // 0
+        $page->add(); // 1
+        $page->add(); // 2
+        // Flag the last page opaque, then remove the first page so it becomes index 1.
+        $page->setPageTransparency(false, 2);
+        $page->delete(0);
+
+        $pon = 0;
+        $out = $page->getPdfPages($pon);
+        // Two pages remain; the opaque flag must still suppress exactly one group.
+        $this->assertEquals(1, substr_count($out, self::TRANSPARENCY_GROUP));
+    }
+
+    /**
+     * Deleting a page keeps the current-page pointer valid.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testDeleteKeepsCurrentPageValid(): void
+    {
+        $page = $this->getTestObject();
+        $page->add(); // 0
+        $page->add(); // 1
+        $page->add(); // 2 (current)
+        $page->delete(0);
+
+        // The current-page pointer must stay within the reindexed stack so that
+        // getPage() resolves instead of throwing "page ... do not exist".
+        $this->assertGreaterThanOrEqual(0, $page->getPageID());
+        $this->assertLessThanOrEqual(1, $page->getPageID());
+        $current = $page->getPage();
+        $this->assertArrayHasKey('time', $current);
+    }
+
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testSetPageTransparencyGroupModeReturnsStatic(): void
+    {
+        $page = $this->getTestObject();
+        $this->assertSame($page, $page->setPageTransparencyGroupMode('auto'));
+    }
+
+    /**
+     * By default (auto mode) pages that are never flagged keep emitting the
+     * transparency group, preserving backward-compatible output.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     * @throws \Com\Tecnick\Pdf\Encrypt\Exception
+     */
+    public function testGetPdfPagesTransparencyAutoDefault(): void
+    {
+        $page = $this->getTestObject();
+        $page->add();
+        $page->add();
+
+        $pon = 0;
+        $out = $page->getPdfPages($pon);
+        $this->assertEquals(2, substr_count($out, self::TRANSPARENCY_GROUP));
+    }
+
+    /**
+     * In auto mode, a page flagged as not using transparency omits the group,
+     * while unflagged pages keep emitting it.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     * @throws \Com\Tecnick\Pdf\Encrypt\Exception
+     */
+    public function testGetPdfPagesTransparencyAutoFlaggedFalse(): void
+    {
+        $page = $this->getTestObject();
+        $page->add();
+        $page->add();
+        $page->setPageTransparency(false, 0);
+
+        $pon = 0;
+        $out = $page->getPdfPages($pon);
+        // page 0 omits the group, page 1 (unflagged) keeps it.
+        $this->assertEquals(1, substr_count($out, self::TRANSPARENCY_GROUP));
+    }
+
+    /**
+     * In auto mode, a page explicitly flagged as using transparency emits the
+     * group.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     * @throws \Com\Tecnick\Pdf\Encrypt\Exception
+     */
+    public function testGetPdfPagesTransparencyAutoFlaggedTrue(): void
+    {
+        $page = $this->getTestObject();
+        $page->add();
+        $page->add();
+        $page->setPageTransparency(false, 0);
+        $page->setPageTransparency(true, 1);
+
+        $pon = 0;
+        $out = $page->getPdfPages($pon);
+        $this->assertEquals(1, substr_count($out, self::TRANSPARENCY_GROUP));
+    }
+
+    /**
+     * The 'always' mode emits the group on every standard page, even those
+     * flagged as not using transparency.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     * @throws \Com\Tecnick\Pdf\Encrypt\Exception
+     */
+    public function testGetPdfPagesTransparencyAlways(): void
+    {
+        $page = $this->getTestObject();
+        $page->add();
+        $page->add();
+        $page->setPageTransparency(false, 0);
+        $page->setPageTransparency(false, 1);
+        $page->setPageTransparencyGroupMode('always');
+
+        $pon = 0;
+        $out = $page->getPdfPages($pon);
+        $this->assertEquals(2, substr_count($out, self::TRANSPARENCY_GROUP));
+    }
+
+    /**
+     * The 'never' mode never emits the group, even on pages flagged as using
+     * transparency.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     * @throws \Com\Tecnick\Pdf\Encrypt\Exception
+     */
+    public function testGetPdfPagesTransparencyNever(): void
+    {
+        $page = $this->getTestObject();
+        $page->add();
+        $page->add();
+        $page->setPageTransparency(true, 0);
+        $page->setPageTransparencyGroupMode('never');
+
+        $pon = 0;
+        $out = $page->getPdfPages($pon);
+        $this->assertStringNotContainsString(self::TRANSPARENCY_GROUP, $out);
+    }
+
+    /**
+     * Unknown modes are treated as 'auto'.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     * @throws \Com\Tecnick\Pdf\Encrypt\Exception
+     */
+    public function testGetPdfPagesTransparencyUnknownModeIsAuto(): void
+    {
+        $page = $this->getTestObject();
+        $page->add();
+        $page->add();
+        $page->setPageTransparency(false, 0);
+        $page->setPageTransparencyGroupMode('bogus');
+
+        $pon = 0;
+        $out = $page->getPdfPages($pon);
+        // behaves like auto: page 0 omits, page 1 keeps the group.
+        $this->assertEquals(1, substr_count($out, self::TRANSPARENCY_GROUP));
+    }
+
+    /**
+     * PDF/A documents never emit the transparency group, regardless of the
+     * configured mode or per-page flags.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     * @throws \Com\Tecnick\Pdf\Encrypt\Exception
+     */
+    public function testGetPdfPagesTransparencyPdfa(): void
+    {
+        $page = $this->getPdfaTestObject();
+        $page->add();
+        $page->add();
+        $page->setPageTransparency(true, 0);
+        $page->setPageTransparencyGroupMode('always');
+
+        $pon = 0;
+        $out = $page->getPdfPages($pon);
+        $this->assertStringNotContainsString(self::TRANSPARENCY_GROUP, $out);
     }
 }

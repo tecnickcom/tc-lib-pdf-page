@@ -282,11 +282,6 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
         float $ury,
         ?array $bci = null,
     ): array {
-        if ($dims === []) {
-            // initialize array
-            $dims = [];
-        }
-
         if (!\in_array($type, self::BOX, true)) {
             throw new PageException('unknown page box type: ' . $type);
         }
