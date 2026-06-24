@@ -700,4 +700,128 @@ class PageTest extends TestUtil
         $out = $page->getPdfPages($pon);
         $this->assertStringNotContainsString(self::TRANSPARENCY_GROUP, $out);
     }
+
+    /**
+     * Numeric transition entries (/D, /Di, /SS) must be emitted as PDF numbers,
+     * not as name objects, while name entries (/S) stay names.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     * @throws \Com\Tecnick\Pdf\Encrypt\Exception
+     */
+    public function testGetPdfPagesTransitionNumericEntries(): void
+    {
+        $page = $this->getTestObject();
+        $page->add([
+            'transition' => [
+                'Dur' => 2,
+                'D' => 3,
+                'S' => 'Glitter',
+                'Di' => 315,
+                'SS' => 1.3,
+                'B' => true,
+            ],
+        ]);
+        $page->addContent('TEST');
+
+        $pon = 0;
+        $out = $page->getPdfPages($pon);
+
+        $this->bcAssertStringContainsString('/D 3' . "\n", $out);
+        $this->bcAssertStringContainsString('/Di 315' . "\n", $out);
+        $this->bcAssertStringContainsString('/SS 1.300000' . "\n", $out);
+        $this->bcAssertStringContainsString('/S /Glitter' . "\n", $out);
+        $this->bcAssertStringContainsString('/B true' . "\n", $out);
+
+        // Regression guard: numeric keys must not be rendered as name objects.
+        $this->assertStringNotContainsString('/D /3', $out);
+        $this->assertStringNotContainsString('/Di /315', $out);
+        $this->assertStringNotContainsString('/SS /', $out);
+    }
+
+    /**
+     * The /Di direction may legitimately be the name /None (Fly transitions).
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     * @throws \Com\Tecnick\Pdf\Encrypt\Exception
+     */
+    public function testGetPdfPagesTransitionDiNoneIsName(): void
+    {
+        $page = $this->getTestObject();
+        $page->add([
+            'transition' => [
+                'S' => 'Fly',
+                'Di' => 'None',
+                'SS' => 0.5,
+            ],
+        ]);
+        $page->addContent('TEST');
+
+        $pon = 0;
+        $out = $page->getPdfPages($pon);
+
+        $this->bcAssertStringContainsString('/S /Fly' . "\n", $out);
+        $this->bcAssertStringContainsString('/Di /None' . "\n", $out);
+        $this->bcAssertStringContainsString('/SS 0.500000' . "\n", $out);
+    }
+
+    /**
+     * delete() reindexes the stack, so the embedded 'pid' of every remaining page
+     * must keep matching its array index.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testDeleteReindexesPageIds(): void
+    {
+        $page = $this->getTestObject();
+        $page->add();
+        $page->add();
+        $page->add();
+        $page->delete(0);
+
+        foreach ($page->getPages() as $idx => $data) {
+            $this->assertSame($idx, $data['pid']);
+        }
+    }
+
+    /**
+     * move() reindexes the stack, so the embedded 'pid' of every page must keep
+     * matching its array index.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testMoveReindexesPageIds(): void
+    {
+        $page = $this->getTestObject();
+        $page->add();
+        $page->add();
+        $page->add();
+        $page->add();
+        $page->move(3, 0);
+
+        foreach ($page->getPages() as $idx => $data) {
+            $this->assertSame($idx, $data['pid']);
+        }
+    }
+
+    /**
+     * getNextPage() must decide auto-break based on the queried page, not the
+     * current-page pointer when they differ.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testGetNextPageUsesQueriedPageAutoBreak(): void
+    {
+        $page = $this->getTestObject();
+        $page->add();
+        $page->add();
+        $page->enableAutoPageBreak(true, 0);
+        $page->enableAutoPageBreak(false, 1);
+
+        // Current pointer is page 0 (auto-break on), but page 1 (auto-break off)
+        // is queried: no new page must be appended.
+        $page->setCurrentPage(0);
+        $page->getNextRegion(1);
+
+        $this->assertCount(2, $page->getPages());
+    }
 }

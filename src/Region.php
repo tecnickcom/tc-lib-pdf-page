@@ -206,7 +206,7 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
             throw new PageException('The page with index ' . $pid . ' do not exist.');
         }
 
-        $ret = $this->page[$pid]['pheight'] ?? 0.0;
+        $ret = $this->page[$pid]['pheight'];
         $this->page[$pid]['pheight'] = $pheight;
         $this->page[$pid]['height'] = $pheight / $this->kunit;
         return $ret;
@@ -229,7 +229,7 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
             throw new PageException('The page with index ' . $pid . ' do not exist.');
         }
 
-        $ret = $this->page[$pid]['pwidth'] ?? 0.0;
+        $ret = $this->page[$pid]['pwidth'];
         $this->page[$pid]['pwidth'] = $pwidth;
         $this->page[$pid]['width'] = $pwidth / $this->kunit;
         return $ret;
@@ -274,8 +274,9 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
             throw new PageException('The page with index ' . $pid . ' do not exist.');
         }
 
-        $columns = (int) ($this->page[$pid]['columns'] ?? 0);
-        $this->page[$pid]['currentRegion'] = \min(\max(0, $idr), $columns);
+        $columns = (int) $this->page[$pid]['columns'];
+        // 'columns' is the region count, so the last valid index is columns - 1.
+        $this->page[$pid]['currentRegion'] = \min(\max(0, $idr), \max(0, $columns - 1));
         return $this->getRegion($pid);
     }
 
@@ -298,12 +299,7 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
             throw new PageException('The current region with index ' . $currentRegion . ' do not exist.');
         }
 
-        $region = $regions[$currentRegion] ?? null;
-        if ($region === null) {
-            throw new PageException('The current region with index ' . $currentRegion . ' do not exist.');
-        }
-
-        return $region;
+        return $regions[$currentRegion];
     }
 
     /**
@@ -324,7 +320,7 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
             return $this->getPage($this->pid);
         }
 
-        if (!$this->isAutoPageBreakEnabled()) {
+        if (!$this->isAutoPageBreakEnabled($pid)) {
             return $this->setCurrentPage($pid);
         }
 
@@ -349,8 +345,8 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
             throw new PageException('The page with index ' . $pid . ' do not exist.');
         }
 
-        $nextid = (int) ($this->page[$pid]['currentRegion'] ?? 0) + 1;
-        if (\array_key_exists($nextid, $this->page[$pid]['region'] ?? [])) {
+        $nextid = (int) $this->page[$pid]['currentRegion'] + 1;
+        if (\array_key_exists($nextid, $this->page[$pid]['region'])) {
             $this->page[$pid]['currentRegion'] = $nextid;
             return $this->getPage($pid);
         }
@@ -394,7 +390,7 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
             throw new PageException('The page with index ' . $pid . ' do not exist.');
         }
 
-        return $this->page[$pid]['autobreak'] ?? false;
+        return $this->page[$pid]['autobreak'];
     }
 
     /**
@@ -515,8 +511,8 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
             throw new PageException('The page with index ' . $pid . ' do not exist.');
         }
 
-        $currentRegion = (int) ($this->page[$pid]['currentRegion'] ?? 0);
-        if (!\array_key_exists($currentRegion, $this->page[$pid]['region'] ?? [])) {
+        $currentRegion = (int) $this->page[$pid]['currentRegion'];
+        if (!\array_key_exists($currentRegion, $this->page[$pid]['region'])) {
             throw new PageException('The current region with index ' . $currentRegion . ' do not exist.');
         }
 
@@ -539,8 +535,8 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
             throw new PageException('The page with index ' . $pid . ' do not exist.');
         }
 
-        $currentRegion = (int) ($this->page[$pid]['currentRegion'] ?? 0);
-        if (!\array_key_exists($currentRegion, $this->page[$pid]['region'] ?? [])) {
+        $currentRegion = (int) $this->page[$pid]['currentRegion'];
+        if (!\array_key_exists($currentRegion, $this->page[$pid]['region'])) {
             throw new PageException('The current region with index ' . $currentRegion . ' do not exist.');
         }
 

@@ -173,6 +173,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
 
         unset($this->page[$pid]);
         $this->page = \array_values($this->page); // reindex array
+        $this->reindexPageIds();
 
         // Keep the per-page side maps aligned with the reindexed page stack:
         // drop the deleted entry and shift the entries above it down by one.
@@ -246,6 +247,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
 
         /** @var array<int, PageData> $pages */
         $this->page = $pages;
+        $this->reindexPageIds();
 
         // Keep the per-page side maps and the current-page pointer aligned with
         // the reordered page stack.
@@ -286,6 +288,20 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
         }
 
         return $idx;
+    }
+
+    /**
+     * Re-sync the embedded 'pid' field of every page with its index in the stack.
+     *
+     * The page stack is reindexed with array_values() after a delete or move, so the
+     * 'pid' stored inside each page (set once at add() time) would otherwise drift out
+     * of sync with the array key callers use to address the page.
+     */
+    private function reindexPageIds(): void
+    {
+        foreach (\array_keys($this->page) as $idx) {
+            $this->page[$idx]['pid'] = $idx;
+        }
     }
 
     /**
@@ -554,6 +570,10 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
         /** @var array<string, bool|int|float|string> $transition */
 
         $entries = ['B', 'D', 'Di', 'Dm', 'M', 'S', 'SS'];
+        // Entries that are PDF name objects. Everything else among $entries is a
+        // number (/D, /SS, numeric /Di) or a boolean (/B). /Di may also be the
+        // name /None, which is handled explicitly below.
+        $nameKeys = ['S', 'Dm', 'M'];
         $out = '';
         $out .= \sprintf('/Dur %F' . "\n", (float) ($transition['Dur'] ?? 0.0));
 
@@ -563,16 +583,22 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
                 continue;
             }
 
-            if (\is_float($val)) {
-                $val = \sprintf('%F', $val);
-            }
-
             if (\is_bool($val)) {
                 $out .= '/' . $key . ' ' . ($val ? 'true' : 'false') . "\n";
                 continue;
             }
 
-            $out .= '/' . $key . ' /' . (string) $val . "\n";
+            if (\in_array($key, $nameKeys, strict: true) || $val === 'None') {
+                $out .= '/' . $key . ' /' . (string) $val . "\n";
+                continue;
+            }
+
+            if (\is_float($val)) {
+                $out .= \sprintf('/%s %F' . "\n", $key, $val);
+                continue;
+            }
+
+            $out .= \sprintf('/%s %d' . "\n", $key, (int) $val);
         }
 
         return $out . '>>' . "\n";

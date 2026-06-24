@@ -27,8 +27,8 @@
         "php": ">=8.2",
         "ext-date": "*",
         "ext-zlib": "*",
-        "tecnickcom/tc-lib-color": "^2.11",
-        "tecnickcom/tc-lib-pdf-encrypt": "^2.7"
+        "tecnickcom/tc-lib-color": "^2.12",
+        "tecnickcom/tc-lib-pdf-encrypt": "^2.8"
     },
     "minimum-stability": "stable",
     "prefer-stable": true,

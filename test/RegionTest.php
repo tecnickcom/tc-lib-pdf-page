@@ -485,4 +485,27 @@ class RegionTest extends TestUtil
             $this->assertStringContainsString('index 99', $e->getMessage());
         }
     }
+
+    /**
+     * An out-of-range region index must clamp to the nearest valid region instead
+     * of selecting a non-existent index (which previously threw).
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testSelectRegionClampsOutOfRangeIndex(): void
+    {
+        $page = $this->getTestObject();
+        $page->add([
+            'columns' => 3,
+        ]);
+
+        // Index beyond the last region (valid: 0..2) clamps to the last region.
+        $res = $page->selectRegion(99);
+        $this->bcAssertEqualsWithDelta(2, $page->getPage()['currentRegion']);
+        $this->bcAssertEqualsWithDelta($res, $page->getRegion());
+
+        // Negative index clamps to the first region.
+        $page->selectRegion(-5);
+        $this->bcAssertEqualsWithDelta(0, $page->getPage()['currentRegion']);
+    }
 }

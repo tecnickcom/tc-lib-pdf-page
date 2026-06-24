@@ -244,10 +244,10 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
                 continue;
             }
 
-            $llx = $dims[$type]['llx'] ?? 0.0;
-            $lly = $dims[$type]['lly'] ?? 0.0;
-            $urx = $dims[$type]['urx'] ?? 0.0;
-            $ury = $dims[$type]['ury'] ?? 0.0;
+            $llx = $dims[$type]['llx'];
+            $lly = $dims[$type]['lly'];
+            $urx = $dims[$type]['urx'];
+            $ury = $dims[$type]['ury'];
 
             $dims[$type]['llx'] = $lly;
             $dims[$type]['lly'] = $llx;

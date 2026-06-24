@@ -232,7 +232,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
      */
     public function sanitizeZoom(array &$data): void
     {
-        $data['zoom'] = empty($data['zoom']) ? 1 : $data['zoom']; // @phpstan-ignore parameterByRef.type
+        $data['zoom'] = empty($data['zoom']) ? 1.0 : $data['zoom'];
     }
 
     /**
