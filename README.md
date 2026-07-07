@@ -47,7 +47,7 @@ It provides the structural model that document builders use to define media boxe
 ## Requirements
 
 - PHP 8.2 or later
-- Extensions: `date`, `zlib`
+- Extension: `zlib`
 - Composer
 
 ---
