@@ -48,7 +48,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     /**
      * Initialize page data.
      *
-     * @param string  $unit     Unit of measure ('pt', 'mm', 'cm', 'in').
+     * @param string|Unit $unit  Unit of measure ('pt', 'mm', 'cm', 'in') or a Unit enum case.
      * @param Color   $color    Color object.
      * @param Encrypt $encrypt  Encrypt object.
      * @param bool    $pdfa     True if we are in PDF/A mode.
@@ -58,7 +58,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      * @throws PageException
      */
     public function __construct(
-        string $unit,
+        string|Unit $unit,
         Color $color,
         Encrypt $encrypt,
         bool $pdfa = false,
@@ -129,10 +129,14 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      *
      * The mode is matched case-insensitively and unknown values are treated as 'auto'.
      *
-     * @param string $mode One of 'auto', 'always', 'never'.
+     * @param string|TransparencyGroupMode $mode One of 'auto', 'always', 'never', or a TransparencyGroupMode case.
      */
-    public function setPageTransparencyGroupMode(string $mode): static
+    public function setPageTransparencyGroupMode(string|TransparencyGroupMode $mode): static
     {
+        if ($mode instanceof TransparencyGroupMode) {
+            $mode = $mode->value;
+        }
+
         $this->transparencygroupmode = \strtolower($mode);
         return $this;
     }

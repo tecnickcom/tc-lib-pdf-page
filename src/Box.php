@@ -262,7 +262,7 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
      * Set page boundaries.
      *
      * @param array<string, PageBox> $dims Array of page dimensions to modify.
-     * @param string                 $type Box type: MediaBox, CropBox, BleedBox, TrimBox, ArtBox.
+     * @param string|PageBoxType     $type Box type: MediaBox, CropBox, BleedBox, TrimBox, ArtBox, or enum case.
      * @param float                  $llx  Lower-left x coordinate in user units.
      * @param float                  $lly  Lower-left y coordinate in user units.
      * @param float                  $urx  Upper-right x coordinate in user units.
@@ -275,13 +275,17 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
      */
     public function setBox(
         array $dims,
-        string $type,
+        string|PageBoxType $type,
         float $llx,
         float $lly,
         float $urx,
         float $ury,
         ?array $bci = null,
     ): array {
+        if ($type instanceof PageBoxType) {
+            $type = $type->value;
+        }
+
         if (!\in_array($type, self::BOX, true)) {
             throw new PageException('unknown page box type: ' . $type);
         }
