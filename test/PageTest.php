@@ -824,4 +824,34 @@ class PageTest extends TestUtil
 
         $this->assertCount(2, $page->getPages());
     }
+
+    /**
+     * /LastModified must be encrypted with the key of the page object that carries it.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     * @throws \Com\Tecnick\Pdf\Encrypt\Exception
+     */
+    public function testLastModifiedIsEncryptedWithThePageObjectNumber(): void
+    {
+        $encrypt = new \Com\Tecnick\Pdf\Encrypt\Encrypt(true, md5('file_id'), 3, ['print']);
+        $page = new \Com\Tecnick\Pdf\Page\Page('mm', new \Com\Tecnick\Color\Pdf(), $encrypt, false, true, false);
+        $page->add();
+
+        $pon = 0;
+        $out = $page->getPdfPages($pon);
+
+        $matches = [];
+        $this->assertSame(1, preg_match(
+            '/(\d+) 0 obj\n<<\n\/Type \/Page\n.*?\/LastModified \((.*?)\)\n/s',
+            $out,
+            $matches,
+        ));
+
+        $decrypt = new \Com\Tecnick\Pdf\Encrypt\Decrypt($encrypt->getEncryptionData());
+        $this->assertTrue($decrypt->authenticate(''));
+        $this->assertStringStartsWith('D:', $decrypt->decryptString(
+            stripcslashes($matches[2] ?? ''),
+            (int) ($matches[1] ?? 0),
+        ));
+    }
 }

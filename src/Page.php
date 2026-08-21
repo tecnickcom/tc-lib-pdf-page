@@ -465,7 +465,8 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
             }
 
             if (!$this->sigapp) {
-                $out .= '/LastModified ' . $this->enc->getFormattedDate($page['time'], $pon) . "\n";
+                // The string is encrypted with the key of the page object that carries it.
+                $out .= '/LastModified ' . $this->enc->getFormattedDate($page['time'], $page['n']) . "\n";
             }
 
             [$boxdims, $boxinfo] = $this->getPageBoxData($page);
