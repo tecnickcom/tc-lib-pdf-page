@@ -12,7 +12,7 @@
 # ----------------------------------------------------------------------------------------------------------------------
 
 SHELL=/bin/bash
-.SHELLFLAGS=-o pipefail -c
+.SHELLFLAGS=-e -o pipefail -c
 
 # Project owner
 OWNER=tecnickcom
@@ -80,9 +80,6 @@ ifeq ($(shell uname -s),Darwin)
 	SEDINPLACE=-i ''
 endif
 
-# Default port number for the example server
-PORT?=8000
-
 # PHP binary
 PHP=$(shell which php)
 
@@ -91,9 +88,6 @@ COMPOSER=$(PHP) -d "apc.enable_cli=0" $(shell which composer)
 
 # phpDocumentor executable file
 PHPDOC=$(shell which phpDocumentor)
-
-# Mago version
-MAGOVERSION=1.46.0
 
 # --- MAKE TARGETS ---
 
@@ -166,7 +160,6 @@ endif
 deps: ensuretarget
 	rm -rf ./vendor/*
 	($(COMPOSER) install -vvv --no-interaction)
-	curl --proto '=https' --tlsv1.2 --silent --show-error --fail --location https://carthage.software/mago.sh | bash -s -- --install-dir=./vendor/bin --version=$(MAGOVERSION)
 
 ## Generate source code documentation
 .PHONY: doc
@@ -225,7 +218,6 @@ qa: ensuretarget lint test report
 .PHONY: report
 report: ensuretarget
 	./vendor/bin/pdepend --jdepend-xml="$(TARGETDIR)/report/dependencies.xml" --summary-xml="$(TARGETDIR)/report/metrics.xml" --jdepend-chart="$(TARGETDIR)/report/dependecies.svg" --overview-pyramid="$(TARGETDIR)/report/overview-pyramid.svg" --ignore=vendor ./src
-	#./vendor/bartlett/php-compatinfo/bin/phpcompatinfo --no-ansi analyser:run src/ > $(TARGETDIR)/report/phpcompatinfo.txt
 
 ## Build the RPM package for RedHat-like Linux distributions
 .PHONY: rpm
@@ -249,11 +241,6 @@ rpm:
 	--define "_configpath /$(CONFIGPATH)" \
 	-bb resources/rpm/rpm.spec
 
-## Start the development server
-.PHONY: server
-server:
-	$(PHP) -t example -S localhost:$(PORT)
-
 ## Tag this GIT version
 .PHONY: tag
 tag:
@@ -264,7 +251,7 @@ tag:
 
 ## Run unit tests
 .PHONY: test
-test:
+test: ensuretarget
 	cp phpunit.xml.dist phpunit.xml
 	#./vendor/bin/phpunit --migrate-configuration || true
 	XDEBUG_MODE=coverage ./vendor/bin/phpunit --stderr test
