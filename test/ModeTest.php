@@ -17,7 +17,7 @@
 namespace Test;
 
 /**
- * Mode Test
+ * Mode class test
  *
  * @since     2011-05-23
  * @category  Library
@@ -57,7 +57,9 @@ class ModeTest extends TestUtil
     {
         $page = $this->getTestObject();
         $this->assertEquals('UseThumbs', $page->getDisplay('usethumbs'));
-        $this->assertEquals('UseAttachments', $page->getDisplay(''));
+        $this->assertEquals('UseAttachments', $page->getDisplay('useattachments'));
+        $this->assertEquals('UseNone', $page->getDisplay(''));
+        $this->assertEquals('UseNone', $page->getDisplay());
         $this->assertEquals('UseNone', $page->getDisplay('something'));
     }
 }

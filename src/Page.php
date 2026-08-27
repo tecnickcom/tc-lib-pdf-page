@@ -48,12 +48,12 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     /**
      * Initialize page data.
      *
-     * @param string|Unit $unit  Unit of measure ('pt', 'mm', 'cm', 'in') or a Unit enum case.
-     * @param Color   $color    Color object.
-     * @param Encrypt $encrypt  Encrypt object.
-     * @param bool    $pdfa     True if we are in PDF/A mode.
-     * @param bool    $compress Set to false to disable stream compression.
-     * @param bool    $sigapp   True if the signature approval is enabled (for incremental updates).
+     * @param string|Unit $unit     Unit of measure ('pt', 'mm', 'cm', 'in') or a Unit enum case.
+     * @param Color       $color    Color object.
+     * @param Encrypt     $encrypt  Encrypt object.
+     * @param bool        $pdfa     True if we are in PDF/A mode.
+     * @param bool        $compress Set to false to disable stream compression.
+     * @param bool        $sigapp   True if the signature approval is enabled (for incremental updates).
      *
      * @throws PageException
      */
@@ -95,16 +95,13 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     }
 
     /**
-     * Record whether the given page actually uses transparency.
+     * Record whether the given page uses transparency.
      *
-     * When a page is flagged false, the per-page transparency /Group is omitted
-     * for that page in getPdfPages(). This lets the document assembler flatten
-     * fully-opaque pages (friendlier to conservative print interpreters) without
-     * affecting pages that genuinely blend. Pages never flagged keep emitting
-     * the group, preserving backward-compatible output.
+     * In 'auto' mode a page flagged false omits the per-page transparency
+     * /Group; unflagged pages emit it.
      *
      * @param bool $hasTransparency True if the page uses actual transparency.
-     * @param int  $pid             Page index. Omit or set it to -1 for the current page ID.
+     * @param int  $pid             Page index. Omit or set it to -1 for the current page.
      *
      * @throws PageException
      */
@@ -119,12 +116,9 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      * Set the policy for emitting the per-page transparency /Group on standard
      * (non PDF/A) pages.
      *
-     * - 'auto'   : opt-out policy (default). The group is emitted on every
-     *              standard page except those explicitly flagged as opaque via
-     *              setPageTransparency(false, $pid). There is no automatic
-     *              transparency detection, so pages that are never flagged keep
-     *              emitting the group, preserving backward-compatible output.
-     * - 'always' : emit the group on every standard page (legacy behaviour).
+     * - 'auto'   : (default) emit the group on every standard page except those
+     *              flagged as opaque via setPageTransparency(false, $pid).
+     * - 'always' : emit the group on every standard page.
      * - 'never'  : never emit the group.
      *
      * The mode is matched case-insensitively and unknown values are treated as 'auto'.
@@ -159,7 +153,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     /**
      * Remove the specified page.
      *
-     * @param int $pid page index. Omit or set it to -1 for the current page ID.
+     * @param int $pid Page index. Omit or set it to -1 for the current page.
      *
      * @return PageData Removed page.
      *
@@ -179,8 +173,8 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
         $this->page = \array_values($this->page); // reindex array
         $this->reindexPageIds();
 
-        // Keep the per-page side maps aligned with the reindexed page stack:
-        // drop the deleted entry and shift the entries above it down by one.
+        // Realign the per-page maps with the reindexed page stack: drop the
+        // deleted entry and shift the entries above it down by one.
         $transparency = [];
         foreach ($this->pagetransparency as $idx => $flag) {
             if ($idx === $pid) {
@@ -205,7 +199,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
 
         --$this->pmaxid;
 
-        // Keep the current-page pointer valid and tracking the same page where possible.
+        // Keep the current-page pointer on the same page, within the new bounds.
         if ($this->pid > $pid) {
             --$this->pid;
         }
@@ -253,8 +247,8 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
         $this->page = $pages;
         $this->reindexPageIds();
 
-        // Keep the per-page side maps and the current-page pointer aligned with
-        // the reordered page stack.
+        // Realign the per-page maps and the current-page pointer with the
+        // reordered page stack.
         $transparency = [];
         foreach ($this->pagetransparency as $idx => $flag) {
             $transparency[$this->movedIndex($idx, $from, $new)] = $flag;
@@ -296,10 +290,6 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
 
     /**
      * Re-sync the embedded 'pid' field of every page with its index in the stack.
-     *
-     * The page stack is reindexed with array_values() after a delete or move, so the
-     * 'pid' stored inside each page (set once at add() time) would otherwise drift out
-     * of sync with the array key callers use to address the page.
      */
     private function reindexPageIds(): void
     {
@@ -322,7 +312,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      * Add Annotation references.
      *
      * @param int $oid Annotation object IDs.
-     * @param int $pid page index. Omit or set it to -1 for the current page ID.
+     * @param int $pid Page index. Omit or set it to -1 for the current page.
      *
      * @throws PageException
      */
@@ -343,7 +333,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      * Add page content.
      *
      * @param string $content Page content.
-     * @param int    $pid     Page index. Omit or set it to -1 for the current page ID.
+     * @param int    $pid     Page index. Omit or set it to -1 for the current page.
      *
      * @throws PageException
      */
@@ -359,7 +349,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     /**
      * Remove and return last page content.
      *
-     * @param int $pid page index. Omit or set it to -1 for the current page ID.
+     * @param int $pid Page index. Omit or set it to -1 for the current page.
      *
      * @throws PageException
      */
@@ -385,7 +375,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     /**
      * Add page content mark.
      *
-     * @param int $pid page index. Omit or set it to -1 for the current page ID.
+     * @param int $pid Page index. Omit or set it to -1 for the current page.
      *
      * @throws PageException
      */
@@ -405,7 +395,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     /**
      * Remove the last marked page content.
      *
-     * @param int $pid page index. Omit or set it to -1 for the current page ID.
+     * @param int $pid Page index. Omit or set it to -1 for the current page.
      *
      * @throws PageException
      */
@@ -420,9 +410,14 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
 
         $contentMark = $this->page[$pid]['content_mark'] ?? [0];
 
-        $mark = \array_pop($contentMark);
+        $mark = (int) (\array_pop($contentMark) ?? 0);
+        if ($contentMark === []) {
+            // The base mark set by add() marks the start of the page and is never popped.
+            $contentMark = [0];
+        }
+
         $this->page[$pid]['content_mark'] = $contentMark;
-        $this->page[$pid]['content'] = \array_slice($pageContent, 0, (int) ($mark ?? 0), true);
+        $this->page[$pid]['content'] = \array_slice($pageContent, 0, $mark, true);
     }
 
     /**
@@ -438,10 +433,10 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     {
         $out = $this->getPageRootObj($pon);
         foreach ($this->page as $num => $page) {
-            if (!array_key_exists('num', $page)) {
-                $page['num'] = $this->getPageNumInGroup($num, $page);
-            }
-
+            // 'num' is derived from the position of the page in its group and is
+            // recomputed here; a caller-supplied override lives in 'pagenum'.
+            $pagenum = $page['pagenum'];
+            $page['num'] = $pagenum > 0 ? $pagenum : $this->getPageNumInGroup($num, $page);
             $this->page[$num]['num'] = $page['num'];
 
             $content = $this->replacePageTemplates($page);
@@ -495,8 +490,10 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     }
 
     /**
+     * Returns the page number of a page within its group.
+     *
      * @param int $num Page index.
-     * @param PageData $page
+     * @param PageData $page Page data.
      */
     protected function getPageNumInGroup(int $num, array $page): int
     {
@@ -514,7 +511,9 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     }
 
     /**
-     * @param PageData $page
+     * Split the page boxes into coordinates and BoxColorInfo entries.
+     *
+     * @param PageData $page Page data.
      *
      * @return array{0: array<string, array{llx: float, lly: float, urx: float, ury: float}>, 1: array<string, array{bci: PageBci}>}
      */
@@ -559,7 +558,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     }
 
     /**
-     * Returns the PDF command to output the page content.
+     * Returns the PDF command to output the page transition.
      *
      * @param array<string, mixed> $page Page data.
      *
@@ -575,12 +574,16 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
         /** @var array<string, bool|int|float|string> $transition */
 
         $entries = ['B', 'D', 'Di', 'Dm', 'M', 'S', 'SS'];
-        // Entries that are PDF name objects. Everything else among $entries is a
-        // number (/D, /SS, numeric /Di) or a boolean (/B). /Di may also be the
-        // name /None, which is handled explicitly below.
+        // Entries emitted as PDF name objects. The others are numbers (/D, /SS,
+        // numeric /Di) or a boolean (/B). /Di may also be the name /None.
         $nameKeys = ['S', 'Dm', 'M'];
         $out = '';
-        $out .= \sprintf('/Dur %F' . "\n", (float) ($transition['Dur'] ?? 0.0));
+        // /Dur makes the reader auto-advance the page in full-screen mode: it is
+        // emitted only for a positive display duration.
+        $duration = (float) ($transition['Dur'] ?? 0.0);
+        if ($duration > 0.0) {
+            $out .= \sprintf('/Dur %F' . "\n", $duration);
+        }
 
         $out .= '/Trans <<' . "\n" . '/Type /Trans' . "\n";
         foreach ($transition as $key => $val) {
@@ -645,10 +648,11 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     {
         $out = ++$pon . ' 0 obj' . "\n" . '<<';
         if ($this->compress) {
-            $out .= ' /Filter /FlateDecode';
             $cmpr = \gzcompress($content);
             if ($cmpr !== false) {
+                // The filter is declared only when the data is deflated.
                 $content = $cmpr;
+                $out .= ' /Filter /FlateDecode';
             }
         }
 

@@ -17,7 +17,7 @@
 namespace Test;
 
 /**
- * Page Test
+ * Page class test
  *
  * @since     2011-05-23
  * @category  Library
@@ -79,7 +79,7 @@ class PageTest extends TestUtil
     public function testAdd(): void
     {
         $page = $this->getTestObject();
-        // 1
+        // page 1
         $res = $page->add();
 
         $box = [
@@ -151,19 +151,22 @@ class PageTest extends TestUtil
                 0 => 0,
             ],
             'autobreak' => true,
+            'pagenum' => 0,
+            'num' => 0,
+            'n' => 0,
         ];
 
         unset($res['time']);
         $exp['pid'] = 0;
         $this->bcAssertEqualsWithDelta($exp, $res);
 
-        // 2
+        // page 2
         $res = $page->add();
         unset($res['time']);
         $exp['pid'] = 1;
         $this->bcAssertEqualsWithDelta($exp, $res);
 
-        // 3
+        // page 3
         $res = $page->add([
             'group' => 1,
         ]);
@@ -172,7 +175,7 @@ class PageTest extends TestUtil
         $exp['group'] = 1;
         $this->bcAssertEqualsWithDelta($exp, $res);
 
-        // 3
+        // page 4
         $res = $page->add([
             'columns' => 2,
         ]);
@@ -344,6 +347,35 @@ class PageTest extends TestUtil
         $page = $testObj->getPage();
         $this->assertEquals([0], $page['content_mark']);
         $this->assertEquals(['', 'Lorem', 'ipsum'], $page['content']);
+    }
+
+    /**
+     * The base mark seeded by add() marks the start of the page and must survive
+     * every pop, so the mark stack never underflows.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testPopContentToLastMarkKeepsTheBaseMark(): void
+    {
+        $testObj = $this->getTestObject();
+        $testObj->add();
+        $testObj->addContent('Lorem');
+        $testObj->addContent('ipsum');
+
+        $testObj->popContentToLastMark();
+        $page = $testObj->getPage();
+        $this->assertEquals([0], $page['content_mark']);
+        $this->assertEmpty($page['content']);
+
+        // The stack is still usable: a new mark can be pushed and popped again.
+        $testObj->addContent('dolor');
+        $testObj->addContentMark();
+        $testObj->addContent('sit');
+
+        $testObj->popContentToLastMark();
+        $page = $testObj->getPage();
+        $this->assertEquals([0], $page['content_mark']);
+        $this->assertEquals(['dolor'], $page['content']);
     }
 
     /**
@@ -563,8 +595,7 @@ class PageTest extends TestUtil
     }
 
     /**
-     * By default (auto mode) pages that are never flagged keep emitting the
-     * transparency group, preserving backward-compatible output.
+     * In auto mode, pages that are never flagged emit the transparency group.
      *
      * @throws \Com\Tecnick\Pdf\Page\Exception
      * @throws \Com\Tecnick\Pdf\Encrypt\Exception
@@ -715,8 +746,8 @@ class PageTest extends TestUtil
             'transition' => [
                 'Dur' => 2,
                 'D' => 3,
-                'S' => 'Glitter',
-                'Di' => 315,
+                'S' => 'Fly',
+                'Di' => 270,
                 'SS' => 1.3,
                 'B' => true,
             ],
@@ -727,15 +758,44 @@ class PageTest extends TestUtil
         $out = $page->getPdfPages($pon);
 
         $this->bcAssertStringContainsString('/D 3' . "\n", $out);
-        $this->bcAssertStringContainsString('/Di 315' . "\n", $out);
+        $this->bcAssertStringContainsString('/Di 270' . "\n", $out);
         $this->bcAssertStringContainsString('/SS 1.300000' . "\n", $out);
-        $this->bcAssertStringContainsString('/S /Glitter' . "\n", $out);
+        $this->bcAssertStringContainsString('/S /Fly' . "\n", $out);
         $this->bcAssertStringContainsString('/B true' . "\n", $out);
 
-        // Regression guard: numeric keys must not be rendered as name objects.
+        // The numeric keys are not rendered as name objects.
         $this->assertStringNotContainsString('/D /3', $out);
-        $this->assertStringNotContainsString('/Di /315', $out);
+        $this->assertStringNotContainsString('/Di /270', $out);
         $this->assertStringNotContainsString('/SS /', $out);
+    }
+
+    /**
+     * A page built from a partially-filled box must still emit complete /MediaBox
+     * and /BoxColorInfo entries, without reading any missing key.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     * @throws \Com\Tecnick\Pdf\Encrypt\Exception
+     */
+    public function testGetPdfPagesWithPartialBoxData(): void
+    {
+        $page = $this->getTestObject();
+        $page->add([
+            'format' => 'MediaBox',
+            'box' => [
+                'MediaBox' => [
+                    'urx' => 800.0,
+                    'ury' => 400.0,
+                ],
+            ],
+        ]);
+        $page->addContent('TEST');
+
+        $pon = 0;
+        $out = $page->getPdfPages($pon);
+
+        $this->bcAssertStringContainsString('/MediaBox [0.000000 0.000000 800.000000 400.000000]', $out);
+        $this->assertSame(5, \substr_count($out, '/C [0.000000 0.000000 0.000000]' . "\n"));
+        $this->assertStringNotContainsString('<<' . "\n" . '>>', $out);
     }
 
     /**
@@ -853,5 +913,206 @@ class PageTest extends TestUtil
             stripcslashes($matches[2] ?? ''),
             (int) ($matches[1] ?? 0),
         ));
+    }
+
+    /**
+     * A content stream declaring /FlateDecode must carry deflated data.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     * @throws \Com\Tecnick\Pdf\Encrypt\Exception
+     */
+    public function testContentStreamFilterMatchesTheStreamData(): void
+    {
+        $page = $this->getTestObject();
+        $page->add();
+        $page->addContent('TEST CONTENT');
+
+        $pon = 0;
+        $out = $page->getPdfPages($pon);
+
+        $matches = [];
+        $this->assertSame(1, preg_match(
+            '/<< \/Filter \/FlateDecode \/Length (\d+) >>\nstream\n(.*)\nendstream/s',
+            $out,
+            $matches,
+        ));
+        $this->assertSame((int) ($matches[1] ?? 0), strlen($matches[2] ?? ''));
+        $this->assertSame("\nTEST CONTENT", gzuncompress($matches[2] ?? ''));
+    }
+
+    /**
+     * /Dur makes a conforming reader auto-advance the page, so it must be emitted
+     * only when a positive display duration was requested.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     * @throws \Com\Tecnick\Pdf\Encrypt\Exception
+     */
+    public function testGetPdfPagesTransitionOmitsUnsetDuration(): void
+    {
+        $page = $this->getTestObject();
+        $page->add([
+            'transition' => [
+                'S' => 'Fade',
+            ],
+        ]);
+
+        $pon = 0;
+        $out = $page->getPdfPages($pon);
+
+        $this->bcAssertStringContainsString('/S /Fade' . "\n", $out);
+        $this->assertStringNotContainsString('/Dur', $out);
+
+        $page = $this->getTestObject();
+        $page->add([
+            'transition' => [
+                'S' => 'Fade',
+                'Dur' => 2.5,
+            ],
+        ]);
+
+        $pon = 0;
+        $this->bcAssertStringContainsString('/Dur 2.500000' . "\n", $page->getPdfPages($pon));
+    }
+
+    /**
+     * The page number is derived from the position of the page in its group, so it
+     * must be recomputed after the stack is reordered or a page is cloned.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     * @throws \Com\Tecnick\Pdf\Encrypt\Exception
+     */
+    public function testPageNumberIsRecomputedAfterStackChanges(): void
+    {
+        $page = $this->getTestObject();
+        $page->add();
+        $page->add();
+        $page->add();
+
+        $pon = 0;
+        $page->getPdfPages($pon);
+        $this->assertSame([1, 2, 3], array_column($page->getPages(), 'num'));
+
+        // A cloned page must not reuse the number of the page it was cloned from.
+        $page->add();
+        $pon = 0;
+        $page->getPdfPages($pon);
+        $this->assertSame([1, 2, 3, 4], array_column($page->getPages(), 'num'));
+
+        $page->move(3, 0);
+        $pon = 0;
+        $page->getPdfPages($pon);
+        $this->assertSame([1, 2, 3, 4], array_column($page->getPages(), 'num'));
+
+        $page->delete(0);
+        $pon = 0;
+        $page->getPdfPages($pon);
+        $this->assertSame([1, 2, 3], array_column($page->getPages(), 'num'));
+    }
+
+    /**
+     * A caller-supplied page number survives the recomputation.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     * @throws \Com\Tecnick\Pdf\Encrypt\Exception
+     */
+    public function testExplicitPageNumberOverridesTheComputedOne(): void
+    {
+        $page = $this->getTestObject();
+        $page->add([
+            'num' => 7,
+        ]);
+        $page->addContent(\Com\Tecnick\Pdf\Page\Settings::PAGE_NUM);
+
+        $pon = 0;
+        $page->getPdfPages($pon);
+        $this->assertSame(7, $page->getPage(0)['num']);
+
+        // A page cloned from it gets its own number, continuing the group sequence.
+        $page->add();
+        $pon = 0;
+        $page->getPdfPages($pon);
+        $this->assertSame([7, 8], array_column($page->getPages(), 'num'));
+    }
+
+    /**
+     * /SS and /B belong to the Fly style only, and /SS must be greater than 0.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     * @throws \Com\Tecnick\Pdf\Encrypt\Exception
+     */
+    public function testGetPdfPagesTransitionFlyOnlyEntries(): void
+    {
+        $page = $this->getTestObject();
+        $page->add([
+            'transition' => [
+                'S' => 'Wipe',
+                'SS' => 3.0,
+                'B' => true,
+            ],
+        ]);
+        $page->add([
+            'transition' => [
+                'S' => 'Fly',
+                'Di' => 'None',
+                'SS' => -2.5,
+            ],
+        ]);
+
+        $pon = 0;
+        $out = $page->getPdfPages($pon);
+
+        $this->bcAssertStringContainsString('/S /Wipe' . "\n", $out);
+        $this->bcAssertStringContainsString('/S /Fly' . "\n", $out);
+        $this->assertStringNotContainsString('/SS', $out);
+        $this->assertSame(1, \substr_count($out, '/B '));
+    }
+
+    /**
+     * Every entry the PageData shape declares is present from the moment the page is
+     * created, so a caller reading a page through it never hits a missing key.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testAddSeedsDeclaredPageDataKeys(): void
+    {
+        $page = $this->getTestObject();
+        $data = $page->add([
+            'format' => 'A4',
+        ]);
+
+        $declared = [
+            'annotrefs',
+            'autobreak',
+            'box',
+            'columns',
+            'content',
+            'content_mark',
+            'ContentHeight',
+            'ContentWidth',
+            'currentRegion',
+            'FooterHeight',
+            'format',
+            'group',
+            'HeaderHeight',
+            'height',
+            'margin',
+            'n',
+            'num',
+            'orientation',
+            'pagenum',
+            'pheight',
+            'pid',
+            'pwidth',
+            'region',
+            'rotation',
+            'time',
+            'width',
+            'zoom',
+        ];
+
+        $this->assertSame([], \array_values(\array_diff($declared, \array_keys($data))));
+        $this->assertSame([], \array_values(\array_diff(\array_keys($data), $declared)));
+        $this->assertSame(0, $data['n']);
+        $this->assertArrayHasKey('booklet', $data['margin']);
     }
 }

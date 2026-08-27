@@ -58,10 +58,11 @@ class PageDisplayModeTest extends TestUtil
         $this->assertSame(PageDisplayMode::UseOC, PageDisplayMode::fromLoose('USEOC'));
     }
 
-    public function testFromLooseEmptyMapsToUseAttachments(): void
+    public function testFromLooseEmptyMapsToUseNone(): void
     {
-        // Preserves the legacy Mode::DISPLAY quirk: '' maps to UseAttachments.
-        $this->assertSame(PageDisplayMode::UseAttachments, PageDisplayMode::fromLoose(''));
+        // UseNone is the PDF default for /PageMode.
+        $this->assertSame(PageDisplayMode::UseNone, PageDisplayMode::fromLoose(''));
+        $this->assertSame(PageDisplayMode::UseAttachments, PageDisplayMode::fromLoose('useattachments'));
     }
 
     public function testFromLooseUnknownFallsBackToUseNone(): void
@@ -82,7 +83,7 @@ class PageDisplayModeTest extends TestUtil
     }
 
     /**
-     * The widened getDisplay() accepts a PageDisplayMode enum.
+     * getDisplay() accepts a PageDisplayMode enum.
      *
      * @throws \Com\Tecnick\Pdf\Page\Exception
      */

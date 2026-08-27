@@ -79,7 +79,7 @@ class TransparencyGroupModeTest extends TestUtil
     }
 
     /**
-     * The widened setter accepts a TransparencyGroupMode enum and stays chainable.
+     * setPageTransparencyGroupMode() accepts a TransparencyGroupMode enum and is chainable.
      *
      * @throws \Com\Tecnick\Pdf\Page\Exception
      */

@@ -57,7 +57,7 @@ class OrientationTest extends TestUtil
 
     public function testFromLooseFallsBackToAuto(): void
     {
-        // Matching legacy behavior: only exact 'P'/'L' select an orientation.
+        // Only the exact values 'P' and 'L' select an orientation.
         $this->assertSame(Orientation::Auto, Orientation::fromLoose('p'));
         $this->assertSame(Orientation::Auto, Orientation::fromLoose('portrait'));
         $this->assertSame(Orientation::Auto, Orientation::fromLoose('X'));
@@ -76,7 +76,7 @@ class OrientationTest extends TestUtil
     }
 
     /**
-     * The widened getPageOrientedSize() accepts an Orientation enum.
+     * getPageOrientedSize() accepts an Orientation enum.
      *
      * @throws \Com\Tecnick\Pdf\Page\Exception
      */

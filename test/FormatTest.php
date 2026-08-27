@@ -17,7 +17,7 @@
 namespace Test;
 
 /**
- * Format Test
+ * Format class test
  *
  * @since     2011-05-23
  * @category  Library

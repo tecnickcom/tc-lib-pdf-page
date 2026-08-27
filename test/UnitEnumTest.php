@@ -103,7 +103,7 @@ class UnitEnumTest extends TestUtil
     }
 
     /**
-     * The widened getUnitRatio()/convertPoints() accept a Unit enum.
+     * getUnitRatio() and convertPoints() accept a Unit enum.
      *
      * @throws \Com\Tecnick\Pdf\Page\Exception
      */

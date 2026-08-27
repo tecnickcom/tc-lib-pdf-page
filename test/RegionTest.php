@@ -20,7 +20,7 @@ use Com\Tecnick\Color\Pdf;
 use Com\Tecnick\Pdf\Page\Page;
 
 /**
- * Page Test
+ * Region class test
  *
  * @since     2011-05-23
  * @category  Library
@@ -487,8 +487,7 @@ class RegionTest extends TestUtil
     }
 
     /**
-     * An out-of-range region index must clamp to the nearest valid region instead
-     * of selecting a non-existent index (which previously threw).
+     * An out-of-range region index clamps to the nearest valid region.
      *
      * @throws \Com\Tecnick\Pdf\Page\Exception
      */
@@ -507,5 +506,399 @@ class RegionTest extends TestUtil
         // Negative index clamps to the first region.
         $page->selectRegion(-5);
         $this->bcAssertEqualsWithDelta(0, $page->getPage()['currentRegion']);
+    }
+
+    /**
+     * A cloned page is a fresh page: its region cursors must start at the region
+     * origin instead of inheriting the write position of the source page.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testClonedPageResetsRegionCursors(): void
+    {
+        $page = $this->getTestObject();
+        $page->add([
+            'format' => 'A4',
+            'margin' => [
+                'PL' => 10,
+                'PR' => 10,
+                'PT' => 10,
+                'PB' => 10,
+            ],
+        ]);
+        $page->setX(120.0)->setY(250.0);
+
+        $res = $page->add();
+        $region = $res['region'][0] ?? [];
+
+        $this->bcAssertEqualsWithDelta($region['RX'] ?? null, $region['x'] ?? null);
+        $this->bcAssertEqualsWithDelta($region['RY'] ?? null, $region['y'] ?? null);
+        $this->bcAssertEqualsWithDelta(10, $page->getX());
+        $this->bcAssertEqualsWithDelta(10, $page->getY());
+    }
+
+    /**
+     * Booklet margins alternate on every page, including the pages created by
+     * cloning (the path taken by the automatic page break).
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testClonedBookletPageMirrorsMargins(): void
+    {
+        $page = $this->getTestObject();
+        $page->add([
+            'format' => 'A4',
+            'margin' => [
+                'booklet' => true,
+                'PL' => 30,
+                'PR' => 10,
+                'PT' => 10,
+                'PB' => 10,
+            ],
+        ]);
+
+        $second = $page->add();
+        $this->bcAssertEqualsWithDelta(10, $second['margin']['PL']);
+        $this->bcAssertEqualsWithDelta(30, $second['margin']['PR']);
+        $this->bcAssertEqualsWithDelta(10, ($second['region'][0] ?? [])['RX'] ?? null);
+
+        $third = $page->add();
+        $this->bcAssertEqualsWithDelta(30, $third['margin']['PL']);
+        $this->bcAssertEqualsWithDelta(10, $third['margin']['PR']);
+        $this->bcAssertEqualsWithDelta(30, ($third['region'][0] ?? [])['RX'] ?? null);
+    }
+
+    /**
+     * isYOutRegion() and isXOutRegion() must read the implicit cursor from the
+     * queried page, not from the current one.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testIsOutRegionUsesTheQueriedPageCursor(): void
+    {
+        $page = $this->getTestObject();
+        $page->add();
+        $page->add();
+
+        $page->setY(10.0, 0);
+        $page->setY(400.0, 1);
+        $page->setX(10.0, 0);
+        $page->setX(400.0, 1);
+        $page->setCurrentPage(0);
+
+        $this->assertTrue($page->isYOutRegion(null, 0.0, 1));
+        $this->assertTrue($page->isXOutRegion(null, 0.0, 1));
+        $this->assertFalse($page->isYOutRegion(null, 0.0, 0));
+        $this->assertFalse($page->isXOutRegion(null, 0.0, 0));
+    }
+
+    /**
+     * Moving to an already existing page enters it from its first region.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testGetNextRegionEntersTheNextPageFromItsFirstRegion(): void
+    {
+        $page = $this->getTestObject();
+        $page->add([
+            'columns' => 3,
+        ]);
+        $page->add([
+            'columns' => 3,
+        ]);
+
+        // Leave page 1 pointing at its last region, then leave page 0 the same way.
+        $page->selectRegion(2, 1);
+        $page->selectRegion(2, 0);
+
+        $res = $page->getNextRegion(0);
+
+        $this->bcAssertEqualsWithDelta(1, $res['pid']);
+        $this->bcAssertEqualsWithDelta(0, $res['currentRegion']);
+    }
+
+    /**
+     * A band height that would slice the content area into more than MAX_BANDS
+     * bands is rejected instead of looping for an unbounded amount of time.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testBuildWritableRegionsRejectsTooManyBands(): void
+    {
+        $page = $this->getTestObject();
+        $page->add();
+
+        try {
+            $page->buildWritableRegions([], 0.0001001);
+            $this->fail('Expected exception was not thrown.');
+        } catch (\Com\Tecnick\Pdf\Page\Exception $e) {
+            $this->assertStringContainsString('band height is too small', $e->getMessage());
+        }
+
+        // A sane band height still works.
+        $this->assertNotEmpty($page->buildWritableRegions([], 10.0));
+    }
+
+    /**
+     * Overriding the page size must keep the page boxes consistent with it.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testSetPageSizeResizesTheBoxes(): void
+    {
+        $page = $this->getTestObject();
+        $page->add([
+            'format' => 'A4',
+        ]);
+
+        $page->setPagePHeight(300.0);
+        $page->setPagePWidth(200.0);
+
+        foreach ($page->getPage(0)['box'] as $box) {
+            $this->bcAssertEqualsWithDelta(0, $box['llx']);
+            $this->bcAssertEqualsWithDelta(0, $box['lly']);
+            $this->bcAssertEqualsWithDelta(200, $box['urx']);
+            $this->bcAssertEqualsWithDelta(300, $box['ury']);
+        }
+    }
+
+    /**
+     * Overriding the page size must keep the orientation consistent with it.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testSetPageSizeUpdatesTheOrientation(): void
+    {
+        $page = $this->getTestObject();
+        $page->add([
+            'format' => 'A4',
+        ]);
+        $this->assertSame('P', $page->getPage(0)['orientation']);
+
+        $page->setPagePWidth(1000.0);
+        $this->assertSame('L', $page->getPage(0)['orientation']);
+
+        $page->setPagePHeight(2000.0);
+        $this->assertSame('P', $page->getPage(0)['orientation']);
+    }
+
+    /**
+     * A block ending above the region top does not need more room, so it must
+     * neither consume a region nor add a page.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testCheckRegionBreakIgnoresPositionsAboveTheRegion(): void
+    {
+        $page = $this->getTestObject();
+        $page->add([
+            'format' => 'A4',
+            'margin' => [
+                'PL' => 10,
+                'PR' => 10,
+                'PT' => 10,
+                'PB' => 10,
+            ],
+        ]);
+
+        // The cursor sits in the header area, above the region top (RY = 10).
+        $page->setY(0.0);
+        $res = $page->checkRegionBreak(5.0);
+
+        $this->bcAssertEqualsWithDelta(0, $res['pid']);
+        $this->bcAssertEqualsWithDelta(0, $res['currentRegion']);
+        $this->assertCount(1, $page->getPages());
+
+        // A real overflow still breaks.
+        $res = $page->checkRegionBreak(1000.0);
+        $this->assertCount(2, $page->getPages());
+        $this->bcAssertEqualsWithDelta(1, $res['pid']);
+    }
+
+    /**
+     * When the automatic page break is disabled on the last page there is nowhere
+     * to go, so the selected region must be kept instead of rewinding to the first
+     * one and cycling forever.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testGetNextRegionKeepsTheRegionWhenItCannotLeaveThePage(): void
+    {
+        $page = $this->getTestObject();
+        $page->add([
+            'columns' => 3,
+            'autobreak' => false,
+        ]);
+        $page->selectRegion(2);
+
+        for ($idx = 0; $idx < 3; ++$idx) {
+            $res = $page->getNextRegion();
+            $this->bcAssertEqualsWithDelta(0, $res['pid']);
+            $this->bcAssertEqualsWithDelta(2, $res['currentRegion']);
+        }
+
+        $this->assertCount(1, $page->getPages());
+    }
+
+    /**
+     * The booklet gutter depends on the position of the new page in the stack, so
+     * it must not follow the current page pointer.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testBookletMarginsFollowTheNewPageIndex(): void
+    {
+        $page = $this->getTestObject();
+        $margin = [
+            'booklet' => true,
+            'PL' => 30,
+            'PR' => 10,
+            'PT' => 10,
+            'PB' => 10,
+        ];
+
+        $page->add([
+            'format' => 'A4',
+            'margin' => $margin,
+        ]);
+        $page->add([
+            'format' => 'A4',
+            'margin' => $margin,
+        ]);
+
+        // Inspecting an earlier page must not change the gutter of the next one.
+        $page->setCurrentPage(0);
+
+        $third = $page->add([
+            'format' => 'A4',
+            'margin' => $margin,
+        ]);
+
+        $this->bcAssertEqualsWithDelta(2, $third['pid']);
+        $this->bcAssertEqualsWithDelta(30, $third['margin']['PL']);
+        $this->bcAssertEqualsWithDelta(10, $third['margin']['PR']);
+    }
+
+    /**
+     * A page is a rectangle with a positive area, so a non-positive override is rejected
+     * instead of inverting the MediaBox.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testSetPagePSizeRejectsNonPositiveValues(): void
+    {
+        $page = $this->getTestObject();
+        $page->add([
+            'format' => 'A4',
+        ]);
+
+        $thrown = 0;
+        foreach ([0.0, -1.0] as $value) {
+            try {
+                $page->setPagePWidth($value);
+            } catch (\Com\Tecnick\Pdf\Page\Exception) {
+                ++$thrown;
+            }
+
+            try {
+                $page->setPagePHeight($value);
+            } catch (\Com\Tecnick\Pdf\Page\Exception) {
+                ++$thrown;
+            }
+        }
+
+        $this->assertSame(4, $thrown);
+
+        // The page is left untouched by the rejected calls.
+        $this->bcAssertEqualsWithDelta(595.276, $page->getPage(0)['pwidth']);
+        $this->bcAssertEqualsWithDelta(841.890, $page->getPage(0)['pheight']);
+    }
+
+    /**
+     * A cloned booklet page mirrors the gutter, and its regions follow it by being
+     * translated: they must not be replaced by that many equal columns.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testClonedBookletPageKeepsCustomRegions(): void
+    {
+        $page = $this->getTestObject();
+        $page->add([
+            'format' => 'A4',
+            'margin' => [
+                'booklet' => true,
+                'PL' => 30.0,
+                'PR' => 10.0,
+            ],
+            'region' => [
+                [
+                    'RX' => 30.0,
+                    'RY' => 0.0,
+                    'RW' => 40.0,
+                    'RH' => 100.0,
+                ],
+                [
+                    'RX' => 90.0,
+                    'RY' => 0.0,
+                    'RW' => 80.0,
+                    'RH' => 250.0,
+                ],
+            ],
+        ]);
+
+        $cloned = $page->add();
+
+        // The gutter moved from PL = 30 to PL = 10, so every region shifts left by 20.
+        $this->bcAssertEqualsWithDelta([
+            [10.0, 40.0, 100.0],
+            [70.0, 80.0, 250.0],
+        ], $this->getRegionExtents($cloned['region']));
+    }
+
+    /**
+     * Reduce a region list to the [RX, RW, RH] triplet of each region.
+     *
+     * @param array<int, array<string, float>> $regions Page regions.
+     *
+     * @return array<int, array{0: float, 1: float, 2: float}> Region extents.
+     */
+    private function getRegionExtents(array $regions): array
+    {
+        $extents = [];
+        foreach ($regions as $region) {
+            $extents[] = [$region['RX'] ?? 0.0, $region['RW'] ?? 0.0, $region['RH'] ?? 0.0];
+        }
+
+        return $extents;
+    }
+
+    /**
+     * A page really split into equal columns keeps producing the same columns when
+     * cloned: translating them by the gutter delta is the same as rebuilding them.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testClonedBookletPageKeepsEqualColumns(): void
+    {
+        $page = $this->getTestObject();
+        $first = $page->add([
+            'format' => 'A4',
+            'columns' => 3,
+            'margin' => [
+                'booklet' => true,
+                'PL' => 30.0,
+                'PR' => 10.0,
+            ],
+        ]);
+
+        $cloned = $page->add();
+
+        $expected = [];
+        foreach ($this->getRegionExtents($first['region']) as $extent) {
+            $expected[] = [$extent[0] - 20.0, $extent[1], $extent[2]];
+        }
+
+        $this->assertCount(3, $expected);
+        $this->bcAssertEqualsWithDelta($expected, $this->getRegionExtents($cloned['region']));
     }
 }

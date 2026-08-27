@@ -81,8 +81,7 @@ class PageLayoutTest extends TestUtil
     }
 
     /**
-     * The widened getLayout() accepts a PageLayout enum, staying consistent with
-     * the legacy alias resolution.
+     * getLayout() accepts a PageLayout enum and resolves it like the aliases.
      *
      * @throws \Com\Tecnick\Pdf\Page\Exception
      */

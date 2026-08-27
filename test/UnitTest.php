@@ -17,7 +17,7 @@
 namespace Test;
 
 /**
- * Unit Test
+ * Unit conversion test
  *
  * @since     2011-05-23
  * @category  Library

@@ -98,8 +98,8 @@ class PageBoxTypeTest extends TestUtil
     }
 
     /**
-     * The widened setBox() accepts a PageBoxType enum and keys the dimensions
-     * array on the same string as the legacy call.
+     * setBox() accepts a PageBoxType enum and keys the dimensions array on the
+     * same string as the box name.
      *
      * @throws \Com\Tecnick\Pdf\Page\Exception
      */
