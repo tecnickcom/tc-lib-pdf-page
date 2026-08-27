@@ -413,6 +413,32 @@ class PageTest extends TestUtil
     }
 
     /**
+     * A page shrunk below its declared boxes emits them intersected with the
+     * MediaBox, while the page data keeps the declared coordinates.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     * @throws \Com\Tecnick\Pdf\Encrypt\Exception
+     */
+    public function testGetPdfPagesClampsTheBoxesToTheMediaBox(): void
+    {
+        $page = $this->getTestObject();
+        $page->add([
+            'format' => 'A4',
+        ]);
+        $page->setPagePHeight(300.0);
+
+        $pon = 0;
+        $out = $page->getPdfPages($pon);
+
+        $this->assertStringContainsString('/MediaBox [0.000000 0.000000 595.276000 300.000000]', $out);
+        $this->assertStringContainsString('/CropBox [0.000000 0.000000 595.276000 300.000000]', $out);
+
+        foreach ($page->getPage(0)['box'] as $type => $box) {
+            $this->bcAssertEqualsWithDelta($type === 'MediaBox' ? 300.0 : 841.89, $box['ury']);
+        }
+    }
+
+    /**
      * @throws \Com\Tecnick\Pdf\Page\Exception
      */
     public function testaddAnnotRef(): void

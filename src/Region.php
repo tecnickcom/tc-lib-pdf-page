@@ -286,8 +286,10 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
     /**
      * Overrides the page height and returns the current value in points.
      *
-     * The page boxes and the orientation are updated to match. The format name, the
-     * margins and the regions are not recomputed: reassign them with
+     * The MediaBox and the orientation are updated to match. The other boxes keep
+     * their declared coordinates and are intersected with the MediaBox on output,
+     * so passing the returned value back restores the original geometry. The format
+     * name, the margins and the regions are not recomputed: reassign them with
      * setNoWriteRegions() or a new add() if the writable area must follow.
      *
      * @param float $pheight new page height in internal points (must be positive).
@@ -319,8 +321,10 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
     /**
      * Overrides the page width and returns the current value in points.
      *
-     * The page boxes and the orientation are updated to match. The format name, the
-     * margins and the regions are not recomputed: reassign them with
+     * The MediaBox and the orientation are updated to match. The other boxes keep
+     * their declared coordinates and are intersected with the MediaBox on output,
+     * so passing the returned value back restores the original geometry. The format
+     * name, the margins and the regions are not recomputed: reassign them with
      * setNoWriteRegions() or a new add() if the writable area must follow.
      *
      * @param float $pwidth new page width in internal points (must be positive).
@@ -350,7 +354,11 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
     }
 
     /**
-     * Resize the MediaBox to the given dimensions and clamp the other boxes inside it.
+     * Resize the MediaBox to the given dimensions.
+     *
+     * The other boxes keep their declared coordinates: they are intersected with
+     * the MediaBox when the page is written, so resizing the page back to its
+     * previous dimensions also restores them.
      *
      * @param array<string, PageDataBox> $box     Page boxes.
      * @param ?float                     $pwidth  New page width in points, or null to keep it.
@@ -375,7 +383,7 @@ abstract class Region extends \Com\Tecnick\Pdf\Page\Settings
 
         $box['MediaBox'] = $media;
 
-        return $this->clampBoxesToMediaBox($box);
+        return $box;
     }
 
     /**

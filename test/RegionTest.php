@@ -640,11 +640,12 @@ class RegionTest extends TestUtil
     }
 
     /**
-     * Overriding the page size must keep the page boxes consistent with it.
+     * Overriding the page size must resize the MediaBox and leave the declared
+     * coordinates of the other boxes untouched.
      *
      * @throws \Com\Tecnick\Pdf\Page\Exception
      */
-    public function testSetPageSizeResizesTheBoxes(): void
+    public function testSetPageSizeResizesTheMediaBox(): void
     {
         $page = $this->getTestObject();
         $page->add([
@@ -654,12 +655,41 @@ class RegionTest extends TestUtil
         $page->setPagePHeight(300.0);
         $page->setPagePWidth(200.0);
 
-        foreach ($page->getPage(0)['box'] as $box) {
-            $this->bcAssertEqualsWithDelta(0, $box['llx']);
-            $this->bcAssertEqualsWithDelta(0, $box['lly']);
-            $this->bcAssertEqualsWithDelta(200, $box['urx']);
-            $this->bcAssertEqualsWithDelta(300, $box['ury']);
+        $corners = [];
+        foreach ($page->getPage(0)['box'] as $type => $box) {
+            $corners[$type] = [$box['llx'], $box['lly'], $box['urx'], $box['ury']];
         }
+
+        $this->bcAssertEqualsWithDelta([
+            'MediaBox' => [0.0, 0.0, 200.0, 300.0],
+            'CropBox' => [0.0, 0.0, 595.276, 841.89],
+            'BleedBox' => [0.0, 0.0, 595.276, 841.89],
+            'TrimBox' => [0.0, 0.0, 595.276, 841.89],
+            'ArtBox' => [0.0, 0.0, 595.276, 841.89],
+        ], $corners);
+    }
+
+    /**
+     * Restoring the page size returned by the setters must restore the original
+     * page geometry.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testSetPageSizeRoundTripRestoresTheBoxes(): void
+    {
+        $page = $this->getTestObject();
+        $page->add([
+            'format' => 'A4',
+        ]);
+
+        $expected = $page->getPage(0)['box'];
+
+        $pheight = $page->setPagePHeight(28.35);
+        $pwidth = $page->setPagePWidth(56.7);
+        $page->setPagePWidth($pwidth);
+        $page->setPagePHeight($pheight);
+
+        $this->bcAssertEqualsWithDelta($expected, $page->getPage(0)['box']);
     }
 
     /**

@@ -513,6 +513,9 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     /**
      * Split the page boxes into coordinates and BoxColorInfo entries.
      *
+     * Every box other than the MediaBox is intersected with it, as nothing is
+     * rendered outside the MediaBox and the reader applies the same intersection.
+     *
      * @param PageData $page Page data.
      *
      * @return array{0: array<string, array{llx: float, lly: float, urx: float, ury: float}>, 1: array<string, array{bci: PageBci}>}
@@ -521,7 +524,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     {
         $boxdims = [];
         $boxinfo = [];
-        foreach ($page['box'] as $name => $box) {
+        foreach ($this->clampBoxesToMediaBox($page['box']) as $name => $box) {
             $boxdims[$name] = [
                 'llx' => $box['llx'],
                 'lly' => $box['lly'],
