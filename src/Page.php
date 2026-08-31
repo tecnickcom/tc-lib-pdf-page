@@ -369,6 +369,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
 
     /**
      * Add Annotation references.
+     * Object IDs lower than 1 are ignored.
      *
      * @param int $oid Annotation object IDs.
      * @param int $pid Page index. Omit or set it to -1 for the current page.
@@ -377,6 +378,10 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      */
     public function addAnnotRef(int $oid, int $pid = -1): void
     {
+        if ($oid < 1) {
+            return;
+        }
+
         $pid = $this->sanitizePageID($pid);
         $annotrefs = $this->page[$pid]['annotrefs'] ?? [];
 

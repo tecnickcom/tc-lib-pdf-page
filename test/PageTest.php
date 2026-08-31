@@ -499,6 +499,22 @@ class PageTest extends TestUtil
     /**
      * @throws \Com\Tecnick\Pdf\Page\Exception
      */
+    public function testAddAnnotRefInvalidObjectId(): void
+    {
+        $testObj = $this->getTestObject();
+        $testObj->add();
+        $testObj->addAnnotRef(0);
+        $testObj->addAnnotRef(-1);
+        $testObj->addAnnotRef(19);
+
+        $page = $testObj->getPage();
+        $this->assertCount(1, $page['annotrefs']);
+        $this->assertEquals(19, $page['annotrefs'][0] ?? null);
+    }
+
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testPopContentEmptyEx(): void
     {
         $this->bcExpectException(\Com\Tecnick\Pdf\Page\Exception::class);
