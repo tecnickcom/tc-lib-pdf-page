@@ -51,7 +51,9 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
      * @param string|Unit $unit     Unit of measure ('pt', 'mm', 'cm', 'in') or a Unit enum case.
      * @param Color       $color    Color object.
      * @param Encrypt     $encrypt  Encrypt object.
-     * @param bool        $pdfa     True if we are in PDF/A mode.
+     * @param bool        $notransparency True when the conformance mode forbids
+     *                              transparency (PDF/A-1, PDF/X-1a, PDF/X-3): the page
+     *                              transparency group is suppressed.
      * @param bool        $compress Set to false to disable stream compression.
      * @param bool        $sigapp   True if the signature approval is enabled (for incremental updates).
      *
@@ -61,14 +63,14 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
         string|Unit $unit,
         Color $color,
         Encrypt $encrypt,
-        bool $pdfa = false,
+        bool $notransparency = false,
         bool $compress = true,
         bool $sigapp = false,
     ) {
         $this->kunit = $this->getUnitRatio($unit);
         $this->col = $color;
         $this->enc = $encrypt;
-        $this->pdfa = $pdfa;
+        $this->notransparency = $notransparency;
         $this->compress = $compress;
         $this->sigapp = $sigapp;
     }
@@ -110,6 +112,63 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
         $pid = $this->sanitizePageID($pid);
         $this->pagetransparency[$pid] = $hasTransparency;
         return $this;
+    }
+
+    /**
+     * Exclude a page box from the page dictionary of every page.
+     *
+     * ISO 15930 (PDF/X) requires a page to carry a trim box or an art box, but not
+     * both, so a conforming producer has to drop one of them. The box data is still
+     * computed and used for layout; only the page dictionary entry is omitted.
+     *
+     * The MediaBox is required by ISO 32000-1 and cannot be omitted.
+     *
+     * @param string|PageBoxType $type Box type: CropBox, BleedBox, TrimBox or ArtBox.
+     *
+     * @throws PageException
+     */
+    public function omitPageBox(string|PageBoxType $type): static
+    {
+        $name = $this->normalizePageBoxName($type);
+        if ($name === 'MediaBox') {
+            throw new PageException('the MediaBox is required and cannot be omitted');
+        }
+
+        $this->omittedboxes[$name] = true;
+        return $this;
+    }
+
+    /**
+     * Restore a page box previously excluded with omitPageBox().
+     *
+     * @param string|PageBoxType $type Box type: CropBox, BleedBox, TrimBox or ArtBox.
+     *
+     * @throws PageException
+     */
+    public function keepPageBox(string|PageBoxType $type): static
+    {
+        unset($this->omittedboxes[$this->normalizePageBoxName($type)]);
+        return $this;
+    }
+
+    /**
+     * Validate a page box name.
+     *
+     * @param string|PageBoxType $type Box type.
+     *
+     * @throws PageException
+     */
+    protected function normalizePageBoxName(string|PageBoxType $type): string
+    {
+        if ($type instanceof PageBoxType) {
+            return $type->value;
+        }
+
+        if (!\in_array($type, self::BOX, true)) {
+            throw new PageException('unknown page box type: ' . $type);
+        }
+
+        return $type;
     }
 
     /**
@@ -455,7 +514,7 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
                 . $this->rootoid
                 . ' 0 R'
                 . "\n";
-            if (!$this->pdfa && $this->emitPageTransparencyGroup($num)) {
+            if (!$this->notransparency && $this->emitPageTransparencyGroup($num)) {
                 $out .= '/Group << /Type /Group /S /Transparency /CS /DeviceRGB >>' . "\n";
             }
 
@@ -525,6 +584,10 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
         $boxdims = [];
         $boxinfo = [];
         foreach ($this->clampBoxesToMediaBox($page['box']) as $name => $box) {
+            if (!empty($this->omittedboxes[$name])) {
+                continue;
+            }
+
             $boxdims[$name] = [
                 'llx' => $box['llx'],
                 'lly' => $box['lly'],

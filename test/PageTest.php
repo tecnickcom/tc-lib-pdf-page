@@ -47,7 +47,7 @@ class PageTest extends TestUtil
     /**
      * @throws \Com\Tecnick\Pdf\Page\Exception
      */
-    protected function getPdfaTestObject(): \Com\Tecnick\Pdf\Page\Page
+    protected function getNoTransparencyTestObject(): \Com\Tecnick\Pdf\Page\Page
     {
         $pdf = new \Com\Tecnick\Color\Pdf();
         $encrypt = $this->getEncryptObject();
@@ -739,15 +739,15 @@ class PageTest extends TestUtil
     }
 
     /**
-     * PDF/A documents never emit the transparency group, regardless of the
-     * configured mode or per-page flags.
+     * A document whose conformance mode forbids transparency never emits the
+     * transparency group, regardless of the configured mode or per-page flags.
      *
      * @throws \Com\Tecnick\Pdf\Page\Exception
      * @throws \Com\Tecnick\Pdf\Encrypt\Exception
      */
-    public function testGetPdfPagesTransparencyPdfa(): void
+    public function testGetPdfPagesTransparencyWithoutTransparency(): void
     {
-        $page = $this->getPdfaTestObject();
+        $page = $this->getNoTransparencyTestObject();
         $page->add();
         $page->add();
         $page->setPageTransparency(true, 0);
@@ -1140,5 +1140,63 @@ class PageTest extends TestUtil
         $this->assertSame([], \array_values(\array_diff(\array_keys($data), $declared)));
         $this->assertSame(0, $data['n']);
         $this->assertArrayHasKey('booklet', $data['margin']);
+    }
+
+    /**
+     * ISO 15930 requires a page to carry a trim box or an art box, but not both,
+     * so a producer must be able to drop one of them.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     * @throws \Com\Tecnick\Pdf\Encrypt\Exception
+     */
+    public function testOmitPageBoxRemovesItFromThePageDictionary(): void
+    {
+        $page = $this->getTestObject();
+        $page->omitPageBox('ArtBox');
+        $page->add();
+
+        $pon = 0;
+        $out = $page->getPdfPages($pon);
+
+        $this->assertStringNotContainsString('/ArtBox', $out);
+        $this->assertStringContainsString('/TrimBox', $out);
+        $this->assertStringContainsString('/MediaBox', $out);
+    }
+
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     * @throws \Com\Tecnick\Pdf\Encrypt\Exception
+     */
+    public function testKeepPageBoxRestoresIt(): void
+    {
+        $page = $this->getTestObject();
+        $page->omitPageBox(\Com\Tecnick\Pdf\Page\PageBoxType::ArtBox);
+        $page->keepPageBox(\Com\Tecnick\Pdf\Page\PageBoxType::ArtBox);
+        $page->add();
+
+        $pon = 0;
+        $out = $page->getPdfPages($pon);
+
+        $this->assertStringContainsString('/ArtBox', $out);
+    }
+
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testOmitPageBoxRefusesTheMediaBox(): void
+    {
+        $page = $this->getTestObject();
+        $this->bcExpectException(\Com\Tecnick\Pdf\Page\Exception::class);
+        $page->omitPageBox('MediaBox');
+    }
+
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
+    public function testOmitPageBoxRefusesAnUnknownBox(): void
+    {
+        $page = $this->getTestObject();
+        $this->bcExpectException(\Com\Tecnick\Pdf\Page\Exception::class);
+        $page->omitPageBox('FooBox');
     }
 }

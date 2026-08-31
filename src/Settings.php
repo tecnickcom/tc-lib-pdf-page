@@ -102,9 +102,18 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
     protected Encrypt $enc;
 
     /**
-     * True if we are in PDF/A mode.
+     * True when the conformance mode forbids transparency (PDF/A-1, PDF/X-1a, PDF/X-3).
+     *
+     * Suppresses the page transparency group.
      */
-    protected bool $pdfa = false;
+    protected bool $notransparency = false;
+
+    /**
+     * Page boxes excluded from the page dictionary, keyed by box name.
+     *
+     * @var array<string, bool>
+     */
+    protected array $omittedboxes = [];
 
     /**
      * Enable stream compression.

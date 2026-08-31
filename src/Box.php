@@ -554,18 +554,21 @@ abstract class Box extends \Com\Tecnick\Pdf\Page\Mode
     {
         $out = '/BoxColorInfo <<' . "\n";
         foreach (self::BOX as $box) {
+            if (!array_key_exists($box, $dims)) {
+                // The box is not part of this page dictionary.
+                continue;
+            }
+
             $out .= '/' . $box . ' <<' . "\n";
             $color = empty($dims[$box]['bci']['color']) ? '' : $this->getRgbComponents($dims[$box]['bci']['color']);
             if ($color !== '') {
                 $out .= '/C [' . $color . ']' . "\n";
             }
 
-            $width = $dims[$box]['bci']['width'] ?? null;
-            if ($width !== null) {
-                // A width of 0 hides the guideline and is emitted: omitting the entry
-                // would let the reader apply the default width of 1.
-                $out .= \sprintf('/W %F' . "\n", \max(0.0, $width) * $this->kunit);
-            }
+            // A width of 0 hides the guideline and is emitted: omitting the entry
+            // would let the reader apply the default width of 1.
+            $width = $dims[$box]['bci']['width'];
+            $out .= \sprintf('/W %F' . "\n", \max(0.0, $width) * $this->kunit);
 
             if (!empty($dims[$box]['bci']['style'])) {
                 $mode = \strtoupper($dims[$box]['bci']['style'][0]);
