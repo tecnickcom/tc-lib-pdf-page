@@ -142,6 +142,11 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
     protected string $transparencygroupmode = 'auto';
 
     /**
+     * Modification time (UTC seconds) of the pages added without one, or null for the current time.
+     */
+    protected ?int $deftime = null;
+
+    /**
      * Reserved Object ID for the resource dictionary.
      */
     protected int $rdoid = 1;
@@ -176,11 +181,14 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
     /**
      * Sanitize or set the page modification time.
      *
+     * A missing time is set to the default page time, or to the current time when
+     * no default is set. Negative values are set to 0.
+     *
      * @param PageInputData $data Page data.
      */
     public function sanitizeTime(array &$data): void
     {
-        $data['time'] = empty($data['time']) ? \time() : \max(0, (int) $data['time']);
+        $data['time'] = isset($data['time']) ? \max(0, (int) $data['time']) : $this->deftime ?? \time();
     }
 
     /**

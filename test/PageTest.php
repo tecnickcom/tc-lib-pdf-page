@@ -218,6 +218,36 @@ class PageTest extends TestUtil
     /**
      * @throws \Com\Tecnick\Pdf\Page\Exception
      */
+    public function testDefaultPageTime(): void
+    {
+        $page = $this->getTestObject();
+        $page->setDefaultPageTime(1_700_000_000);
+
+        // a new page, a cloned page and an automatic page take the default time
+        $this->assertSame(1_700_000_000, $page->add(['format' => 'A4'])['time']);
+        $this->assertSame(1_700_000_000, $page->add()['time']);
+        $this->assertSame(1_700_000_000, $page->getNextPage()['time']);
+
+        // an explicit time wins, also the epoch
+        $this->assertSame(1_600_000_000, $page->add(['format' => 'A4', 'time' => 1_600_000_000])['time']);
+        $this->assertSame(0, $page->add(['format' => 'A4', 'time' => 0])['time']);
+
+        // the time of a cloned page is not copied from its source
+        $this->assertSame(1_700_000_000, $page->add()['time']);
+
+        // without a default the current time is used
+        $page->setDefaultPageTime(null);
+        $before = \time();
+        $this->assertGreaterThanOrEqual($before, $page->add()['time']);
+
+        // a negative default is set to the epoch
+        $page->setDefaultPageTime(-5);
+        $this->assertSame(0, $page->add()['time']);
+    }
+
+    /**
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     */
     public function testGetNextPage(): void
     {
         $page = $this->getTestObject();

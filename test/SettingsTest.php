@@ -120,8 +120,7 @@ class SettingsTest extends TestUtil
             'time' => 0,
         ];
         $page->sanitizeTime($data);
-        $this->assertArrayHasKey('time', $data);
-        $this->assertNotEmpty($data['time'] ?? null);
+        $this->assertSame(['time' => 0], $data);
 
         $data = [
             'time' => 1,

@@ -97,6 +97,18 @@ class Page extends \Com\Tecnick\Pdf\Page\Region
     }
 
     /**
+     * Set the modification time of the pages added without one, including the pages
+     * added automatically by a page break.
+     *
+     * @param ?int $time UTC time in seconds, or null to use the current time.
+     */
+    public function setDefaultPageTime(?int $time): static
+    {
+        $this->deftime = $time === null ? null : \max(0, $time);
+        return $this;
+    }
+
+    /**
      * Record whether the given page uses transparency.
      *
      * In 'auto' mode a page flagged false omits the per-page transparency
