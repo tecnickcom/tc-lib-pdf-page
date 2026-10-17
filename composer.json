@@ -27,14 +27,14 @@
     "php": "^8.2",
     "ext-zlib": "*",
     "tecnickcom/tc-lib-color": "^3.0",
-    "tecnickcom/tc-lib-pdf-encrypt": "^2.11"
+    "tecnickcom/tc-lib-pdf-encrypt": "^2.12"
   },
   "minimum-stability": "stable",
   "prefer-stable": true,
   "require-dev": {
-    "carthage-software/mago": "1.55.0",
-    "pdepend/pdepend": "^2.16",
-    "phpunit/phpunit": "^11.5 || ^12.5 || ^13.3"
+    "carthage-software/mago": "1.57.0",
+    "pdepend/pdepend": "^3.0",
+    "phpunit/phpunit": "^11.5 || ^12.5 || ^13.4"
   },
   "autoload": {
     "psr-4": {

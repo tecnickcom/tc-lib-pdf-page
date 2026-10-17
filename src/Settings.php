@@ -623,7 +623,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
         // The regions are collected into a fresh list: 'columns' is their count and
         // selectRegion() addresses them by an index in the [0, columns - 1] range.
         $regions = [];
-        foreach ($data['region'] ?? [] as $val) {
+        foreach ($data['region'] as $val) {
             $regions[] = $this->normalizeRegionData(
                 $val,
                 $contentWidth,
@@ -727,7 +727,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
             $data['orientation'] = $orientation;
         }
 
-        if (($data['orientation'] ?? '') !== $orientation) {
+        if ($data['orientation'] !== $orientation) {
             $data['box'] = $this->swapCoordinates($box);
         }
     }
@@ -784,7 +784,7 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
      */
     protected function completeBoxChain(array $box, float $pwidth, float $pheight): array
     {
-        if (empty($box['MediaBox'])) {
+        if (($box['MediaBox'] ?? []) === []) {
             $box = $this->setBox($box, 'MediaBox', 0, 0, $pwidth, $pheight);
         }
 
