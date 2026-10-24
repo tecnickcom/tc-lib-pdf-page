@@ -1107,6 +1107,68 @@ class PageTest extends TestUtil
     }
 
     /**
+     * The page number resolver gets the content with the aliases replaced, and the page
+     * number and total of the page group.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     * @throws \Com\Tecnick\Pdf\Encrypt\Exception
+     */
+    public function testPageNumberResolverReceivesGroupNumbers(): void
+    {
+        $pdf = new \Com\Tecnick\Color\Pdf();
+        $page = new \Com\Tecnick\Pdf\Page\Page('mm', $pdf, $this->getEncryptObject(), false, false, false);
+        $alias = \Com\Tecnick\Pdf\Page\Settings::PAGE_NUM . '/' . \Com\Tecnick\Pdf\Page\Settings::PAGE_TOT;
+        $page->add();
+        $page->addContent('A ' . $alias . ' [X]');
+        $page->add();
+        $page->addContent('B ' . $alias . ' [X]');
+        $page->add(['group' => 1]);
+        $page->addContent('C ' . $alias . ' [X]');
+
+        $calls = [];
+        $page->setPageNumberResolver(static function (string $content, int $num, int $total) use (&$calls): string {
+            $calls[] = [\trim($content), $num, $total];
+            return \str_replace('[X]', '[' . $num . '-' . $total . ']', $content);
+        });
+
+        $pon = 0;
+        $out = $page->getPdfPages($pon);
+
+        $this->assertSame(
+            [
+                ['A 1/2 [X]', 1, 2],
+                ['B 2/2 [X]', 2, 2],
+                ['C 1/1 [X]', 1, 1],
+            ],
+            $calls,
+        );
+        $this->assertStringContainsString('A 1/2 [1-2]', $out);
+        $this->assertStringContainsString('B 2/2 [2-2]', $out);
+        $this->assertStringContainsString('C 1/1 [1-1]', $out);
+    }
+
+    /**
+     * Removing the page number resolver restores the plain alias replacement.
+     *
+     * @throws \Com\Tecnick\Pdf\Page\Exception
+     * @throws \Com\Tecnick\Pdf\Encrypt\Exception
+     */
+    public function testPageNumberResolverCanBeRemoved(): void
+    {
+        $pdf = new \Com\Tecnick\Color\Pdf();
+        $page = new \Com\Tecnick\Pdf\Page\Page('mm', $pdf, $this->getEncryptObject(), false, false, false);
+        $page->add();
+        $page->addContent('P ' . \Com\Tecnick\Pdf\Page\Settings::PAGE_NUM . ' [X]');
+
+        $page->setPageNumberResolver(static fn(string $content): string => \str_replace('[X]', '[Y]', $content));
+        $page->setPageNumberResolver(null);
+
+        $pon = 0;
+        $out = $page->getPdfPages($pon);
+        $this->assertStringContainsString('P 1 [X]', $out);
+    }
+
+    /**
      * /SS and /B belong to the Fly style only, and /SS must be greater than 0.
      *
      * @throws \Com\Tecnick\Pdf\Page\Exception

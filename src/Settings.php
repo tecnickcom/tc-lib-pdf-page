@@ -147,6 +147,13 @@ abstract class Settings extends \Com\Tecnick\Pdf\Page\Box
     protected ?int $deftime = null;
 
     /**
+     * Callback applied to the content of each page after the page templates are replaced.
+     *
+     * @var ?\Closure(string, int, int): string
+     */
+    protected ?\Closure $pagenumresolver = null;
+
+    /**
      * Reserved Object ID for the resource dictionary.
      */
     protected int $rdoid = 1;
